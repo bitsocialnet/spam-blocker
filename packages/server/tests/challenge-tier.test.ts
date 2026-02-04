@@ -170,16 +170,16 @@ describe("determineChallengeTier", () => {
         expect(determineChallengeTier(0.19)).toBe("auto_accept");
     });
 
-    it("should return captcha_only for scores between autoAcceptThreshold and captchaOnlyThreshold", () => {
-        expect(determineChallengeTier(0.2)).toBe("captcha_only");
-        expect(determineChallengeTier(0.3)).toBe("captcha_only");
-        expect(determineChallengeTier(0.39)).toBe("captcha_only");
+    it("should return oauth_sufficient for scores between autoAcceptThreshold and oauthSufficientThreshold", () => {
+        expect(determineChallengeTier(0.2)).toBe("oauth_sufficient");
+        expect(determineChallengeTier(0.3)).toBe("oauth_sufficient");
+        expect(determineChallengeTier(0.39)).toBe("oauth_sufficient");
     });
 
-    it("should return captcha_and_oauth for scores between captchaOnlyThreshold and autoRejectThreshold", () => {
-        expect(determineChallengeTier(0.4)).toBe("captcha_and_oauth");
-        expect(determineChallengeTier(0.5)).toBe("captcha_and_oauth");
-        expect(determineChallengeTier(0.79)).toBe("captcha_and_oauth");
+    it("should return oauth_plus_more for scores between oauthSufficientThreshold and autoRejectThreshold", () => {
+        expect(determineChallengeTier(0.4)).toBe("oauth_plus_more");
+        expect(determineChallengeTier(0.5)).toBe("oauth_plus_more");
+        expect(determineChallengeTier(0.79)).toBe("oauth_plus_more");
     });
 
     it("should return auto_reject for scores at or above autoRejectThreshold", () => {
@@ -191,31 +191,31 @@ describe("determineChallengeTier", () => {
     it("should use custom thresholds when provided", () => {
         const customConfig = {
             autoAcceptThreshold: 0.1,
-            captchaOnlyThreshold: 0.3,
+            oauthSufficientThreshold: 0.3,
             autoRejectThreshold: 0.6
         };
 
         expect(determineChallengeTier(0.05, customConfig)).toBe("auto_accept");
-        expect(determineChallengeTier(0.15, customConfig)).toBe("captcha_only");
-        expect(determineChallengeTier(0.4, customConfig)).toBe("captcha_and_oauth");
+        expect(determineChallengeTier(0.15, customConfig)).toBe("oauth_sufficient");
+        expect(determineChallengeTier(0.4, customConfig)).toBe("oauth_plus_more");
         expect(determineChallengeTier(0.7, customConfig)).toBe("auto_reject");
     });
 
     it("should throw error for invalid threshold configuration", () => {
-        expect(() => determineChallengeTier(0.5, { autoAcceptThreshold: 0.5, captchaOnlyThreshold: 0.3 })).toThrow(
-            "autoAcceptThreshold must be less than captchaOnlyThreshold"
+        expect(() => determineChallengeTier(0.5, { autoAcceptThreshold: 0.5, oauthSufficientThreshold: 0.3 })).toThrow(
+            "autoAcceptThreshold must be less than oauthSufficientThreshold"
         );
 
-        expect(() => determineChallengeTier(0.5, { captchaOnlyThreshold: 0.9, autoRejectThreshold: 0.7 })).toThrow(
-            "captchaOnlyThreshold must be less than autoRejectThreshold"
+        expect(() => determineChallengeTier(0.5, { oauthSufficientThreshold: 0.9, autoRejectThreshold: 0.7 })).toThrow(
+            "oauthSufficientThreshold must be less than autoRejectThreshold"
         );
     });
 
     it("should handle boundary values correctly", () => {
-        // At exactly autoAcceptThreshold, should be captcha_only
-        expect(determineChallengeTier(0.2)).toBe("captcha_only");
-        // At exactly captchaOnlyThreshold, should be captcha_and_oauth
-        expect(determineChallengeTier(0.4)).toBe("captcha_and_oauth");
+        // At exactly autoAcceptThreshold, should be oauth_sufficient
+        expect(determineChallengeTier(0.2)).toBe("oauth_sufficient");
+        // At exactly oauthSufficientThreshold, should be oauth_plus_more
+        expect(determineChallengeTier(0.4)).toBe("oauth_plus_more");
         // At exactly autoRejectThreshold, should be auto_reject
         expect(determineChallengeTier(0.8)).toBe("auto_reject");
     });
@@ -226,7 +226,7 @@ describe("validateChallengeTierConfig", () => {
         expect(() =>
             validateChallengeTierConfig({
                 autoAcceptThreshold: 0.2,
-                captchaOnlyThreshold: 0.4,
+                oauthSufficientThreshold: 0.4,
                 autoRejectThreshold: 0.8
             })
         ).not.toThrow();
@@ -236,41 +236,41 @@ describe("validateChallengeTierConfig", () => {
         expect(() => validateChallengeTierConfig(DEFAULT_CHALLENGE_TIER_CONFIG)).not.toThrow();
     });
 
-    it("should throw when autoAcceptThreshold >= captchaOnlyThreshold", () => {
+    it("should throw when autoAcceptThreshold >= oauthSufficientThreshold", () => {
         expect(() =>
             validateChallengeTierConfig({
                 autoAcceptThreshold: 0.5,
-                captchaOnlyThreshold: 0.4,
+                oauthSufficientThreshold: 0.4,
                 autoRejectThreshold: 0.8
             })
-        ).toThrow("autoAcceptThreshold must be less than captchaOnlyThreshold");
+        ).toThrow("autoAcceptThreshold must be less than oauthSufficientThreshold");
     });
 
-    it("should throw when autoAcceptThreshold equals captchaOnlyThreshold", () => {
+    it("should throw when autoAcceptThreshold equals oauthSufficientThreshold", () => {
         expect(() =>
             validateChallengeTierConfig({
                 autoAcceptThreshold: 0.4,
-                captchaOnlyThreshold: 0.4,
+                oauthSufficientThreshold: 0.4,
                 autoRejectThreshold: 0.8
             })
-        ).toThrow("autoAcceptThreshold must be less than captchaOnlyThreshold");
+        ).toThrow("autoAcceptThreshold must be less than oauthSufficientThreshold");
     });
 
-    it("should throw when captchaOnlyThreshold >= autoRejectThreshold", () => {
+    it("should throw when oauthSufficientThreshold >= autoRejectThreshold", () => {
         expect(() =>
             validateChallengeTierConfig({
                 autoAcceptThreshold: 0.2,
-                captchaOnlyThreshold: 0.9,
+                oauthSufficientThreshold: 0.9,
                 autoRejectThreshold: 0.8
             })
-        ).toThrow("captchaOnlyThreshold must be less than autoRejectThreshold");
+        ).toThrow("oauthSufficientThreshold must be less than autoRejectThreshold");
     });
 
     it("should throw when a threshold is NaN", () => {
         expect(() =>
             validateChallengeTierConfig({
                 autoAcceptThreshold: NaN,
-                captchaOnlyThreshold: 0.4,
+                oauthSufficientThreshold: 0.4,
                 autoRejectThreshold: 0.8
             })
         ).toThrow("autoAcceptThreshold must be a finite number");
@@ -278,15 +278,15 @@ describe("validateChallengeTierConfig", () => {
         expect(() =>
             validateChallengeTierConfig({
                 autoAcceptThreshold: 0.2,
-                captchaOnlyThreshold: NaN,
+                oauthSufficientThreshold: NaN,
                 autoRejectThreshold: 0.8
             })
-        ).toThrow("captchaOnlyThreshold must be a finite number");
+        ).toThrow("oauthSufficientThreshold must be a finite number");
 
         expect(() =>
             validateChallengeTierConfig({
                 autoAcceptThreshold: 0.2,
-                captchaOnlyThreshold: 0.4,
+                oauthSufficientThreshold: 0.4,
                 autoRejectThreshold: NaN
             })
         ).toThrow("autoRejectThreshold must be a finite number");
@@ -296,7 +296,7 @@ describe("validateChallengeTierConfig", () => {
         expect(() =>
             validateChallengeTierConfig({
                 autoAcceptThreshold: 0.2,
-                captchaOnlyThreshold: 0.4,
+                oauthSufficientThreshold: 0.4,
                 autoRejectThreshold: Infinity
             })
         ).toThrow("autoRejectThreshold must be a finite number");
@@ -351,12 +351,12 @@ describe("Challenge Tier Integration", () => {
             expect(session?.riskScore).toBeGreaterThanOrEqual(0);
             expect(session?.riskScore).toBeLessThanOrEqual(1);
             // Challenge tier should be set based on risk score
-            expect(["captcha_only", "captcha_and_oauth", null]).toContain(session?.challengeTier);
+            expect(["oauth_sufficient", "oauth_plus_more", null]).toContain(session?.challengeTier);
         });
     });
 
     describe("Iframe route with challenge tiers", () => {
-        it("should serve turnstile iframe for captcha_only tier", async () => {
+        it("should serve turnstile iframe for oauth_sufficient tier", async () => {
             server = await createServer({
                 port: 0,
                 logging: false,
@@ -364,9 +364,9 @@ describe("Challenge Tier Integration", () => {
                 baseUrl: "http://localhost:3000",
                 turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
                 turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY,
-                // Set thresholds so most scores result in captcha_only
+                // Set thresholds so most scores result in oauth_sufficient
                 autoAcceptThreshold: 0,
-                captchaOnlyThreshold: 0.99,
+                oauthSufficientThreshold: 0.99,
                 autoRejectThreshold: 1.0
             });
             await server.fastify.ready();
@@ -375,9 +375,9 @@ describe("Challenge Tier Integration", () => {
             const evalResponse = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
             const { sessionId } = evalResponse.json();
 
-            // Verify session has captcha_only tier
+            // Verify session has oauth_sufficient tier
             const session = server.db.getChallengeSessionBySessionId(sessionId);
-            expect(session?.challengeTier).toBe("captcha_only");
+            expect(session?.challengeTier).toBe("oauth_sufficient");
 
             const iframeResponse = await server.fastify.inject({
                 method: "GET",
@@ -398,7 +398,7 @@ describe("Challenge Tier Integration", () => {
                 turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
                 turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY,
                 autoAcceptThreshold: 0,
-                captchaOnlyThreshold: 0.001,
+                oauthSufficientThreshold: 0.001,
                 autoRejectThreshold: 0.002
             });
             await server.fastify.ready();
@@ -431,7 +431,7 @@ describe("Challenge Tier Integration", () => {
                 baseUrl: "http://localhost:3000",
                 turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
                 autoAcceptThreshold: 1.1,
-                captchaOnlyThreshold: 1.2,
+                oauthSufficientThreshold: 1.2,
                 autoRejectThreshold: 1.3
             });
             await server.fastify.ready();
@@ -458,7 +458,7 @@ describe("Challenge Tier Integration", () => {
                 turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY,
                 // Ensure score falls in challenge range (0.2–0.8)
                 autoAcceptThreshold: 0,
-                captchaOnlyThreshold: 0.99,
+                oauthSufficientThreshold: 0.99,
                 autoRejectThreshold: 1.0,
                 // Use defaults for score adjustment
                 captchaScoreMultiplier: 0.7,
@@ -497,15 +497,15 @@ describe("Challenge Tier Integration", () => {
             if (riskScore * 0.7 < 0.4) {
                 // CAPTCHA alone was sufficient
                 expect(completeBody.passed).toBe(true);
-                expect(completeBody.oauthSuggested).toBeUndefined();
+                expect(completeBody.oauthRequired).toBeUndefined();
 
                 const session = server.db.getChallengeSessionBySessionId(sessionId);
                 expect(session?.status).toBe("completed");
                 expect(session?.captchaCompleted).toBe(1);
             } else {
-                // CAPTCHA not sufficient, OAuth suggested
+                // CAPTCHA not sufficient, OAuth required
                 expect(completeBody.passed).toBe(false);
-                expect(completeBody.oauthSuggested).toBe(true);
+                expect(completeBody.oauthRequired).toBe(true);
 
                 const session = server.db.getChallengeSessionBySessionId(sessionId);
                 expect(session?.status).toBe("pending");
@@ -526,7 +526,7 @@ describe("Challenge Tier Integration", () => {
                     github: { clientId: "test", clientSecret: "test" }
                 },
                 autoAcceptThreshold: 0,
-                captchaOnlyThreshold: 0.99,
+                oauthSufficientThreshold: 0.99,
                 autoRejectThreshold: 1.0,
                 // Very low threshold so score * multiplier is always above it
                 captchaScoreMultiplier: 0.99,
@@ -561,7 +561,7 @@ describe("Challenge Tier Integration", () => {
             const completeBody = completeResponse.json();
             expect(completeBody.success).toBe(true);
             expect(completeBody.passed).toBe(false);
-            expect(completeBody.oauthSuggested).toBe(true);
+            expect(completeBody.oauthRequired).toBe(true);
 
             // Session should NOT be completed yet
             const session = server.db.getChallengeSessionBySessionId(sessionId);
@@ -569,7 +569,7 @@ describe("Challenge Tier Integration", () => {
             expect(session?.captchaCompleted).toBe(1);
         });
 
-        it("should complete session for captcha_only tier after CAPTCHA with sufficient score reduction", async () => {
+        it("should complete session for oauth_sufficient tier after CAPTCHA with sufficient score reduction", async () => {
             server = await createServer({
                 port: 0,
                 logging: false,
@@ -578,7 +578,7 @@ describe("Challenge Tier Integration", () => {
                 turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
                 turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY,
                 autoAcceptThreshold: 0,
-                captchaOnlyThreshold: 0.99,
+                oauthSufficientThreshold: 0.99,
                 autoRejectThreshold: 1.0,
                 // Very generous: any score * 0.01 < 0.99 always passes
                 captchaScoreMultiplier: 0.01,
@@ -630,12 +630,12 @@ describe("Challenge Tier Integration", () => {
             });
             await server.fastify.ready();
 
-            // Test with captcha_only tier
+            // Test with oauth_sufficient tier
             const captchaSession = server.db.insertChallengeSession({
                 sessionId: "captcha-only-pending",
                 subplebbitPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
-                challengeTier: "captcha_only",
+                challengeTier: "oauth_sufficient",
                 riskScore: 0.3
             });
 
@@ -650,12 +650,12 @@ describe("Challenge Tier Integration", () => {
             const response1 = await injectCbor(server.fastify, "POST", "/api/v1/challenge/verify", payload1);
             expect(response1.json().error).toBe("Challenge not yet completed");
 
-            // Test with captcha_and_oauth tier
+            // Test with oauth_plus_more tier
             const combinedSession = server.db.insertChallengeSession({
                 sessionId: "combined-pending",
                 subplebbitPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
-                challengeTier: "captcha_and_oauth",
+                challengeTier: "oauth_plus_more",
                 riskScore: 0.6
             });
 

@@ -205,15 +205,13 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             );
 
             // Map challenge tier to database tier (auto_accept and auto_reject don't need sessions with tiers)
-            // The iframe route uses riskScore-based logic to decide what to show,
-            // but we still store challengeTier for logging and backwards compatibility.
             let dbChallengeTier: ChallengeTierDb | undefined;
-            if (challengeTier === "captcha_only" || challengeTier === "captcha_and_oauth") {
-                if (hasTurnstile) {
-                    // Score-based adjustment determines if OAuth is needed after CAPTCHA
-                    dbChallengeTier = challengeTier === "captcha_and_oauth" && hasOAuthProviders ? "captcha_and_oauth" : "captcha_only";
-                } else if (hasOAuthProviders) {
-                    dbChallengeTier = "captcha_only";
+            if (challengeTier === "oauth_sufficient" || challengeTier === "oauth_plus_more") {
+                if (hasOAuthProviders) {
+                    dbChallengeTier = challengeTier;
+                } else if (hasTurnstile) {
+                    // No OAuth providers available — fall back to oauth_sufficient (CAPTCHA-only path)
+                    dbChallengeTier = "oauth_sufficient";
                 }
             }
 

@@ -37,16 +37,18 @@ export interface ServerConfig {
     oauth?: OAuthConfig;
     /** Risk score threshold for auto-accept (no challenge). Default: 0.2 */
     autoAcceptThreshold?: number;
-    /** Risk score threshold for CAPTCHA-only challenges. Scores between autoAcceptThreshold and this get CAPTCHA only. Above this requires CAPTCHA + OAuth. Default: 0.4 */
-    captchaOnlyThreshold?: number;
+    /** Risk score threshold for OAuth-sufficient challenges. Scores between autoAcceptThreshold and this need one OAuth. Above this requires additional verification. Default: 0.4 */
+    oauthSufficientThreshold?: number;
     /** Risk score threshold for auto-reject. Default: 0.8 */
     autoRejectThreshold?: number;
     /** Allow non-domain (IPNS) subplebbits. Useful for local testing. Default: false */
     allowNonDomainSubplebbits?: boolean;
     /** Multiplier applied to riskScore after CAPTCHA (0-1]. Default: 0.7 (30% reduction) */
     captchaScoreMultiplier?: number;
-    /** Additional multiplier after OAuth (0-1]. Default: 0.5 (50% further reduction) */
+    /** Multiplier applied to riskScore after first OAuth (0-1]. Default: 0.6 (40% reduction) */
     oauthScoreMultiplier?: number;
+    /** Multiplier applied after second OAuth from a different provider (0-1]. Default: 0.5 (50% further reduction) */
+    secondOauthScoreMultiplier?: number;
     /** Adjusted score must be below this to pass. Default: 0.4 */
     challengePassThreshold?: number;
 }
@@ -77,18 +79,19 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         plebbitRpcUrl = DEFAULT_PLEBBIT_RPC_URL,
         oauth,
         autoAcceptThreshold,
-        captchaOnlyThreshold,
+        oauthSufficientThreshold,
         autoRejectThreshold,
         allowNonDomainSubplebbits,
         captchaScoreMultiplier,
         oauthScoreMultiplier,
+        secondOauthScoreMultiplier,
         challengePassThreshold
     } = config;
 
     // Build challenge tier config from provided thresholds
     const challengeTierConfig = {
         ...(autoAcceptThreshold !== undefined && { autoAcceptThreshold }),
-        ...(captchaOnlyThreshold !== undefined && { captchaOnlyThreshold }),
+        ...(oauthSufficientThreshold !== undefined && { oauthSufficientThreshold }),
         ...(autoRejectThreshold !== undefined && { autoRejectThreshold })
     };
 
@@ -167,6 +170,7 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         allowNonDomainSubplebbits,
         captchaScoreMultiplier,
         oauthScoreMultiplier,
+        secondOauthScoreMultiplier,
         challengePassThreshold
     });
 
@@ -250,7 +254,10 @@ if (isMainModule) {
     };
 
     const autoAcceptThreshold = parseOptionalFloat({ envVar: process.env.AUTO_ACCEPT_THRESHOLD, name: "AUTO_ACCEPT_THRESHOLD" });
-    const captchaOnlyThreshold = parseOptionalFloat({ envVar: process.env.CAPTCHA_ONLY_THRESHOLD, name: "CAPTCHA_ONLY_THRESHOLD" });
+    const oauthSufficientThreshold = parseOptionalFloat({
+        envVar: process.env.OAUTH_SUFFICIENT_THRESHOLD,
+        name: "OAUTH_SUFFICIENT_THRESHOLD"
+    });
     const autoRejectThreshold = parseOptionalFloat({ envVar: process.env.AUTO_REJECT_THRESHOLD, name: "AUTO_REJECT_THRESHOLD" });
 
     const captchaScoreMultiplier = parseOptionalFloat({
@@ -260,6 +267,10 @@ if (isMainModule) {
     const oauthScoreMultiplier = parseOptionalFloat({
         envVar: process.env.OAUTH_SCORE_MULTIPLIER,
         name: "OAUTH_SCORE_MULTIPLIER"
+    });
+    const secondOauthScoreMultiplier = parseOptionalFloat({
+        envVar: process.env.SECOND_OAUTH_SCORE_MULTIPLIER,
+        name: "SECOND_OAUTH_SCORE_MULTIPLIER"
     });
     const challengePassThreshold = parseOptionalFloat({
         envVar: process.env.CHALLENGE_PASS_THRESHOLD,
@@ -273,16 +284,19 @@ if (isMainModule) {
     if (oauthScoreMultiplier !== undefined && (oauthScoreMultiplier <= 0 || oauthScoreMultiplier > 1)) {
         throw new Error("OAUTH_SCORE_MULTIPLIER must be in (0, 1]");
     }
+    if (secondOauthScoreMultiplier !== undefined && (secondOauthScoreMultiplier <= 0 || secondOauthScoreMultiplier > 1)) {
+        throw new Error("SECOND_OAUTH_SCORE_MULTIPLIER must be in (0, 1]");
+    }
     if (challengePassThreshold !== undefined && (challengePassThreshold <= 0 || challengePassThreshold >= 1)) {
         throw new Error("CHALLENGE_PASS_THRESHOLD must be in (0, 1)");
     }
 
     // If any threshold was provided, validate the merged config at startup
-    if (autoAcceptThreshold !== undefined || captchaOnlyThreshold !== undefined || autoRejectThreshold !== undefined) {
+    if (autoAcceptThreshold !== undefined || oauthSufficientThreshold !== undefined || autoRejectThreshold !== undefined) {
         const mergedConfig = {
             ...DEFAULT_CHALLENGE_TIER_CONFIG,
             ...(autoAcceptThreshold !== undefined && { autoAcceptThreshold }),
-            ...(captchaOnlyThreshold !== undefined && { captchaOnlyThreshold }),
+            ...(oauthSufficientThreshold !== undefined && { oauthSufficientThreshold }),
             ...(autoRejectThreshold !== undefined && { autoRejectThreshold })
         };
         validateChallengeTierConfig(mergedConfig);
@@ -345,11 +359,12 @@ if (isMainModule) {
         plebbitRpcUrl: process.env.PLEBBIT_RPC_URL,
         oauth: Object.keys(oauth).length > 0 ? oauth : undefined,
         autoAcceptThreshold,
-        captchaOnlyThreshold,
+        oauthSufficientThreshold,
         autoRejectThreshold,
         allowNonDomainSubplebbits: process.env.ALLOW_NON_DOMAIN_SUBPLEBBITS === "true",
         captchaScoreMultiplier,
         oauthScoreMultiplier,
+        secondOauthScoreMultiplier,
         challengePassThreshold
     })
         .then((server) => {

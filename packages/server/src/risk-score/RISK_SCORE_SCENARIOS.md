@@ -1,6 +1,6 @@
 # Risk Score Scenarios
 
-_Generated: 2026-02-02_
+_Generated: 2026-02-04_
 
 This document shows how risk scores are calculated for various user scenarios across different
 configuration combinations. Each scenario represents a realistic user profile with specific
@@ -172,7 +172,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.44**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.44. After CAPTCHA: 0.44 × 0.7 = 0.31 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.44. After CAPTCHA: 0.44 × 0.7 = 0.31 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -423,7 +423,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.41**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.41. After CAPTCHA: 0.41 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.41. After CAPTCHA: 0.41 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -548,7 +548,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet              | 0%       | (skipped)    |
 | **Total**           |       |                        | **100%** | **0.57**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.57. After CAPTCHA: 0.57 × 0.7 = 0.40 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.57. After CAPTCHA: 0.57 × 0.7 = 0.40 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -672,7 +672,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.38**     |
 
-**Outcome:** CAPTCHA only — Raw score 0.38. After CAPTCHA: 0.38 × 0.7 = 0.26 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.38. After CAPTCHA: 0.38 × 0.7 = 0.26 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -796,7 +796,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.55**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.55. After CAPTCHA: 0.55 × 0.7 = 0.38 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.55. After CAPTCHA: 0.55 × 0.7 = 0.38 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -921,7 +921,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet               | 0%       | (skipped)    |
 | **Total**           |       |                         | **100%** | **0.52**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.52. After CAPTCHA: 0.52 × 0.7 = 0.36 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.52. After CAPTCHA: 0.52 × 0.7 = 0.36 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1046,7 +1046,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.41**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.41. After CAPTCHA: 0.41 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.41. After CAPTCHA: 0.41 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1171,7 +1171,7 @@ Configuration: **Vote** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.51**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.51. After CAPTCHA: 0.51 × 0.7 = 0.36 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.51. After CAPTCHA: 0.51 × 0.7 = 0.36 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1419,7 +1419,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.28**     |
 
-**Outcome:** CAPTCHA only — Raw score 0.28. After CAPTCHA: 0.28 × 0.7 = 0.20 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.28. After CAPTCHA: 0.28 × 0.7 = 0.20 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1543,7 +1543,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.32**     |
 
-**Outcome:** CAPTCHA only — Raw score 0.32. After CAPTCHA: 0.32 × 0.7 = 0.23 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.32. After CAPTCHA: 0.32 × 0.7 = 0.23 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1668,7 +1668,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.51**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.51. After CAPTCHA: 0.51 × 0.7 = 0.35 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.51. After CAPTCHA: 0.51 × 0.7 = 0.35 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1792,7 +1792,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.35**     |
 
-**Outcome:** CAPTCHA only — Raw score 0.35. After CAPTCHA: 0.35 × 0.7 = 0.24 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.35. After CAPTCHA: 0.35 × 0.7 = 0.24 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -2043,7 +2043,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | 0.15  | 150 tx (strong) | 8.8%     | 0.01         |
 | **Total**           |       |                 | **100%** | **0.42**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.42. After CAPTCHA: 0.42 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.42. After CAPTCHA: 0.42 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -2168,7 +2168,7 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Wallet Activity     | 0.35  | 5 tx (some activity) | 8.8%     | 0.03         |
 | **Total**           |       |                      | **100%** | **0.43**     |
 
-**Outcome:** CAPTCHA + OAuth — Raw score 0.43. After CAPTCHA: 0.43 × 0.7 = 0.30 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.43. After CAPTCHA: 0.43 × 0.7 = 0.30 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 

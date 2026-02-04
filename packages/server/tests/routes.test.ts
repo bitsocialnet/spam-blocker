@@ -861,12 +861,12 @@ describe("API Routes", () => {
             expect(body.error).toContain("not yet completed");
         });
 
-        it("should return unified pending error for captcha_only tier", async () => {
+        it("should return unified pending error for oauth_sufficient tier", async () => {
             const captchaSession = server.db.insertChallengeSession({
                 sessionId: "captcha-only-pending",
                 subplebbitPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
-                challengeTier: "captcha_only",
+                challengeTier: "oauth_sufficient",
                 riskScore: 0.3
             });
 
@@ -879,12 +879,12 @@ describe("API Routes", () => {
             expect(body.error).toBe("Challenge not yet completed");
         });
 
-        it("should return unified pending error for captcha_and_oauth tier", async () => {
+        it("should return unified pending error for oauth_plus_more tier", async () => {
             const combinedSession = server.db.insertChallengeSession({
                 sessionId: "combined-neither-pending",
                 subplebbitPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
-                challengeTier: "captcha_and_oauth",
+                challengeTier: "oauth_plus_more",
                 riskScore: 0.6
             });
 
@@ -902,7 +902,7 @@ describe("API Routes", () => {
                 sessionId: "combined-captcha-done",
                 subplebbitPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
-                challengeTier: "captcha_and_oauth",
+                challengeTier: "oauth_plus_more",
                 riskScore: 0.6
             });
             server.db.updateChallengeSessionCaptchaCompleted(combinedSession.sessionId);

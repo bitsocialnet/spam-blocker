@@ -4,7 +4,7 @@ import path from "path";
 import { SCHEMA_SQL } from "./schema.js";
 
 /** Challenge tier for tiered challenge selection */
-export type ChallengeTierDb = "captcha_only" | "captcha_and_oauth";
+export type ChallengeTierDb = "oauth_sufficient" | "oauth_plus_more";
 
 export interface ChallengeSession {
     sessionId: string;
@@ -16,11 +16,13 @@ export interface ChallengeSession {
     receivedChallengeRequestAt: number;
     /** When the author accessed the iframe */
     authorAccessedIframeAt: number | null;
-    /** OAuth identity in format "provider:userId" (e.g., "github:12345678") */
+    /** OAuth identity in format "provider:userId" or JSON array for multiple (e.g., '["github:123","google:456"]') */
     oauthIdentity: string | null;
     /** Challenge tier for tiered challenge selection (null for auto_accept/auto_reject which don't need challenges) */
     challengeTier: ChallengeTierDb | null;
-    /** Whether CAPTCHA portion is completed (for captcha_and_oauth tier) */
+    /** Whether first OAuth is completed (session may still need more verification for oauth_plus_more tier) */
+    oauthCompleted: number;
+    /** Whether CAPTCHA portion is completed */
     captchaCompleted: number;
     /** The risk score at evaluation time (used for score adjustment after CAPTCHA/OAuth) */
     riskScore: number | null;
@@ -259,8 +261,24 @@ export class SpamDetectionDatabase {
     }
 
     /**
-     * Mark CAPTCHA as completed for a combined (captcha_and_oauth) challenge.
-     * Does not mark the session as completed - OAuth must still be completed.
+     * Mark first OAuth as completed for a session.
+     * Does not mark the session as completed — for oauth_plus_more tier, additional verification is needed.
+     */
+    updateChallengeSessionOAuthCompleted(sessionId: string): boolean {
+        const stmt = this.db.prepare(`
+      UPDATE challengeSessions
+      SET oauthCompleted = 1
+      WHERE sessionId = @sessionId
+    `);
+
+        const result = stmt.run({ sessionId });
+
+        return result.changes > 0;
+    }
+
+    /**
+     * Mark CAPTCHA as completed for a session.
+     * Does not mark the session as completed — used when CAPTCHA is a fallback or combined step.
      */
     updateChallengeSessionCaptchaCompleted(sessionId: string): boolean {
         const stmt = this.db.prepare(`

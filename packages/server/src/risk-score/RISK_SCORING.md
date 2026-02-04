@@ -696,52 +696,70 @@ Where `effectiveWeight` is the redistributed weight after accounting for skipped
 
 The risk score is mapped to a challenge tier that determines what verification the user must complete:
 
-| Risk Score Range                           | Tier                | Action                    |
-| ------------------------------------------ | ------------------- | ------------------------- |
-| 0.0 - autoAcceptThreshold                  | `auto_accept`       | No challenge, auto-accept |
-| autoAcceptThreshold - captchaOnlyThreshold | `captcha_only`      | CAPTCHA (Turnstile) only  |
-| captchaOnlyThreshold - autoRejectThreshold | `captcha_and_oauth` | CAPTCHA + OAuth sign-in   |
-| autoRejectThreshold - 1.0                  | `auto_reject`       | No challenge, auto-reject |
+| Risk Score Range                               | Tier               | Action                              |
+| ---------------------------------------------- | ------------------ | ----------------------------------- |
+| 0.0 - autoAcceptThreshold                      | `auto_accept`      | No challenge, auto-accept           |
+| autoAcceptThreshold - oauthSufficientThreshold | `oauth_sufficient` | One OAuth sign-in is enough to pass |
+| oauthSufficientThreshold - autoRejectThreshold | `oauth_plus_more`  | OAuth + second OAuth or CAPTCHA     |
+| autoRejectThreshold - 1.0                      | `auto_reject`      | No challenge, auto-reject           |
 
 ### Default Thresholds
 
-| Threshold              | Default Value | Description                                               |
-| ---------------------- | ------------- | --------------------------------------------------------- |
-| `autoAcceptThreshold`  | 0.2           | Scores below this are auto-accepted without any challenge |
-| `captchaOnlyThreshold` | 0.4           | Scores between auto-accept and this get CAPTCHA only      |
-| `autoRejectThreshold`  | 0.8           | Scores at or above this are auto-rejected                 |
+| Threshold                  | Default Value | Description                                               |
+| -------------------------- | ------------- | --------------------------------------------------------- |
+| `autoAcceptThreshold`      | 0.2           | Scores below this are auto-accepted without any challenge |
+| `oauthSufficientThreshold` | 0.4           | Scores between auto-accept and this pass with one OAuth   |
+| `autoRejectThreshold`      | 0.8           | Scores at or above this are auto-rejected                 |
+
+### Score Adjustment Model
+
+OAuth is the primary trust signal. CAPTCHA (Turnstile) is a fallback for users without social accounts.
+
+| Path                 | Formula                          | Default           | Example (score=0.5) | Example (score=0.7) |
+| -------------------- | -------------------------------- | ----------------- | ------------------- | ------------------- |
+| OAuth alone          | score × oauthMult                | score × 0.6       | 0.30 PASS           | 0.42 FAIL           |
+| CAPTCHA alone        | score × captchaMult              | score × 0.7       | 0.35 PASS           | 0.49 FAIL           |
+| OAuth + second OAuth | score × oauthMult × 2ndOauthMult | score × 0.6 × 0.5 | 0.15 PASS           | 0.21 PASS           |
+| OAuth + CAPTCHA      | score × oauthMult × captchaMult  | score × 0.6 × 0.7 | 0.21 PASS           | 0.29 PASS           |
+
+- **Pass threshold**: 0.4 (configurable via `CHALLENGE_PASS_THRESHOLD`)
+- **OAuth multiplier**: 0.6 (configurable via `OAUTH_SCORE_MULTIPLIER`)
+- **CAPTCHA multiplier**: 0.7 (configurable via `CAPTCHA_SCORE_MULTIPLIER`)
+- **Second OAuth multiplier**: 0.5 (configurable via `SECOND_OAUTH_SCORE_MULTIPLIER`)
 
 ### Challenge Tier Behavior
 
 **`auto_accept`**: The session is immediately marked as completed. The user doesn't need to solve any challenge.
 
-**`captcha_only`**: The user must complete a CAPTCHA (Cloudflare Turnstile). Once verified, the session is marked as completed.
+**`oauth_sufficient`**: The user is presented with OAuth sign-in buttons as the primary challenge. One OAuth verification is enough to pass. A "I don't have a social account" link shows CAPTCHA as a fallback (only if CAPTCHA alone can pass at this score level).
 
-**`captcha_and_oauth`**: The user must complete both:
+**`oauth_plus_more`**: One OAuth alone isn't enough to pass. After the first OAuth, the user must either:
 
-1. CAPTCHA (Turnstile) - verifies they are human
-2. OAuth sign-in - verifies they have a real social account
+- Sign in with a **second OAuth from a different provider**, or
+- Complete a **CAPTCHA** in addition to the first OAuth
 
-The CAPTCHA must be completed first, then OAuth buttons become available. This two-step verification provides stronger assurance for medium-risk submissions.
+The combined score adjustment (OAuth × second OAuth, or OAuth × CAPTCHA) must bring the score below the pass threshold.
 
 **`auto_reject`**: The session is immediately marked as failed. The user cannot complete the challenge.
 
 ### OAuth Provider Filtering
 
-When `captcha_and_oauth` tier is triggered, the system checks if the user has previously verified via OAuth with any providers. If so, **only providers they haven't used before** are shown. This prevents users from repeatedly using the same OAuth account.
+Previously-used OAuth providers (tracked by the author's Ed25519 public key across sessions) are "used up" and filtered from the available list. This forces users to verify with different providers over time.
 
-If the user has already used all available OAuth providers, the tier is downgraded to `captcha_only`.
+If the user has already used all available OAuth providers, all providers are shown again (re-use allowed).
+
+For second OAuth within a session, the provider must be **different** from the first OAuth provider used in that session.
 
 ### Fallback Behavior
 
 The system gracefully degrades based on available providers:
 
-| Configured Providers | captcha_only Tier              | captcha_and_oauth Tier         |
-| -------------------- | ------------------------------ | ------------------------------ |
-| Both CAPTCHA + OAuth | Turnstile CAPTCHA              | Turnstile + OAuth              |
-| CAPTCHA only         | Turnstile CAPTCHA              | Downgrades to Turnstile only   |
-| OAuth only           | OAuth sign-in                  | Downgrades to OAuth only       |
-| Neither              | Error (no challenge available) | Error (no challenge available) |
+| Configured Providers | oauth_sufficient Tier           | oauth_plus_more Tier                       |
+| -------------------- | ------------------------------- | ------------------------------------------ |
+| Both OAuth + CAPTCHA | OAuth primary, CAPTCHA fallback | OAuth + second OAuth or CAPTCHA            |
+| OAuth only           | OAuth sign-in                   | OAuth + second OAuth (no CAPTCHA fallback) |
+| CAPTCHA only         | Turnstile CAPTCHA only          | Turnstile CAPTCHA only                     |
+| Neither              | Error (no challenge available)  | Error (no challenge available)             |
 
 ## Limitations
 

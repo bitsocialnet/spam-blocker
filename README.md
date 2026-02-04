@@ -126,36 +126,36 @@ Called by the subplebbit's challenge code to verify that the user completed the 
 
 ### GET /api/v1/iframe/:sessionId
 
-Serves the iframe challenge page. The iframe content is determined by the session's risk score and the server's score adjustment configuration.
+Serves the iframe challenge page. The iframe uses an **OAuth-first** flow where OAuth is the primary trust signal and CAPTCHA is a fallback.
 
-- **CAPTCHA provider**: Cloudflare Turnstile
-- **OAuth providers** (optional): GitHub, Google, Twitter, Yandex, TikTok, Discord, Reddit
+- **OAuth providers** (primary): GitHub, Google, Twitter, Yandex, TikTok, Discord, Reddit
+- **CAPTCHA provider** (fallback): Cloudflare Turnstile
 
 > **Privacy note**: For OAuth providers, the server only verifies successful authentication - it does NOT share account identifiers (username, email) with the subplebbit. For IP-based intelligence, only the country code is shared, never the raw IP address.
 
-**Iframe selection logic:**
+**Iframe logic (OAuth-first):**
 
-The server decides which iframe to serve based on whether CAPTCHA alone will suffice:
+When OAuth providers are configured, the iframe shows OAuth buttons as the primary challenge:
 
-- If `riskScore × captchaScoreMultiplier < challengePassThreshold` → serve **CAPTCHA-only** iframe
-- If CAPTCHA won't suffice and OAuth is configured → serve **combined iframe** (CAPTCHA first, OAuth section revealed after CAPTCHA)
-- If no CAPTCHA configured but OAuth is → serve **OAuth-only** iframe
+1. **Initial view**: OAuth sign-in buttons. If CAPTCHA alone can pass at this score level, a "I don't have a social account" link is also shown.
+2. **After first OAuth**: If `riskScore × oauthMultiplier < passThreshold` → session completes. Otherwise, "Additional verification needed" view shows remaining providers and optional CAPTCHA.
+3. **CAPTCHA fallback**: Shown when the user clicks "I don't have a social account". If OAuth was already completed, the combined multiplier (OAuth × CAPTCHA) is applied.
 
-When the user completes the challenge:
+When no OAuth is configured, a turnstile-only CAPTCHA iframe is served.
 
-1. The iframe shows CAPTCHA first; user solves it
-2. The iframe calls `POST /api/v1/challenge/complete` with the Turnstile response token
-3. The server validates with Turnstile, applies score adjustment, and responds with `{ passed: true/false }`
-4. If `passed: true` → iframe shows "Verification complete!"
-5. If `passed: false` → iframe reveals OAuth buttons ("Sign in with a social account to continue")
-6. User completes OAuth → server marks session as `completed`
-7. The user clicks "done" in their plebbit client (the client provides this button outside the iframe)
-8. The client sends a `ChallengeAnswer` with an empty string to the subplebbit
-9. The subplebbit's challenge code calls `/api/v1/challenge/verify` to check if the session is completed
+**Challenge completion flow:**
+
+1. User signs in via OAuth (or solves CAPTCHA fallback)
+2. Server applies score adjustment and determines if session passes
+3. If more verification needed, iframe transitions to "need more" view
+4. Once passed, iframe shows "Verification complete!"
+5. The user clicks "done" in their plebbit client (the client provides this button outside the iframe)
+6. The client sends a `ChallengeAnswer` with an empty string to the subplebbit
+7. The subplebbit's challenge code calls `/api/v1/challenge/verify` to check if the session is completed
 
 ### POST /api/v1/challenge/complete
 
-Called by the iframe after the user solves the CAPTCHA. Validates the Turnstile response, then applies score adjustment to decide whether the session passes or needs OAuth.
+Called by the iframe after the user solves the CAPTCHA (as a fallback in the OAuth-first flow). Validates the Turnstile response, then applies score adjustment to decide whether the session passes.
 
 **Request:**
 
@@ -172,27 +172,31 @@ Called by the iframe after the user solves the CAPTCHA. Validates the Turnstile 
 ```typescript
 {
   success: boolean;
-  error?: string;           // Error message on failure
-  passed?: boolean;         // Whether the challenge is fully passed (session completed)
-  oauthSuggested?: boolean; // Whether OAuth is suggested to lower the score further
+  error?: string;          // Error message on failure
+  passed?: boolean;        // Whether the challenge is fully passed (session completed)
+  oauthRequired?: boolean; // Whether OAuth is required (CAPTCHA alone is not enough)
 }
 ```
 
-**Score adjustment logic:** After validating the CAPTCHA, the server computes `adjustedScore = riskScore × captchaScoreMultiplier`. If `adjustedScore < challengePassThreshold`, the session is marked `completed` and `passed: true` is returned. Otherwise, the CAPTCHA is marked complete but the session stays `pending`, and `passed: false, oauthSuggested: true` is returned.
+**Score adjustment logic:** After validating the CAPTCHA, the server checks if OAuth was already completed. If so, the combined multiplier is used: `adjustedScore = riskScore × oauthMultiplier × captchaMultiplier`. Otherwise: `adjustedScore = riskScore × captchaMultiplier`. If `adjustedScore < challengePassThreshold`, the session is marked `completed` and `passed: true` is returned. Otherwise, the CAPTCHA is marked complete but the session stays `pending`, and `passed: false, oauthRequired: true` is returned.
 
 ### OAuth Routes
 
 **GET /api/v1/oauth/:provider/start?sessionId=...** — Initiates the OAuth flow. Generates state, stores it in the database, and redirects the user to the OAuth provider's authorization page.
 
-**GET /api/v1/oauth/:provider/callback** — OAuth callback handler. Exchanges the authorization code for a token, retrieves the user identity, and marks the session as `completed` with the OAuth identity. OAuth is also allowed on already-completed sessions (adds trust for future evaluations without changing session status).
+**GET /api/v1/oauth/:provider/callback** — OAuth callback handler. Exchanges the authorization code for a token, retrieves the user identity, then applies score adjustment:
 
-**GET /api/v1/oauth/status/:sessionId** — Polling endpoint used by the iframe to check if OAuth was completed.
+- **First OAuth**: If `riskScore × oauthMultiplier < passThreshold` → session completed. Otherwise, marks `oauthCompleted` and session stays pending ("need more" state).
+- **Second OAuth**: Must be from a different provider. Applies `riskScore × oauthMultiplier × secondOauthMultiplier`. If below threshold → session completed.
+- Multiple OAuth identities are accumulated as a JSON array in the session's `oauthIdentity` field.
+
+**GET /api/v1/oauth/status/:sessionId** — Polling endpoint used by the iframe to check OAuth status. Returns `{ completed, oauthCompleted, needsMore, firstProvider, status }`.
 
 ## Challenge Flow (Detailed)
 
 The challenge flow uses **server-side state tracking** - no tokens are passed from the iframe to the user's client. This matches the standard plebbit iframe challenge pattern (used by mintpass and others).
 
-CAPTCHA is always the primary challenge. After the user solves it, the server adjusts the risk score. If the adjusted score is below the pass threshold, the session completes immediately. If not, OAuth sign-in is presented as a way to further lower the score.
+**OAuth is the primary challenge.** The iframe shows OAuth sign-in buttons first. CAPTCHA is available as a fallback for users without social accounts. After the user completes verification, the server adjusts the risk score. If the adjusted score is below the pass threshold, the session completes. For high-risk users, additional verification (second OAuth from a different provider, or CAPTCHA) may be required.
 
 ```
 /evaluate → riskScore
@@ -202,32 +206,37 @@ CAPTCHA is always the primary challenge. After the user solves it, the server ad
   └─ between → create session (store riskScore), return challengeUrl
         │
         ▼
-  Iframe serves CAPTCHA (+ hidden OAuth section if score is high)
+  Iframe serves OAuth buttons (primary) + optional CAPTCHA fallback link
         │
-        ▼
-  User solves CAPTCHA → POST /complete
+        ├─ User signs in via OAuth → callback applies score adjustment
+        │     │
+        │     ├─ riskScore × oauthMultiplier < passThreshold?
+        │     │     YES → mark "completed" ──────────────────────────> /verify → success
+        │     │
+        │     └─    NO  → mark oauthCompleted, session stays "pending"
+        │                  Iframe shows "need more" view
+        │                  │
+        │                  ├─ User signs in with 2nd OAuth (different provider)
+        │                  │     → riskScore × oauthMult × 2ndOauthMult < threshold?
+        │                  │       YES → completed ──────────────────> /verify → success
+        │                  │
+        │                  └─ User completes CAPTCHA
+        │                        → riskScore × oauthMult × captchaMult < threshold?
+        │                          YES → completed ──────────────────> /verify → success
         │
-        ├─ adjustedScore = riskScore × captchaScoreMultiplier
-        │
-        ├─ adjustedScore < challengePassThreshold?
-        │     YES → mark "completed", return { passed: true }
-        │            Iframe shows "Verification complete!"
-        │            + optional OAuth for future trust
-        │
-        └─    NO  → mark captchaCompleted, return { passed: false, oauthSuggested: true }
-                     Iframe reveals OAuth buttons
-                     │
-                     ▼
-               User completes OAuth → callback marks session "completed"
-                     │
-                     ▼
-               /verify → success
+        └─ User clicks "I don't have a social account" → CAPTCHA fallback
+              │
+              ├─ riskScore × captchaMultiplier < passThreshold?
+              │     YES → mark "completed" ──────────────────────────> /verify → success
+              │
+              └─    NO  → mark captchaCompleted, return { oauthRequired: true }
+                           Iframe redirects back to OAuth view
 ```
 
 ```
 ┌─────────────────┐       ┌──────────────────┐       ┌────────────────┐
-│   Plebbit       │       │ EasySpamBlocker  │       │   Turnstile /  │
-│   Client        │       │     Server       │       │   OAuth        │
+│   Plebbit       │       │ EasySpamBlocker  │       │   OAuth /      │
+│   Client        │       │     Server       │       │   Turnstile    │
 └────────┬────────┘       └────────┬─────────┘       └───────┬────────┘
          │                         │                          │
          │  1. ChallengeRequest    │                          │
@@ -249,27 +258,30 @@ CAPTCHA is always the primary challenge. After the user solves it, the server ad
          │  5. Client loads iframe │                          │
          │─────────────────────────────────────────────────────>
          │                         │                          │
-         │  6. User solves CAPTCHA │  (validates with         │
-         │                         │   Turnstile API)         │
+         │  6. Iframe shows OAuth  │                          │
+         │     buttons (primary)   │                          │
+         │     + CAPTCHA fallback  │                          │
          │                         │                          │
-         │  7. Iframe calls        │                          │
-         │     /complete           │                          │
-         │     ───────────────────>│                          │
-         │                         │                          │
-         │  8. Server applies      │                          │
-         │     score adjustment    │                          │
-         │                         │                          │
-         │  9a. If passed: true    │                          │
-         │      → session done     │                          │
-         │  9b. If passed: false   │                          │
-         │      → show OAuth       │                          │
+         │  7. User signs in via   │                          │
+         │     OAuth provider      │                          │
          │      ───────────────────────────────────────────────>
          │                         │                          │
-         │  10. (If OAuth needed)  │                          │
-         │      User signs in via  │                          │
-         │      OAuth provider     │                          │
-         │      callback marks     │                          │
-         │      session completed  │                          │
+         │  8. OAuth callback      │                          │
+         │     applies score       │                          │
+         │     adjustment          │                          │
+         │                         │                          │
+         │  9a. If score passes    │                          │
+         │      → session done     │                          │
+         │  9b. If needs more      │                          │
+         │      → show 2nd OAuth   │                          │
+         │      or CAPTCHA option  │                          │
+         │      ───────────────────────────────────────────────>
+         │                         │                          │
+         │  10. (If more needed)   │                          │
+         │      User completes     │                          │
+         │      2nd OAuth or       │                          │
+         │      CAPTCHA            │                          │
+         │      → session done     │                          │
          │                         │                          │
          │  11. Iframe shows       │                          │
          │     "click done"        │                          │
@@ -328,22 +340,27 @@ For detailed documentation on the indexer architecture and implementation, see:
 **Tier Thresholds (configurable per sub via challenge options):**
 
 - `riskScore < autoAcceptThreshold` → Auto-accept (no challenge)
-- `autoAcceptThreshold <= riskScore < autoRejectThreshold` → Challenge required
+- `autoAcceptThreshold <= riskScore < oauthSufficientThreshold` → One OAuth is sufficient (`oauth_sufficient`)
+- `oauthSufficientThreshold <= riskScore < autoRejectThreshold` → OAuth + more needed (`oauth_plus_more`)
 - `riskScore >= autoRejectThreshold` → Auto-reject
 
 **Score Adjustment (configurable on server):**
 
-After the user solves the CAPTCHA, the server adjusts the risk score to determine whether CAPTCHA alone is sufficient or OAuth is also needed:
+OAuth is the primary trust signal. CAPTCHA is a fallback for users without social accounts.
 
-| Stage                 | Formula                                               | Default           | Pass if                  |
-| --------------------- | ----------------------------------------------------- | ----------------- | ------------------------ |
-| After CAPTCHA         | score × captchaScoreMultiplier                        | score × 0.7       | < challengePassThreshold |
-| After CAPTCHA + OAuth | score × captchaScoreMultiplier × oauthScoreMultiplier | score × 0.7 × 0.5 | < challengePassThreshold |
+| Path                     | Formula                             | Default           | Pass if                  |
+| ------------------------ | ----------------------------------- | ----------------- | ------------------------ |
+| OAuth alone              | score × oauthScoreMultiplier        | score × 0.6       | < challengePassThreshold |
+| CAPTCHA alone (fallback) | score × captchaScoreMultiplier      | score × 0.7       | < challengePassThreshold |
+| OAuth + second OAuth     | score × oauthMult × secondOauthMult | score × 0.6 × 0.5 | < challengePassThreshold |
+| OAuth + CAPTCHA          | score × oauthMult × captchaMult     | score × 0.6 × 0.7 | < challengePassThreshold |
 
-With default values (multiplier 0.7, threshold 0.4):
+With default values (threshold 0.4):
 
+- One OAuth sufficient when raw score < ~0.67
 - CAPTCHA alone sufficient when raw score < ~0.57
-- CAPTCHA + OAuth sufficient when raw score < ~1.14 (all non-auto-rejected pass)
+- OAuth + second OAuth sufficient when raw score < ~1.33 (all non-auto-rejected pass)
+- OAuth + CAPTCHA sufficient when raw score < ~0.95 (most non-auto-rejected pass)
 
 ## Challenge Verification
 
@@ -351,15 +368,16 @@ Challenge completion is tracked **server-side** in the database - no tokens are 
 
 When a user completes the iframe challenge:
 
-1. The iframe shows a CAPTCHA; user solves it
-2. The iframe calls `POST /api/v1/challenge/complete` with the Turnstile response token
-3. The server validates with Turnstile, then applies score adjustment (`riskScore × captchaScoreMultiplier`)
-4. If the adjusted score is below `challengePassThreshold` → session marked `completed`
-5. If not → CAPTCHA marked complete, iframe reveals OAuth buttons; user signs in via OAuth → session marked `completed`
-6. The user clicks "done" in their plebbit client
-7. The client sends a `ChallengeAnswer` with an empty string to the subplebbit
-8. The sub's challenge code calls `/api/v1/challenge/verify` with the `sessionId`
-9. The server checks `session.status === "completed"` and returns success + IP intelligence
+1. The iframe shows OAuth sign-in buttons; user signs in with a provider
+2. The OAuth callback applies score adjustment (`riskScore × oauthMultiplier`)
+3. If the adjusted score is below `challengePassThreshold` → session marked `completed`
+4. If not → `oauthCompleted` is set, iframe shows "need more" view with remaining providers and optional CAPTCHA
+5. User completes second OAuth (different provider) or CAPTCHA → combined multiplier applied → session marked `completed`
+6. Alternatively, user can use CAPTCHA fallback from the start ("I don't have a social account")
+7. The user clicks "done" in their plebbit client
+8. The client sends a `ChallengeAnswer` with an empty string to the subplebbit
+9. The sub's challenge code calls `/api/v1/challenge/verify` with the `sessionId`
+10. The server checks `session.status === "completed"` and returns success + IP intelligence
 
 **Session expiry:** 1 hour from creation
 
@@ -450,10 +468,11 @@ Tracks challenge sessions. Sessions are kept permanently for historical analysis
 - `expiresAt` INTEGER NOT NULL
 - `receivedChallengeRequestAt` INTEGER NOT NULL
 - `authorAccessedIframeAt` INTEGER -- when did the author access the iframe?
-- `oauthIdentity` TEXT -- format: "provider:userId" (e.g., "github:12345678")
-- `challengeTier` TEXT -- 'captcha_only' or 'captcha_and_oauth' (determined by score thresholds)
+- `oauthIdentity` TEXT -- format: "provider:userId" or JSON array '["provider:userId", ...]'
+- `challengeTier` TEXT -- 'oauth_sufficient' or 'oauth_plus_more' (determined by score thresholds)
 - `captchaCompleted` INTEGER DEFAULT 0 -- 1 if CAPTCHA portion completed
-- `riskScore` REAL -- the risk score at evaluation time (used for score adjustment after CAPTCHA/OAuth)
+- `oauthCompleted` INTEGER DEFAULT 0 -- 1 if first OAuth completed
+- `riskScore` REAL -- the risk score at evaluation time (used for score adjustment after OAuth/CAPTCHA)
 
 ### `ipRecords`
 
@@ -550,13 +569,14 @@ These settings are configured on the HTTP server, not in the challenge package:
 **Challenge tier thresholds:**
 
 - `AUTO_ACCEPT_THRESHOLD`: Auto-accept below this score (default: 0.2)
-- `CAPTCHA_ONLY_THRESHOLD`: Scores between autoAccept and this get captcha_only tier (default: 0.4)
+- `OAUTH_SUFFICIENT_THRESHOLD`: Scores between autoAccept and this pass with one OAuth (default: 0.4)
 - `AUTO_REJECT_THRESHOLD`: Auto-reject at or above this score (default: 0.8)
 
-**Score adjustment (CAPTCHA-first model):**
+**Score adjustment (OAuth-first model):**
 
-- `CAPTCHA_SCORE_MULTIPLIER`: Multiplier applied after CAPTCHA, in (0, 1] (default: 0.7)
-- `OAUTH_SCORE_MULTIPLIER`: Additional multiplier after OAuth, in (0, 1] (default: 0.5)
+- `OAUTH_SCORE_MULTIPLIER`: Multiplier applied after first OAuth, in (0, 1] (default: 0.6)
+- `SECOND_OAUTH_SCORE_MULTIPLIER`: Multiplier applied after second OAuth from different provider, in (0, 1] (default: 0.5)
+- `CAPTCHA_SCORE_MULTIPLIER`: Multiplier applied after CAPTCHA (fallback), in (0, 1] (default: 0.7)
 - `CHALLENGE_PASS_THRESHOLD`: Adjusted score must be below this, in (0, 1) (default: 0.4)
 
 **OAuth providers** (each requires both CLIENT_ID and CLIENT_SECRET):

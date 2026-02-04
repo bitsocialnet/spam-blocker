@@ -25,8 +25,10 @@ export interface RouteOptions {
     allowNonDomainSubplebbits?: boolean;
     /** Multiplier applied to riskScore after CAPTCHA (0-1]. Default: 0.7 */
     captchaScoreMultiplier?: number;
-    /** Additional multiplier after OAuth (0-1]. Default: 0.5 */
+    /** Multiplier applied to riskScore after first OAuth (0-1]. Default: 0.6 */
     oauthScoreMultiplier?: number;
+    /** Multiplier applied after second OAuth from different provider (0-1]. Default: 0.5 */
+    secondOauthScoreMultiplier?: number;
     /** Adjusted score must be below this to pass. Default: 0.4 */
     challengePassThreshold?: number;
 }
@@ -47,6 +49,7 @@ export function registerRoutes(fastify: FastifyInstance, options: RouteOptions):
         allowNonDomainSubplebbits,
         captchaScoreMultiplier,
         oauthScoreMultiplier,
+        secondOauthScoreMultiplier,
         challengePassThreshold
     } = options;
 
@@ -73,15 +76,27 @@ export function registerRoutes(fastify: FastifyInstance, options: RouteOptions):
         oauthProvidersResult,
         baseUrl,
         captchaScoreMultiplier,
+        oauthScoreMultiplier,
+        secondOauthScoreMultiplier,
         challengePassThreshold
     });
-    registerCompleteRoute(fastify, { db, turnstileSecretKey, captchaScoreMultiplier, challengePassThreshold });
+    registerCompleteRoute(fastify, {
+        db,
+        turnstileSecretKey,
+        captchaScoreMultiplier,
+        oauthScoreMultiplier,
+        challengePassThreshold
+    });
 
     // Register OAuth routes if any providers are configured
     if (hasOAuthProviders && oauthProvidersResult) {
         registerOAuthRoutes(fastify, {
             db,
-            providers: oauthProvidersResult.providers
+            providers: oauthProvidersResult.providers,
+            oauthScoreMultiplier,
+            secondOauthScoreMultiplier,
+            captchaScoreMultiplier,
+            challengePassThreshold
         });
     }
 

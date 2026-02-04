@@ -15,8 +15,9 @@ CREATE TABLE IF NOT EXISTS challengeSessions (
   receivedChallengeRequestAt INTEGER NOT NULL DEFAULT (CAST(strftime('%s', 'now') AS INTEGER) * 1000),
   authorAccessedIframeAt INTEGER,
   oauthIdentity TEXT,  -- format: "provider:userId" (e.g., "github:12345678")
-  challengeTier TEXT CHECK (challengeTier IS NULL OR challengeTier IN ('captcha_only', 'captcha_and_oauth')),
-  captchaCompleted INTEGER DEFAULT 0,  -- 1 if CAPTCHA portion completed for combined challenges
+  challengeTier TEXT CHECK (challengeTier IS NULL OR challengeTier IN ('oauth_sufficient', 'oauth_plus_more')),
+  oauthCompleted INTEGER DEFAULT 0,  -- 1 if first OAuth completed (session may still need more verification)
+  captchaCompleted INTEGER DEFAULT 0,  -- 1 if CAPTCHA portion completed
   riskScore REAL  -- The risk score at evaluation time (used for score adjustment after CAPTCHA/OAuth)
 );
 

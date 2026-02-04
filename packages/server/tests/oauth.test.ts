@@ -497,3 +497,575 @@ describe("OAuth Identity Storage", () => {
         expect(session!.oauthIdentity).toBe("apple:abc123");
     });
 });
+
+describe("OAuth-First Score Adjustment Logic", () => {
+    let server: SpamDetectionServer;
+
+    beforeEach(async () => {
+        setPlebbitLoaderForTest(async () => ({
+            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+            destroy: vi.fn().mockResolvedValue(undefined)
+        }));
+    });
+
+    afterEach(async () => {
+        if (server) await server.stop();
+        resetPlebbitLoaderForTest();
+    });
+
+    it("should mark oauthCompleted without completing session for first OAuth in high-risk flow", async () => {
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            oauth: mockOAuthConfig
+        });
+        await server.fastify.ready();
+
+        const nowMs = Date.now();
+        const sessionId = "high-risk-oauth-" + nowMs;
+
+        // riskScore(0.8) * oauthMultiplier(0.6) = 0.48 >= passThreshold(0.4)
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.8
+        });
+
+        // Simulate first OAuth completion
+        server.db.updateChallengeSessionOAuthCompleted(sessionId);
+        server.db.updateChallengeSessionStatus(sessionId, "pending", undefined, "github:12345");
+
+        const session = server.db.getChallengeSessionBySessionId(sessionId);
+        expect(session!.oauthCompleted).toBe(1);
+        expect(session!.status).toBe("pending");
+        expect(session!.oauthIdentity).toBe("github:12345");
+    });
+
+    it("should complete session for first OAuth in normal-risk flow", async () => {
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            oauth: mockOAuthConfig
+        });
+        await server.fastify.ready();
+
+        const nowMs = Date.now();
+        const sessionId = "normal-risk-oauth-" + nowMs;
+
+        // riskScore(0.5) * oauthMultiplier(0.6) = 0.30 < passThreshold(0.4)
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.5
+        });
+
+        // Simulate first OAuth completion — complete the session
+        server.db.updateChallengeSessionOAuthCompleted(sessionId);
+        server.db.updateChallengeSessionStatus(sessionId, "completed", nowMs, "github:12345");
+
+        const session = server.db.getChallengeSessionBySessionId(sessionId);
+        expect(session!.oauthCompleted).toBe(1);
+        expect(session!.status).toBe("completed");
+    });
+
+    it("should accumulate multiple OAuth identities as JSON array", async () => {
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            oauth: mockOAuthConfig
+        });
+        await server.fastify.ready();
+
+        const nowMs = Date.now();
+        const sessionId = "multi-oauth-" + nowMs;
+
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000
+        });
+
+        // First OAuth
+        server.db.updateChallengeSessionStatus(sessionId, "pending", undefined, "github:111");
+
+        // Second OAuth (append as JSON array)
+        const session1 = server.db.getChallengeSessionBySessionId(sessionId);
+        const existing = session1!.oauthIdentity;
+        expect(existing).toBe("github:111");
+
+        // Manually append second identity like the oauth route does
+        const newIdentity = JSON.stringify(["github:111", "google:222"]);
+        server.db.updateChallengeSessionStatus(sessionId, "completed", nowMs, newIdentity);
+
+        const session2 = server.db.getChallengeSessionBySessionId(sessionId);
+        expect(session2!.oauthIdentity).toBe(newIdentity);
+        const parsed = JSON.parse(session2!.oauthIdentity!);
+        expect(parsed).toEqual(["github:111", "google:222"]);
+    });
+});
+
+describe("OAuth-First Polling Endpoint", () => {
+    let server: SpamDetectionServer;
+
+    beforeEach(async () => {
+        setPlebbitLoaderForTest(async () => ({
+            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+            destroy: vi.fn().mockResolvedValue(undefined)
+        }));
+
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            oauth: mockOAuthConfig
+        });
+        await server.fastify.ready();
+    });
+
+    afterEach(async () => {
+        await server.stop();
+        resetPlebbitLoaderForTest();
+    });
+
+    it("should return needsMore=true after first OAuth when score is high", async () => {
+        const nowMs = Date.now();
+        const sessionId = "poll-need-more-" + nowMs;
+
+        // High risk score: 0.8 * 0.6 = 0.48 >= 0.4
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.8
+        });
+
+        server.db.updateChallengeSessionOAuthCompleted(sessionId);
+        server.db.updateChallengeSessionStatus(sessionId, "pending", undefined, "github:123");
+
+        const response = await server.fastify.inject({
+            method: "GET",
+            url: `/api/v1/oauth/status/${sessionId}`
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body);
+        expect(body.completed).toBe(false);
+        expect(body.oauthCompleted).toBe(true);
+        expect(body.needsMore).toBe(true);
+        expect(body.firstProvider).toBe("github");
+        expect(body.status).toBe("pending");
+    });
+
+    it("should return needsMore=false when one OAuth is sufficient", async () => {
+        const nowMs = Date.now();
+        const sessionId = "poll-sufficient-" + nowMs;
+
+        // Normal risk score: 0.5 * 0.6 = 0.30 < 0.4
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.5
+        });
+
+        server.db.updateChallengeSessionOAuthCompleted(sessionId);
+        server.db.updateChallengeSessionStatus(sessionId, "completed", nowMs, "google:456");
+
+        const response = await server.fastify.inject({
+            method: "GET",
+            url: `/api/v1/oauth/status/${sessionId}`
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body);
+        expect(body.completed).toBe(true);
+        expect(body.oauthCompleted).toBe(true);
+        expect(body.needsMore).toBe(false);
+        expect(body.firstProvider).toBe("google");
+    });
+
+    it("should parse firstProvider from JSON array oauthIdentity", async () => {
+        const nowMs = Date.now();
+        const sessionId = "poll-json-identity-" + nowMs;
+
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.5
+        });
+
+        server.db.updateChallengeSessionOAuthCompleted(sessionId);
+        // Store identity as JSON array (multiple OAuth identities)
+        server.db.updateChallengeSessionStatus(sessionId, "completed", nowMs, JSON.stringify(["github:111", "google:222"]));
+
+        const response = await server.fastify.inject({
+            method: "GET",
+            url: `/api/v1/oauth/status/${sessionId}`
+        });
+
+        const body = JSON.parse(response.body);
+        expect(body.firstProvider).toBe("github");
+    });
+});
+
+describe("CAPTCHA-as-Fallback Complete Route", () => {
+    let server: SpamDetectionServer;
+
+    // Cloudflare Turnstile test keys
+    const TURNSTILE_TEST_SITE_KEY = "1x00000000000000000000AA";
+    const TURNSTILE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA";
+
+    beforeEach(async () => {
+        setPlebbitLoaderForTest(async () => ({
+            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+            destroy: vi.fn().mockResolvedValue(undefined)
+        }));
+    });
+
+    afterEach(async () => {
+        if (server) await server.stop();
+        resetPlebbitLoaderForTest();
+    });
+
+    it("should apply combined OAuth + CAPTCHA multiplier when both completed", async () => {
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
+            turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY,
+            oauth: mockOAuthConfig
+        });
+        await server.fastify.ready();
+
+        const nowMs = Date.now();
+        const sessionId = "combined-multiplier-" + nowMs;
+
+        // riskScore(0.8) * captchaMultiplier(0.7) = 0.56 >= 0.4 (FAIL alone)
+        // riskScore(0.8) * oauthMultiplier(0.6) * captchaMultiplier(0.7) = 0.336 < 0.4 (PASS combined)
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.8
+        });
+
+        // Mark OAuth as completed first (simulate OAuth being done before CAPTCHA)
+        server.db.updateChallengeSessionOAuthCompleted(sessionId);
+        server.db.updateChallengeSessionStatus(sessionId, "pending", undefined, "github:123");
+
+        // Access iframe
+        await server.fastify.inject({
+            method: "GET",
+            url: `/api/v1/iframe/${sessionId}`
+        });
+
+        // Now complete CAPTCHA
+        const completeResponse = await server.fastify.inject({
+            method: "POST",
+            url: "/api/v1/challenge/complete",
+            payload: {
+                sessionId,
+                challengeResponse: "XXXX.DUMMY.TOKEN.XXXX",
+                challengeType: "turnstile"
+            }
+        });
+
+        expect(completeResponse.statusCode).toBe(200);
+        const body = completeResponse.json();
+        expect(body.success).toBe(true);
+        expect(body.passed).toBe(true);
+
+        // Session should be completed
+        const session = server.db.getChallengeSessionBySessionId(sessionId);
+        expect(session!.status).toBe("completed");
+        expect(session!.captchaCompleted).toBe(1);
+        expect(session!.oauthCompleted).toBe(1);
+    });
+
+    it("should return oauthRequired when CAPTCHA alone cannot pass", async () => {
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
+            turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY,
+            oauth: mockOAuthConfig
+        });
+        await server.fastify.ready();
+
+        const nowMs = Date.now();
+        const sessionId = "captcha-only-fail-" + nowMs;
+
+        // riskScore(0.7) * captchaMultiplier(0.7) = 0.49 >= 0.4 (FAIL)
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.7
+        });
+
+        // Access iframe
+        await server.fastify.inject({
+            method: "GET",
+            url: `/api/v1/iframe/${sessionId}`
+        });
+
+        // Complete CAPTCHA without OAuth
+        const completeResponse = await server.fastify.inject({
+            method: "POST",
+            url: "/api/v1/challenge/complete",
+            payload: {
+                sessionId,
+                challengeResponse: "XXXX.DUMMY.TOKEN.XXXX",
+                challengeType: "turnstile"
+            }
+        });
+
+        expect(completeResponse.statusCode).toBe(200);
+        const body = completeResponse.json();
+        expect(body.success).toBe(true);
+        expect(body.passed).toBe(false);
+        expect(body.oauthRequired).toBe(true);
+
+        // Session should still be pending
+        const session = server.db.getChallengeSessionBySessionId(sessionId);
+        expect(session!.status).toBe("pending");
+        expect(session!.captchaCompleted).toBe(1);
+        expect(session!.oauthCompleted).toBe(0);
+    });
+
+    it("should pass with CAPTCHA alone for low risk scores", async () => {
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
+            turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY,
+            oauth: mockOAuthConfig
+        });
+        await server.fastify.ready();
+
+        const nowMs = Date.now();
+        const sessionId = "captcha-pass-" + nowMs;
+
+        // riskScore(0.5) * captchaMultiplier(0.7) = 0.35 < 0.4 (PASS)
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.5
+        });
+
+        // Access iframe
+        await server.fastify.inject({
+            method: "GET",
+            url: `/api/v1/iframe/${sessionId}`
+        });
+
+        // Complete CAPTCHA
+        const completeResponse = await server.fastify.inject({
+            method: "POST",
+            url: "/api/v1/challenge/complete",
+            payload: {
+                sessionId,
+                challengeResponse: "XXXX.DUMMY.TOKEN.XXXX",
+                challengeType: "turnstile"
+            }
+        });
+
+        expect(completeResponse.statusCode).toBe(200);
+        const body = completeResponse.json();
+        expect(body.success).toBe(true);
+        expect(body.passed).toBe(true);
+        expect(body.oauthRequired).toBeUndefined();
+
+        const session = server.db.getChallengeSessionBySessionId(sessionId);
+        expect(session!.status).toBe("completed");
+    });
+});
+
+describe("OAuth-First Iframe Content", () => {
+    let server: SpamDetectionServer;
+
+    const TURNSTILE_TEST_SITE_KEY = "1x00000000000000000000AA";
+    const TURNSTILE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA";
+
+    beforeEach(async () => {
+        setPlebbitLoaderForTest(async () => ({
+            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+            destroy: vi.fn().mockResolvedValue(undefined)
+        }));
+    });
+
+    afterEach(async () => {
+        if (server) await server.stop();
+        resetPlebbitLoaderForTest();
+    });
+
+    it("should show CAPTCHA fallback link when canPassWithCaptchaAlone is true", async () => {
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
+            turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY,
+            oauth: mockOAuthConfig
+        });
+        await server.fastify.ready();
+
+        const nowMs = Date.now();
+        const sessionId = "iframe-captcha-fallback-" + nowMs;
+
+        // Low risk: canPassWithCaptchaAlone should be true
+        // riskScore(0.5) * captchaMultiplier(0.7) = 0.35 < 0.4
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.5
+        });
+
+        const response = await server.fastify.inject({
+            method: "GET",
+            url: `/api/v1/iframe/${sessionId}`
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toContain("I don't have a social account");
+        expect(response.body).toContain("Sign in with GitHub");
+        expect(response.body).toContain("Sign in with Google");
+    });
+
+    it("should hide CAPTCHA fallback link when canPassWithCaptchaAlone is false", async () => {
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
+            turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY,
+            oauth: mockOAuthConfig
+        });
+        await server.fastify.ready();
+
+        const nowMs = Date.now();
+        const sessionId = "iframe-no-captcha-" + nowMs;
+
+        // High risk: canPassWithCaptchaAlone should be false
+        // riskScore(0.8) * captchaMultiplier(0.7) = 0.56 >= 0.4
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000,
+            riskScore: 0.8
+        });
+
+        const response = await server.fastify.inject({
+            method: "GET",
+            url: `/api/v1/iframe/${sessionId}`
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body).not.toContain("I don't have a social account");
+        // Should still show OAuth buttons
+        expect(response.body).toContain("Sign in with GitHub");
+    });
+
+    it("should serve turnstile-only iframe when no OAuth configured", async () => {
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000",
+            turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
+            turnstileSecretKey: TURNSTILE_TEST_SECRET_KEY
+            // No OAuth config
+        });
+        await server.fastify.ready();
+
+        const nowMs = Date.now();
+        const sessionId = "iframe-turnstile-only-" + nowMs;
+
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000
+        });
+
+        const response = await server.fastify.inject({
+            method: "GET",
+            url: `/api/v1/iframe/${sessionId}`
+        });
+
+        expect(response.statusCode).toBe(200);
+        // Should be a turnstile-only iframe, not OAuth-first
+        expect(response.body).toContain("cf-turnstile");
+        expect(response.body).not.toContain("Sign in with GitHub");
+    });
+});
+
+describe("updateChallengeSessionOAuthCompleted", () => {
+    let server: SpamDetectionServer;
+
+    beforeEach(async () => {
+        setPlebbitLoaderForTest(async () => ({
+            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+            destroy: vi.fn().mockResolvedValue(undefined)
+        }));
+
+        server = await createServer({
+            port: 0,
+            logging: false,
+            databasePath: ":memory:",
+            baseUrl: "http://localhost:3000"
+        });
+        await server.fastify.ready();
+    });
+
+    afterEach(async () => {
+        await server.stop();
+        resetPlebbitLoaderForTest();
+    });
+
+    it("should set oauthCompleted to 1", () => {
+        const nowMs = Date.now();
+        const sessionId = "oauth-completed-" + nowMs;
+
+        server.db.insertChallengeSession({
+            sessionId,
+            subplebbitPublicKey: "test-pk",
+            expiresAt: nowMs + 3600 * 1000
+        });
+
+        // Initially should be 0
+        let session = server.db.getChallengeSessionBySessionId(sessionId);
+        expect(session!.oauthCompleted).toBe(0);
+
+        // Mark oauth completed
+        const result = server.db.updateChallengeSessionOAuthCompleted(sessionId);
+        expect(result).toBe(true);
+
+        session = server.db.getChallengeSessionBySessionId(sessionId);
+        expect(session!.oauthCompleted).toBe(1);
+    });
+
+    it("should return false for non-existent session", () => {
+        const result = server.db.updateChallengeSessionOAuthCompleted("nonexistent");
+        expect(result).toBe(false);
+    });
+});

@@ -8,6 +8,10 @@ import { generateChallengeIframe, type ChallengeType, type OAuthProvider } from 
 
 /** Default multiplier applied to riskScore after CAPTCHA (30% reduction) */
 const DEFAULT_CAPTCHA_SCORE_MULTIPLIER = 0.7;
+/** Default multiplier applied to riskScore after first OAuth (40% reduction) */
+const DEFAULT_OAUTH_SCORE_MULTIPLIER = 0.6;
+/** Default multiplier applied after second OAuth from different provider (50% further reduction) */
+const DEFAULT_SECOND_OAUTH_SCORE_MULTIPLIER = 0.5;
 /** Default pass threshold — adjusted score must be below this to pass */
 const DEFAULT_CHALLENGE_PASS_THRESHOLD = 0.4;
 
@@ -21,6 +25,10 @@ export interface IframeRouteOptions {
     baseUrl?: string;
     /** Multiplier applied to riskScore after CAPTCHA (0-1]. Default: 0.7 */
     captchaScoreMultiplier?: number;
+    /** Multiplier applied to riskScore after first OAuth (0-1]. Default: 0.6 */
+    oauthScoreMultiplier?: number;
+    /** Multiplier applied after second OAuth from different provider (0-1]. Default: 0.5 */
+    secondOauthScoreMultiplier?: number;
     /** Adjusted score must be below this to pass. Default: 0.4 */
     challengePassThreshold?: number;
 }
@@ -31,6 +39,8 @@ export interface IframeRouteOptions {
 export function registerIframeRoute(fastify: FastifyInstance, options: IframeRouteOptions): void {
     const { db, turnstileSiteKey, ipapiKey, oauthProvidersResult, baseUrl } = options;
     const captchaMultiplier = options.captchaScoreMultiplier ?? DEFAULT_CAPTCHA_SCORE_MULTIPLIER;
+    const oauthMultiplier = options.oauthScoreMultiplier ?? DEFAULT_OAUTH_SCORE_MULTIPLIER;
+    const secondOauthMultiplier = options.secondOauthScoreMultiplier ?? DEFAULT_SECOND_OAUTH_SCORE_MULTIPLIER;
     const passThreshold = options.challengePassThreshold ?? DEFAULT_CHALLENGE_PASS_THRESHOLD;
 
     // Determine which challenge types are available based on configuration
@@ -91,7 +101,7 @@ export function registerIframeRoute(fastify: FastifyInstance, options: IframeRou
             }
 
             // Get client IP for IP record
-            const clientIp = getClientIp(request); // TODO why string | undefined? Shouldn't it always be defined?
+            const clientIp = getClientIp(request);
 
             // Store IP record and update iframe access time
             db.updateChallengeSessionIframeAccess(sessionId, nowMs);
@@ -112,36 +122,44 @@ export function registerIframeRoute(fastify: FastifyInstance, options: IframeRou
                 });
             }
 
-            // Determine which iframe to serve based on score adjustment
-            // If riskScore * captchaMultiplier >= passThreshold, CAPTCHA alone won't suffice,
-            // so serve the combined iframe (with hidden OAuth section).
-            // Otherwise, serve turnstile-only iframe.
+            // Determine iframe content based on OAuth-first logic
             let html: string;
+            const riskScore = session.riskScore ?? 0;
 
-            const riskScore = session.riskScore;
-            const captchaWontSuffice = riskScore !== null && riskScore * captchaMultiplier >= passThreshold;
+            if (hasOAuth && baseUrl) {
+                // OAuth-first flow: OAuth is the primary challenge
+                // Compute provider availability based on author's previous OAuth usage
+                const authorPublicKey = db.getAuthorPublicKeyBySessionId(sessionId);
+                const previousProviders = authorPublicKey ? db.getAuthorOAuthProviders(authorPublicKey) : [];
 
-            if (captchaWontSuffice && hasTurnstile && hasOAuth && baseUrl) {
-                // CAPTCHA won't be enough — serve combined iframe with OAuth section
-                html = generateChallengeIframe("captcha_and_oauth", {
+                // Filter out previously-used providers
+                let availableProviders = enabledOAuthProviders.filter((p) => !previousProviders.includes(p));
+                // If all providers used up, allow re-use
+                if (availableProviders.length === 0) {
+                    availableProviders = enabledOAuthProviders;
+                }
+
+                // Compute score adjustment flags
+                const canPassWithCaptchaAlone = hasTurnstile && riskScore * captchaMultiplier < passThreshold;
+                const canPassWithOneOAuth = riskScore * oauthMultiplier < passThreshold;
+                const needsMore = !canPassWithOneOAuth;
+
+                html = generateChallengeIframe("oauth_first", {
                     sessionId,
-                    siteKey: turnstileSiteKey,
-                    enabledProviders: enabledOAuthProviders,
+                    availableProviders,
                     baseUrl,
+                    siteKey: turnstileSiteKey,
+                    canPassWithCaptchaAlone,
+                    canPassWithOneOAuth,
+                    needsMore,
+                    oauthCompleted: session.oauthCompleted === 1,
                     captchaCompleted: session.captchaCompleted === 1
                 });
             } else if (hasTurnstile) {
-                // CAPTCHA alone will suffice, or no OAuth available — serve turnstile only
+                // No OAuth available — serve turnstile only
                 html = generateChallengeIframe("turnstile", {
                     sessionId,
                     siteKey: turnstileSiteKey
-                });
-            } else if (hasOAuth && baseUrl) {
-                // No Turnstile available, fall back to OAuth-only
-                html = generateChallengeIframe("oauth", {
-                    sessionId,
-                    enabledProviders: enabledOAuthProviders,
-                    baseUrl
                 });
             } else {
                 reply.status(500);

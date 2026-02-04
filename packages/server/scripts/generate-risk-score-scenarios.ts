@@ -112,8 +112,8 @@ const FACTOR_DISPLAY_NAMES: Record<string, string> = {
 
 const TIER_DISPLAY_NAMES: Record<ChallengeTier, string> = {
     auto_accept: "Auto-accepted",
-    captcha_only: "CAPTCHA only",
-    captcha_and_oauth: "CAPTCHA + OAuth",
+    oauth_sufficient: "OAuth sufficient",
+    oauth_plus_more: "OAuth + more",
     auto_reject: "Auto-rejected"
 };
 

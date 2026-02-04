@@ -5,6 +5,8 @@ import { verifyTurnstileToken } from "../challenges/turnstile.js";
 
 /** Default multiplier applied to riskScore after CAPTCHA (30% reduction) */
 const DEFAULT_CAPTCHA_SCORE_MULTIPLIER = 0.7;
+/** Default multiplier applied to riskScore after first OAuth (40% reduction) */
+const DEFAULT_OAUTH_SCORE_MULTIPLIER = 0.6;
 /** Default pass threshold — adjusted score must be below this to pass */
 const DEFAULT_CHALLENGE_PASS_THRESHOLD = 0.4;
 
@@ -13,6 +15,8 @@ export interface CompleteRouteOptions {
     turnstileSecretKey?: string;
     /** Multiplier applied to riskScore after CAPTCHA (0-1]. Default: 0.7 */
     captchaScoreMultiplier?: number;
+    /** Multiplier applied to riskScore after first OAuth (0-1]. Default: 0.6 */
+    oauthScoreMultiplier?: number;
     /** Adjusted score must be below this to pass. Default: 0.4 */
     challengePassThreshold?: number;
 }
@@ -22,8 +26,8 @@ export interface CompleteResponse {
     error?: string;
     /** Whether the challenge is fully passed (session completed) */
     passed?: boolean;
-    /** Whether OAuth is suggested to lower the score further */
-    oauthSuggested?: boolean;
+    /** Whether OAuth is required to lower the score further (CAPTCHA alone is not enough) */
+    oauthRequired?: boolean;
 }
 
 /**
@@ -33,6 +37,7 @@ export interface CompleteResponse {
 export function registerCompleteRoute(fastify: FastifyInstance, options: CompleteRouteOptions): void {
     const { db, turnstileSecretKey } = options;
     const captchaMultiplier = options.captchaScoreMultiplier ?? DEFAULT_CAPTCHA_SCORE_MULTIPLIER;
+    const oauthMultiplier = options.oauthScoreMultiplier ?? DEFAULT_OAUTH_SCORE_MULTIPLIER;
     const passThreshold = options.challengePassThreshold ?? DEFAULT_CHALLENGE_PASS_THRESHOLD;
 
     fastify.post(
@@ -114,19 +119,26 @@ export function registerCompleteRoute(fastify: FastifyInstance, options: Complet
                 request.log.warn({ challengeType: effectiveChallengeType }, "Challenge type not yet implemented, skipping verification");
             }
 
-            // Score adjustment: apply CAPTCHA multiplier to determine if session passes
+            // Score adjustment: CAPTCHA acts as a fallback in OAuth-first flow
             const riskScore = session.riskScore;
             if (riskScore !== null) {
-                const adjustedScore = riskScore * captchaMultiplier;
+                const oauthAlsoCompleted = session.oauthCompleted === 1;
 
-                if (adjustedScore < passThreshold) {
-                    // CAPTCHA alone is sufficient — mark session as completed
+                // If OAuth was already completed, apply combined multiplier
+                const effectiveScore = oauthAlsoCompleted ? riskScore * oauthMultiplier * captchaMultiplier : riskScore * captchaMultiplier;
+
+                const multiplierDesc = oauthAlsoCompleted
+                    ? `${riskScore.toFixed(2)} × ${oauthMultiplier} × ${captchaMultiplier}`
+                    : `${riskScore.toFixed(2)} × ${captchaMultiplier}`;
+
+                if (effectiveScore < passThreshold) {
+                    // CAPTCHA (+ optional prior OAuth) is sufficient — mark session as completed
                     db.updateChallengeSessionCaptchaCompleted(sessionId);
                     db.updateChallengeSessionStatus(sessionId, "completed", nowMs);
 
                     request.log.info(
-                        { sessionId, riskScore, adjustedScore, passThreshold },
-                        `CAPTCHA sufficient: ${riskScore.toFixed(2)} × ${captchaMultiplier} = ${adjustedScore.toFixed(2)} < ${passThreshold}`
+                        { sessionId, riskScore, effectiveScore, passThreshold, oauthAlsoCompleted },
+                        `CAPTCHA sufficient: ${multiplierDesc} = ${effectiveScore.toFixed(2)} < ${passThreshold}`
                     );
 
                     return {
@@ -138,14 +150,14 @@ export function registerCompleteRoute(fastify: FastifyInstance, options: Complet
                     db.updateChallengeSessionCaptchaCompleted(sessionId);
 
                     request.log.info(
-                        { sessionId, riskScore, adjustedScore, passThreshold },
-                        `CAPTCHA insufficient: ${riskScore.toFixed(2)} × ${captchaMultiplier} = ${adjustedScore.toFixed(2)} >= ${passThreshold}, OAuth needed`
+                        { sessionId, riskScore, effectiveScore, passThreshold, oauthAlsoCompleted },
+                        `CAPTCHA insufficient: ${multiplierDesc} = ${effectiveScore.toFixed(2)} >= ${passThreshold}, OAuth required`
                     );
 
                     return {
                         success: true,
                         passed: false,
-                        oauthSuggested: true
+                        oauthRequired: true
                     };
                 }
             }
