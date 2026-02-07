@@ -105,14 +105,13 @@ export function generateOAuthFirstIframe(options: OAuthFirstIframeOptions): stri
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
             background: #f5f5f5;
-            padding: 20px;
+            margin: 0;
+            padding: 10px;
         }
         .container {
             background: white;
-            padding: 30px;
+            padding: 15px;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             text-align: center;
@@ -368,13 +367,13 @@ export function generateOAuthFirstIframe(options: OAuthFirstIframeOptions): stri
         <!-- View: Completed -->
         <div id="view-completed" class="${initialView === "completed" ? "" : "hidden"}">
             <h1>Verification Complete</h1>
-            <p class="subtitle">Click "done" in your plebbit client to continue.</p>
+            <p class="subtitle">Click "done" in your Bitsocial client to continue.</p>
         </div>
 
         <div id="status" class="status"></div>
 
         <p class="privacy-note">
-            Your account info is not shared with the subplebbit.<br>
+            Your account info is not shared with the community.<br>
             We only verify that you signed in successfully.
         </p>
     </div>
@@ -432,7 +431,7 @@ export function generateOAuthFirstIframe(options: OAuthFirstIframeOptions): stri
         function showCompletedView() {
             hideAllViews();
             document.getElementById('view-completed').classList.remove('hidden');
-            showStatus('Verification complete! Click "done" in your plebbit client to continue.', 'success');
+            showStatus('Verification complete! Click "done" in your Bitsocial client to continue.', 'success');
         }
 
         function startOAuth(provider) {

@@ -104,14 +104,13 @@ export function generateOAuthIframe(options: OAuthIframeOptions): string {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
             background: #f5f5f5;
-            padding: 20px;
+            margin: 0;
+            padding: 10px;
         }
         .container {
             background: white;
-            padding: 30px;
+            padding: 15px;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             text-align: center;
@@ -204,7 +203,7 @@ export function generateOAuthIframe(options: OAuthIframeOptions): string {
         <div id="status" class="status"></div>
 
         <p class="privacy-note">
-            Your account info is not shared with the subplebbit.<br>
+            Your account info is not shared with the community.<br>
             We only verify that you signed in successfully.
         </p>
     </div>
@@ -245,7 +244,7 @@ export function generateOAuthIframe(options: OAuthIframeOptions): string {
                         clearInterval(pollInterval);
                         pollInterval = null;
                         document.getElementById('buttons').style.display = 'none';
-                        showStatus('Verification complete! Click "done" in your plebbit client to continue.', 'success');
+                        showStatus('Verification complete! Click "done" in your Bitsocial client to continue.', 'success');
                     }
                 } catch (e) {
                     console.error('Polling error:', e);

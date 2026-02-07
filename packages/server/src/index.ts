@@ -151,10 +151,13 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
     // Initialize OAuth providers if configured
     const oauthProvidersResult = oauth ? createOAuthProviders(oauth, baseUrl) : undefined;
 
-    // Initialize indexer if enabled (before routes so it can be passed to them)
+    // Initialize and start indexer immediately if enabled
     let indexer: Indexer | null = null;
     if (enableIndexer) {
         indexer = new Indexer(db.getDb(), { plebbitOptions });
+        indexer.start().catch((err) => {
+            console.error("Failed to start indexer:", err);
+        });
     }
 
     // Register routes
@@ -194,14 +197,6 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
 
         async start(): Promise<string> {
             const address = await fastify.listen({ port, host });
-
-            // Start indexer after server is listening
-            if (indexer) {
-                indexer.start().catch((err) => {
-                    console.error("Failed to start indexer:", err);
-                });
-            }
-
             return address;
         },
 
@@ -356,6 +351,7 @@ if (isMainModule) {
         turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY,
         ipapiKey: process.env.IPAPI_KEY,
         logging: process.env.LOG_LEVEL !== "silent",
+        enableIndexer: process.env.ENABLE_INDEXER !== "false",
         plebbitRpcUrl: process.env.PLEBBIT_RPC_URL,
         oauth: Object.keys(oauth).length > 0 ? oauth : undefined,
         autoAcceptThreshold,

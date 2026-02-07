@@ -157,6 +157,7 @@ export function calculateCommentUrlRisk(ctx: RiskContext, weight: number): RiskF
     });
 
     // No URLs found - positive signal (no URLs is good)
+    // TODO actually it should be skipped altogether if there are no urls, not sure, maybe not
     if (allUrls.length === 0) {
         return {
             name: "commentUrlRisk",

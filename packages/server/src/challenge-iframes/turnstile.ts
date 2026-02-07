@@ -29,14 +29,13 @@ export function generateTurnstileIframe(options: TurnstileIframeOptions): string
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
       background: #f5f5f5;
-      padding: 20px;
+      margin: 0;
+      padding: 10px;
     }
     .container {
       background: white;
-      padding: 30px;
+      padding: 15px;
       border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       text-align: center;
@@ -113,7 +112,7 @@ export function generateTurnstileIframe(options: TurnstileIframeOptions): string
       .then(function(response) { return response.json(); })
       .then(function(data) {
         if (data.success) {
-          showStatus('Verification complete! Click the "done" button in your plebbit client to continue.', 'success');
+          showStatus('Verification complete! Click the "done" button in your Bitsocial client to continue.', 'success');
         } else {
           showStatus('Verification failed: ' + (data.error || 'Unknown error'), 'error');
         }

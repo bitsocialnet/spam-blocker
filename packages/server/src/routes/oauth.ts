@@ -84,7 +84,7 @@ function generateSuccessPage(): string {
     <div class="container">
         <div class="success-icon">&#10003;</div>
         <h1>Verification Complete!</h1>
-        <p>You can close this tab and return to your plebbit client.</p>
+        <p>You can close this tab and return to your Bitsocial client.</p>
         <p style="margin-top: 10px; font-size: 0.9em; color: #888;">Click "done" in your client to continue.</p>
     </div>
 </body>

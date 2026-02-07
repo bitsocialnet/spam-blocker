@@ -111,14 +111,13 @@ export function generateCaptchaAndOAuthIframe(options: CaptchaAndOAuthIframeOpti
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
             background: #f5f5f5;
-            padding: 20px;
+            margin: 0;
+            padding: 10px;
         }
         .container {
             background: white;
-            padding: 30px;
+            padding: 15px;
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             text-align: center;
@@ -295,7 +294,7 @@ export function generateCaptchaAndOAuthIframe(options: CaptchaAndOAuthIframeOpti
         <div id="status" class="status"></div>
 
         <p class="privacy-note">
-            Your account info is not shared with the subplebbit.<br>
+            Your account info is not shared with the community.<br>
             We only verify that you signed in successfully.
         </p>
     </div>
@@ -346,7 +345,7 @@ export function generateCaptchaAndOAuthIframe(options: CaptchaAndOAuthIframeOpti
                     if (data.passed) {
                         // Session completed — CAPTCHA was sufficient
                         challengePassed = true;
-                        showStatus('Verification complete! Click "done" in your plebbit client to continue.', 'success');
+                        showStatus('Verification complete! Click "done" in your Bitsocial client to continue.', 'success');
                         // Show optional OAuth to build trust for future visits
                         document.getElementById('oauth-title').textContent = 'Build trust for future visits (optional)';
                         enableOAuthButtons();
@@ -403,7 +402,7 @@ export function generateCaptchaAndOAuthIframe(options: CaptchaAndOAuthIframeOpti
                         if (challengePassed) {
                             showStatus('Social account linked! This will help with future verifications.', 'success');
                         } else {
-                            showStatus('Verification complete! Click "done" in your plebbit client to continue.', 'success');
+                            showStatus('Verification complete! Click "done" in your Bitsocial client to continue.', 'success');
                         }
                     }
                 } catch (e) {
