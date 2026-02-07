@@ -20,13 +20,13 @@ export interface IpIntelligence {
  */
 const IP_TYPE_SCORES = {
     /** Tor exit nodes are highest risk */
-    TOR: 0.95,
+    TOR: 1,
     /** Known proxy servers */
-    PROXY: 0.85,
+    PROXY: 1,
     /** VPN services */
-    VPN: 0.75,
+    VPN: 1,
     /** Datacenter IPs (often used for bots) */
-    DATACENTER: 0.7,
+    DATACENTER: 1,
     /** Residential IP (normal user) */
     RESIDENTIAL: 0.2
 };

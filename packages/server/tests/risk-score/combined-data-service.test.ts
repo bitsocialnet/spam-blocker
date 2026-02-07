@@ -44,8 +44,10 @@ describe("CombinedDataService", () => {
             expect(result).toBeUndefined();
         });
 
-        it("should return engine timestamp when only engine has data", () => {
+        it("should return undefined when only engine has data (engine data is ignored)", () => {
             // Insert a comment into engine database
+            // Since we only use indexer data for account age, engine-only records
+            // should NOT contribute (prevents spammers from inflating age via rejected submissions)
             db.insertChallengeSession({
                 sessionId: "challenge-1",
                 subplebbitPublicKey: "subKey",
@@ -63,11 +65,12 @@ describe("CombinedDataService", () => {
             });
 
             const result = combinedData.getAuthorEarliestTimestamp("testAuthorPublicKey");
-            expect(result).toBeDefined();
+            // Engine-only data should NOT count - only indexer data is used
+            expect(result).toBeUndefined();
         });
 
-        it("should return the older timestamp when both sources have data", () => {
-            // Insert into engine - newer timestamp
+        it("should only use indexer data (engine data is ignored)", () => {
+            // Insert into engine - this should be IGNORED
             db.insertChallengeSession({
                 sessionId: "challenge-2",
                 subplebbitPublicKey: "subKey",
@@ -78,13 +81,13 @@ describe("CombinedDataService", () => {
                 publication: {
                     author: { address: "author1" },
                     subplebbitAddress: "sub1.eth",
-                    timestamp: baseTimestamp - 1000, // 1000 seconds ago
+                    timestamp: baseTimestamp - 1000, // 1000 seconds ago - engine data, ignored
                     signature: baseSignature,
                     protocolVersion: "1"
                 }
             });
 
-            // Insert into indexer - older timestamp
+            // Insert into indexer - this is the only data used
             const rawDb = db.getDb();
             rawDb
                 .prepare(
@@ -97,12 +100,12 @@ describe("CombinedDataService", () => {
                     JSON.stringify({ address: "author1" }),
                     JSON.stringify(baseSignature),
                     baseTimestamp - 5000,
-                    baseTimestamp
+                    (baseTimestamp - 5000) * 1000 // fetchedAt in milliseconds
                 );
 
             const result = combinedData.getAuthorEarliestTimestamp("testAuthorPublicKey");
-            // Should return the older indexer timestamp
-            expect(result).toBeLessThanOrEqual(baseTimestamp - 5000);
+            // Should return only the indexer timestamp (engine is ignored)
+            expect(result).toBe(baseTimestamp - 5000);
         });
     });
 

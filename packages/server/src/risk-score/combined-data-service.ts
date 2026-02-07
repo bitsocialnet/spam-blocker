@@ -2,7 +2,7 @@
  * CombinedDataService - Queries both engine and indexer tables for risk factor calculations.
  *
  * Each factor has its own combination strategy:
- * - Account Age: Use the OLDEST timestamp from either source (MIN)
+ * - Account Age: Use ONLY indexer's fetchedAt (only counts accepted publications)
  * - Karma: Per-subplebbit, use the LATEST entry from either source
  * - Velocity: Combine counts from both sources (SUM)
  * - Content/Link Similarity: Query both sources (UNION)
@@ -52,24 +52,16 @@ export class CombinedDataService {
     // ============================================
 
     /**
-     * Get the earliest timestamp for an author from either source.
-     * Uses the oldest timestamp to determine true account age.
+     * Get the earliest timestamp for an author from the indexer.
      * Returns the timestamp in **seconds** for compatibility with protocol timestamps.
      *
-     * - Engine: Uses receivedAt (when we first saw the author) - stored in milliseconds, converted to seconds
-     * - Indexer: Uses publication timestamp (actual post time) - in seconds (from protocol)
+     * SECURITY: Only uses indexer's fetchedAt, NOT engine's receivedAt.
+     * This ensures we only count comments that the subplebbit actually included in its pages.
+     * A spammer who keeps submitting rejected spam should not get "old account" credit
+     * just because our engine saw their failed attempts.
      */
     getAuthorEarliestTimestamp(authorPublicKey: string): number | undefined {
-        const engineFirstSeenMs = this.db.getAuthorFirstSeenTimestamp(authorPublicKey);
-        const indexerFirstSeen = this.indexerQueries.getAuthorFirstIndexedTimestamp(authorPublicKey);
-
-        // Convert engine timestamp from milliseconds to seconds for comparison
-        const engineFirstSeen = engineFirstSeenMs !== undefined ? Math.floor(engineFirstSeenMs / 1000) : undefined;
-
-        if (engineFirstSeen !== undefined && indexerFirstSeen !== undefined) {
-            return Math.min(engineFirstSeen, indexerFirstSeen);
-        }
-        return engineFirstSeen ?? indexerFirstSeen;
+        return this.indexerQueries.getAuthorFirstIndexedTimestamp(authorPublicKey);
     }
 
     // ============================================

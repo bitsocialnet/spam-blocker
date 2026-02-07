@@ -34,30 +34,26 @@ const SCORES = {
 /**
  * Calculate risk score based on account age.
  *
- * SECURITY: Only uses server-generated timestamps (receivedAt from engine, fetchedAt from indexer).
- * Does NOT trust author.subplebbit.firstCommentTimestamp or comment.timestamp because:
- * - A malicious subplebbit can fabricate firstCommentTimestamp
- * - A subplebbit owner can backdate their own comments' timestamp field
- * - We cannot detect subplebbit ownership at the protocol level
+ * SECURITY: Only uses indexer's fetchedAt timestamp (when comment was found in subplebbit pages).
+ * Does NOT trust:
+ * - author.subplebbit.firstCommentTimestamp (can be fabricated by malicious subplebbit)
+ * - comment.timestamp (subplebbit owner can backdate their own comments)
+ * - engine's receivedAt (counts rejected submissions, inflating spammer's "age")
  *
- * Tradeoff: Account age reflects how long the author has been known to our system,
- * not their actual Plebbit history. This is acceptable for security.
+ * By only counting indexed comments (those actually included in subplebbit pages),
+ * a spammer who keeps submitting rejected spam won't get "old account" credit.
  *
  * Scoring logic:
  * - Older accounts are considered more trustworthy (lower risk)
  * - New accounts are higher risk as they haven't built a reputation
- * - Accounts with no history in our system are treated as brand new (highest risk)
+ * - Accounts with no indexed history are treated as brand new (highest risk)
  */
 export function calculateAccountAge(ctx: RiskContext, weight: number): RiskFactor {
     const { challengeRequest, now, combinedData } = ctx;
-    // TODO actually maybe only query fetchedAt from indexer
-    // we don't an author to keep posting to a spam blocker but fail later, but still considered old
-    // we only care if the subplebbit decided to include their comments in the subplebbit
     const authorPublicKey = getAuthorPublicKeyFromChallengeRequest(challengeRequest);
 
-    // Get first seen timestamp from combined data (engine receivedAt + indexer fetchedAt)
-    // Uses the OLDEST server-generated timestamp from either source
-    // Does NOT use author.subplebbit.firstCommentTimestamp (can be manipulated)
+    // Get first indexed timestamp from indexer (when comment appeared in subplebbit pages)
+    // Only counts accepted publications, not rejected spam attempts
     const firstActivityTimestamp = combinedData.getAuthorEarliestTimestamp(authorPublicKey);
 
     // No first activity timestamp means new account or first interaction
