@@ -11,7 +11,7 @@ export async function refreshIpIntelIfNeeded(params: {
 }): Promise<IpApiResult | null> {
     const { db, sessionId, apiKey, timeoutMs = DEFAULT_TIMEOUT_MS } = params;
 
-    const record = db.getIpRecordBySessionId(sessionId);
+    const record = db.getIframeIpRecordBySessionId(sessionId);
     if (!record) {
         return null;
     }
@@ -27,7 +27,7 @@ export async function refreshIpIntelIfNeeded(params: {
     }
 
     const now = Math.floor(Date.now() / 1000);
-    db.updateIpRecordIntelligence(sessionId, {
+    db.updateIframeIpRecordIntelligence(sessionId, {
         isVpn: intel.isVpn,
         isProxy: intel.isProxy,
         isTor: intel.isTor,

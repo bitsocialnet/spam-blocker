@@ -219,7 +219,7 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
 
 // Export database utilities
 export { SpamDetectionDatabase, createDatabase } from "./db/index.js";
-export type { ChallengeSession, IpRecord, DatabaseConfig, OAuthState, OAuthProviderName } from "./db/index.js";
+export type { ChallengeSession, IframeIpRecord, EvaluateCallerIp, DatabaseConfig, OAuthState, OAuthProviderName } from "./db/index.js";
 
 // Export route utilities
 export { registerRoutes } from "./routes/index.js";

@@ -79,8 +79,8 @@ describe("SpamDetectionDatabase", () => {
         });
     });
 
-    describe("IP records", () => {
-        it("should create an IP record", () => {
+    describe("iframe IP records", () => {
+        it("should create an iframe IP record", () => {
             // First create a challenge session (required for foreign key)
             db.insertChallengeSession({
                 sessionId: "challenge-123",
@@ -89,7 +89,7 @@ describe("SpamDetectionDatabase", () => {
             });
 
             const now = Math.floor(Date.now() / 1000);
-            const record = db.insertIpRecord({
+            const record = db.insertIframeIpRecord({
                 sessionId: "challenge-123",
                 ipAddress: "192.168.1.1",
                 countryCode: "US",
@@ -104,7 +104,7 @@ describe("SpamDetectionDatabase", () => {
             expect(record.timestamp).toBe(now);
         });
 
-        it("should retrieve IP record by challenge ID", () => {
+        it("should retrieve iframe IP record by session ID", () => {
             db.insertChallengeSession({
                 sessionId: "lookup-challenge",
                 subplebbitPublicKey,
@@ -112,14 +112,14 @@ describe("SpamDetectionDatabase", () => {
             });
 
             const now = Math.floor(Date.now() / 1000);
-            db.insertIpRecord({
+            db.insertIframeIpRecord({
                 sessionId: "lookup-challenge",
                 ipAddress: "172.16.0.1",
                 isTor: true,
                 timestamp: now
             });
 
-            const record = db.getIpRecordBySessionId("lookup-challenge");
+            const record = db.getIframeIpRecordBySessionId("lookup-challenge");
             expect(record).toBeDefined();
             expect(record?.ipAddress).toBe("172.16.0.1");
             expect(record?.isTor).toBe(1);
@@ -133,7 +133,7 @@ describe("SpamDetectionDatabase", () => {
             });
 
             const now = Math.floor(Date.now() / 1000);
-            const record = db.insertIpRecord({
+            const record = db.insertIframeIpRecord({
                 sessionId: "flags-challenge",
                 ipAddress: "8.8.8.8",
                 isVpn: true,
@@ -149,7 +149,7 @@ describe("SpamDetectionDatabase", () => {
             expect(record.isDatacenter).toBe(1);
         });
 
-        it("should update IP intelligence data", () => {
+        it("should update iframe IP intelligence data", () => {
             db.insertChallengeSession({
                 sessionId: "intel-challenge",
                 subplebbitPublicKey,
@@ -157,14 +157,14 @@ describe("SpamDetectionDatabase", () => {
             });
 
             const now = Math.floor(Date.now() / 1000);
-            db.insertIpRecord({
+            db.insertIframeIpRecord({
                 sessionId: "intel-challenge",
                 ipAddress: "10.0.0.1",
                 timestamp: now
             });
 
             const laterTime = now + 60;
-            const updated = db.updateIpRecordIntelligence("intel-challenge", {
+            const updated = db.updateIframeIpRecordIntelligence("intel-challenge", {
                 isVpn: true,
                 countryCode: "DE",
                 timestamp: laterTime
@@ -172,10 +172,109 @@ describe("SpamDetectionDatabase", () => {
 
             expect(updated).toBe(true);
 
-            const record = db.getIpRecordBySessionId("intel-challenge");
+            const record = db.getIframeIpRecordBySessionId("intel-challenge");
             expect(record?.isVpn).toBe(1);
             expect(record?.countryCode).toBe("DE");
             expect(record?.timestamp).toBe(laterTime);
+        });
+    });
+
+    describe("evaluate caller IP records", () => {
+        it("should create an evaluate caller IP record", () => {
+            db.insertChallengeSession({
+                sessionId: "eval-session-1",
+                subplebbitPublicKey,
+                expiresAt: Math.floor(Date.now() / 1000) + 3600
+            });
+
+            const now = Date.now();
+            const record = db.insertEvaluateCallerIp({
+                sessionId: "eval-session-1",
+                ipAddress: "203.0.113.1",
+                timestamp: now
+            });
+
+            expect(record).toBeDefined();
+            expect(record.sessionId).toBe("eval-session-1");
+            expect(record.ipAddress).toBe("203.0.113.1");
+            expect(record.timestamp).toBe(now);
+        });
+
+        it("should retrieve evaluate caller IP by session ID", () => {
+            db.insertChallengeSession({
+                sessionId: "eval-session-2",
+                subplebbitPublicKey,
+                expiresAt: Math.floor(Date.now() / 1000) + 3600
+            });
+
+            const now = Date.now();
+            db.insertEvaluateCallerIp({
+                sessionId: "eval-session-2",
+                ipAddress: "198.51.100.1",
+                timestamp: now
+            });
+
+            const record = db.getEvaluateCallerIpBySessionId("eval-session-2");
+            expect(record).toBeDefined();
+            expect(record?.ipAddress).toBe("198.51.100.1");
+        });
+
+        it("should retrieve all evaluate caller IPs by address", () => {
+            const sharedIp = "192.0.2.100";
+
+            // Create multiple sessions from the same IP
+            for (let i = 1; i <= 3; i++) {
+                db.insertChallengeSession({
+                    sessionId: `shared-ip-session-${i}`,
+                    subplebbitPublicKey,
+                    expiresAt: Math.floor(Date.now() / 1000) + 3600
+                });
+
+                db.insertEvaluateCallerIp({
+                    sessionId: `shared-ip-session-${i}`,
+                    ipAddress: sharedIp,
+                    timestamp: Date.now() + i * 1000
+                });
+            }
+
+            const records = db.getEvaluateCallerIpsByAddress(sharedIp);
+            expect(records).toHaveLength(3);
+            expect(records.every((r) => r.ipAddress === sharedIp)).toBe(true);
+        });
+
+        it("should return empty array for non-existent IP address", () => {
+            const records = db.getEvaluateCallerIpsByAddress("255.255.255.255");
+            expect(records).toHaveLength(0);
+        });
+
+        it("should store both iframe and evaluate caller IPs for same session", () => {
+            db.insertChallengeSession({
+                sessionId: "dual-ip-session",
+                subplebbitPublicKey,
+                expiresAt: Math.floor(Date.now() / 1000) + 3600
+            });
+
+            const now = Date.now();
+
+            // Subplebbit server calls /evaluate
+            db.insertEvaluateCallerIp({
+                sessionId: "dual-ip-session",
+                ipAddress: "10.0.0.1", // Subplebbit server IP
+                timestamp: now
+            });
+
+            // User accesses iframe
+            db.insertIframeIpRecord({
+                sessionId: "dual-ip-session",
+                ipAddress: "82.123.45.67", // End user IP
+                timestamp: now + 5000
+            });
+
+            const evalRecord = db.getEvaluateCallerIpBySessionId("dual-ip-session");
+            const iframeRecord = db.getIframeIpRecordBySessionId("dual-ip-session");
+
+            expect(evalRecord?.ipAddress).toBe("10.0.0.1");
+            expect(iframeRecord?.ipAddress).toBe("82.123.45.67");
         });
     });
 

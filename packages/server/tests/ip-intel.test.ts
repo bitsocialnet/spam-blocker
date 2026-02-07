@@ -26,9 +26,9 @@ describe("IP intelligence", () => {
             expiresAt: Math.floor(Date.now() / 1000) + 3600
         });
 
-        // Then create an IP record
+        // Then create an iframe IP record
         const now = Math.floor(Date.now() / 1000);
-        db.insertIpRecord({
+        db.insertIframeIpRecord({
             sessionId: "challenge",
             ipAddress: "1.1.1.1",
             timestamp: now
@@ -54,7 +54,7 @@ describe("IP intelligence", () => {
             apiKey: "test-key"
         });
 
-        const record = db.getIpRecordBySessionId("challenge");
+        const record = db.getIframeIpRecordBySessionId("challenge");
         expect(record?.countryCode).toBe("DE");
         expect(record?.isVpn).toBe(1);
         expect(record?.isProxy).toBe(0);
@@ -76,7 +76,7 @@ describe("IP intelligence", () => {
         });
 
         const now = Math.floor(Date.now() / 1000);
-        db.insertIpRecord({
+        db.insertIframeIpRecord({
             sessionId: "challenge-no-key",
             ipAddress: "8.8.8.8",
             timestamp: now
@@ -101,7 +101,7 @@ describe("IP intelligence", () => {
             sessionId: "challenge-no-key"
         });
 
-        const record = db.getIpRecordBySessionId("challenge-no-key");
+        const record = db.getIframeIpRecordBySessionId("challenge-no-key");
         expect(record?.countryCode).toBe("US");
         expect(record?.isVpn).toBe(0);
         expect(record?.isDatacenter).toBe(1);
@@ -121,7 +121,7 @@ describe("IP intelligence", () => {
         });
 
         const now = Math.floor(Date.now() / 1000);
-        db.insertIpRecord({
+        db.insertIframeIpRecord({
             sessionId: "challenge-no-privacy",
             ipAddress: "3.3.3.3",
             timestamp: now
@@ -143,7 +143,7 @@ describe("IP intelligence", () => {
             sessionId: "challenge-no-privacy"
         });
 
-        const record = db.getIpRecordBySessionId("challenge-no-privacy");
+        const record = db.getIframeIpRecordBySessionId("challenge-no-privacy");
         expect(record?.countryCode).toBe("US");
         // All privacy flags should be null (unknown), not 0 (false)
         expect(record?.isVpn).toBeNull();
@@ -160,9 +160,9 @@ describe("IP intelligence", () => {
             expiresAt: Math.floor(Date.now() / 1000) + 3600
         });
 
-        // Create an IP record with intel data already populated
+        // Create an iframe IP record with intel data already populated
         const now = Math.floor(Date.now() / 1000);
-        db.insertIpRecord({
+        db.insertIframeIpRecord({
             sessionId: "challenge2",
             ipAddress: "2.2.2.2",
             isVpn: false,

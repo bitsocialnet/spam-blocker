@@ -108,8 +108,8 @@ export function registerVerifyRoute(fastify: FastifyInstance, options: VerifyRou
 
             // session.status === "completed" - success!
 
-            // Get IP record if available
-            const ipRecord = db.getIpRecordBySessionId(sessionId); // TODO shouldn't it always be defined since /verify is called after iframe?
+            // Get iframe IP record if available
+            const ipRecord = db.getIframeIpRecordBySessionId(sessionId); // TODO shouldn't it always be defined since /verify is called after iframe?
 
             // Build response with IP intelligence data if available
             const response: VerifyResponse = {

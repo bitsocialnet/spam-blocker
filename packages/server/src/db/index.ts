@@ -28,7 +28,7 @@ export interface ChallengeSession {
     riskScore: number | null;
 }
 
-export interface IpRecord {
+export interface IframeIpRecord {
     sessionId: string;
     ipAddress: string;
     isVpn: number | null;
@@ -37,6 +37,13 @@ export interface IpRecord {
     isDatacenter: number | null;
     countryCode: string | null;
     /** When we queried the IP provider */
+    timestamp: number;
+}
+
+export interface EvaluateCallerIp {
+    sessionId: string;
+    ipAddress: string;
+    /** When the /evaluate endpoint was called */
     timestamp: number;
 }
 
@@ -317,13 +324,13 @@ export class SpamDetectionDatabase {
     }
 
     // ============================================
-    // IP Record Methods
+    // Iframe IP Record Methods
     // ============================================
 
     /**
-     * Insert an IP record for a challenge.
+     * Insert an iframe IP record for a challenge (when user accesses the iframe).
      */
-    insertIpRecord(params: {
+    insertIframeIpRecord(params: {
         sessionId: string;
         ipAddress: string;
         isVpn?: boolean;
@@ -332,9 +339,9 @@ export class SpamDetectionDatabase {
         isDatacenter?: boolean;
         countryCode?: string;
         timestamp: number;
-    }): IpRecord {
+    }): IframeIpRecord {
         const stmt = this.db.prepare(`
-      INSERT INTO ipRecords (sessionId, ipAddress, isVpn, isProxy, isTor, isDatacenter, countryCode, timestamp)
+      INSERT INTO iframeIpRecords (sessionId, ipAddress, isVpn, isProxy, isTor, isDatacenter, countryCode, timestamp)
       VALUES (@sessionId, @ipAddress, @isVpn, @isProxy, @isTor, @isDatacenter, @countryCode, @timestamp)
     `);
 
@@ -349,23 +356,23 @@ export class SpamDetectionDatabase {
             timestamp: params.timestamp
         });
 
-        return this.getIpRecordBySessionId(params.sessionId)!;
+        return this.getIframeIpRecordBySessionId(params.sessionId)!;
     }
 
     /**
-     * Get an IP record by session ID.
+     * Get an iframe IP record by session ID.
      */
-    getIpRecordBySessionId(sessionId: string): IpRecord | undefined {
+    getIframeIpRecordBySessionId(sessionId: string): IframeIpRecord | undefined {
         const stmt = this.db.prepare(`
-      SELECT * FROM ipRecords WHERE sessionId = ?
+      SELECT * FROM iframeIpRecords WHERE sessionId = ?
     `);
-        return stmt.get(sessionId) as IpRecord | undefined;
+        return stmt.get(sessionId) as IframeIpRecord | undefined;
     }
 
     /**
-     * Update IP intelligence data for an existing IP record.
+     * Update IP intelligence data for an existing iframe IP record.
      */
-    updateIpRecordIntelligence(
+    updateIframeIpRecordIntelligence(
         sessionId: string,
         params: {
             isVpn?: boolean;
@@ -377,7 +384,7 @@ export class SpamDetectionDatabase {
         }
     ): boolean {
         const stmt = this.db.prepare(`
-      UPDATE ipRecords SET
+      UPDATE iframeIpRecords SET
         isVpn = COALESCE(@isVpn, isVpn),
         isProxy = COALESCE(@isProxy, isProxy),
         isTor = COALESCE(@isTor, isTor),
@@ -398,6 +405,45 @@ export class SpamDetectionDatabase {
         });
 
         return result.changes > 0;
+    }
+
+    // ============================================
+    // Evaluate Caller IP Methods
+    // ============================================
+
+    /**
+     * Insert an evaluate caller IP record (when subplebbit server calls /evaluate).
+     */
+    insertEvaluateCallerIp(params: { sessionId: string; ipAddress: string; timestamp: number }): EvaluateCallerIp {
+        const stmt = this.db.prepare(`
+      INSERT INTO evaluateCallerIps (sessionId, ipAddress, timestamp)
+      VALUES (@sessionId, @ipAddress, @timestamp)
+    `);
+
+        stmt.run(params);
+
+        return this.getEvaluateCallerIpBySessionId(params.sessionId)!;
+    }
+
+    /**
+     * Get an evaluate caller IP record by session ID.
+     */
+    getEvaluateCallerIpBySessionId(sessionId: string): EvaluateCallerIp | undefined {
+        const stmt = this.db.prepare(`
+      SELECT * FROM evaluateCallerIps WHERE sessionId = ?
+    `);
+        return stmt.get(sessionId) as EvaluateCallerIp | undefined;
+    }
+
+    /**
+     * Get all evaluate caller IP records for a given IP address.
+     * Useful for rate limiting and detecting abuse patterns.
+     */
+    getEvaluateCallerIpsByAddress(ipAddress: string): EvaluateCallerIp[] {
+        const stmt = this.db.prepare(`
+      SELECT * FROM evaluateCallerIps WHERE ipAddress = ? ORDER BY timestamp DESC
+    `);
+        return stmt.all(ipAddress) as EvaluateCallerIp[];
     }
 
     // ============================================

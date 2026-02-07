@@ -15,6 +15,7 @@ import { fetchWalletTransactionCounts } from "../security/author-field-signature
 import { determineChallengeTier, type ChallengeTierConfig } from "../risk-score/challenge-tier.js";
 import { IndexerQueries } from "../indexer/db/queries.js";
 import type { Indexer } from "../indexer/index.js";
+import { getClientIp } from "../utils/ip.js";
 
 const CHALLENGE_EXPIRY_MS = 3600 * 1000; // 1 hour in milliseconds
 const MAX_REQUEST_SKEW_SECONDS = 5 * 60;
@@ -52,7 +53,6 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
     fastify.post(
         "/api/v1/evaluate",
         async (request: FastifyRequest<{ Body: EvaluateRequest }>, reply: FastifyReply): Promise<EvaluateResponse> => {
-            // TODO need to record IP address of /evaluate callers somewhere too so we can mitgate spam if needd
             const parseResult = EvaluateRequestSchema.safeParse(request.body);
             if (!parseResult.success) {
                 const error = new Error(`Invalid request body: ${parseResult.error.issues.map((issue) => issue.message).join(", ")}`);
@@ -223,6 +223,16 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
                 challengeTier: dbChallengeTier,
                 riskScore: riskScoreResult.score
             });
+
+            // Record the IP address of the subplebbit server calling /evaluate
+            const callerIp = getClientIp(request);
+            if (callerIp) {
+                db.insertEvaluateCallerIp({
+                    sessionId,
+                    ipAddress: callerIp,
+                    timestamp: nowMs
+                });
+            }
 
             // Store publication in database for velocity tracking
             if (typedChallengeRequest.comment) {

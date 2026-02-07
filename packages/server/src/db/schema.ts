@@ -110,8 +110,9 @@ CREATE TABLE IF NOT EXISTS commentModerations (
 CREATE INDEX IF NOT EXISTS idx_commentModerations_author ON commentModerations(author);
 CREATE INDEX IF NOT EXISTS idx_commentModerations_commentCid ON commentModerations(commentCid);
 
--- IP records table - stores IP addresses associated with challenges
-CREATE TABLE IF NOT EXISTS ipRecords (
+-- Iframe IP records table - stores IP addresses of users accessing challenge iframes
+-- Note: timestamp is internal (milliseconds)
+CREATE TABLE IF NOT EXISTS iframeIpRecords (
   sessionId TEXT PRIMARY KEY,
   ipAddress TEXT NOT NULL,
   isVpn INTEGER,
@@ -123,7 +124,18 @@ CREATE TABLE IF NOT EXISTS ipRecords (
   FOREIGN KEY (sessionId) REFERENCES challengeSessions(sessionId)
 );
 
-CREATE INDEX IF NOT EXISTS idx_ipRecords_ipAddress ON ipRecords(ipAddress);
+CREATE INDEX IF NOT EXISTS idx_iframeIpRecords_ipAddress ON iframeIpRecords(ipAddress);
+
+-- Evaluate caller IPs table - stores IPs of subplebbit servers calling /evaluate
+-- Note: timestamp is internal (milliseconds)
+CREATE TABLE IF NOT EXISTS evaluateCallerIps (
+  sessionId TEXT PRIMARY KEY,
+  ipAddress TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+  FOREIGN KEY (sessionId) REFERENCES challengeSessions(sessionId)
+);
+
+CREATE INDEX IF NOT EXISTS idx_evaluateCallerIps_ipAddress ON evaluateCallerIps(ipAddress);
 
 -- ============================================================================
 -- INDEXER TABLES

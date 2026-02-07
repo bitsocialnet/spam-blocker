@@ -20,6 +20,8 @@ import { IndexerQueries } from "../../indexer/db/queries.js";
  *
  * score = min(1.0, banSeverity + trustPenalty)
  */
+// TODO we need to rethink this more, getting a ban or purge is pretty severe, while removed is less so
+// also this risk factor should get higher weight I think
 export function calculateNetworkBanHistory(ctx: RiskContext, weight: number): RiskFactor {
     const authorPublicKey = getAuthorPublicKeyFromChallengeRequest(ctx.challengeRequest);
 

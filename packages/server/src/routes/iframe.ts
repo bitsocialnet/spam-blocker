@@ -5,6 +5,7 @@ import { getEnabledProviders } from "../oauth/providers.js";
 import { IframeParamsSchema, type IframeParams } from "./schemas.js";
 import { refreshIpIntelIfNeeded } from "../ip-intel/index.js";
 import { generateChallengeIframe, type ChallengeType, type OAuthProvider } from "../challenge-iframes/index.js";
+import { getClientIp } from "../utils/ip.js";
 
 /** Default multiplier applied to riskScore after CAPTCHA (30% reduction) */
 const DEFAULT_CAPTCHA_SCORE_MULTIPLIER = 0.7;
@@ -107,7 +108,7 @@ export function registerIframeRoute(fastify: FastifyInstance, options: IframeRou
             db.updateChallengeSessionIframeAccess(sessionId, nowMs);
 
             if (clientIp) {
-                db.insertIpRecord({
+                db.insertIframeIpRecord({
                     sessionId,
                     ipAddress: clientIp,
                     timestamp: nowMs
@@ -171,24 +172,4 @@ export function registerIframeRoute(fastify: FastifyInstance, options: IframeRou
             reply.send(html);
         }
     );
-}
-
-/**
- * Get client IP address from request.
- */
-function getClientIp(request: FastifyRequest): string | undefined {
-    // Check common proxy headers
-    const forwarded = request.headers["x-forwarded-for"];
-    if (forwarded) {
-        const ips = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-        return ips.split(",")[0].trim();
-    }
-
-    const realIp = request.headers["x-real-ip"];
-    if (realIp) {
-        return Array.isArray(realIp) ? realIp[0] : realIp;
-    }
-
-    // Fall back to direct connection IP
-    return request.ip;
 }
