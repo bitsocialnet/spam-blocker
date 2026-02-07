@@ -32,31 +32,6 @@ const CommentSignedPropertyNames = [
 
 const VoteSignedPropertyNames = ["timestamp", "subplebbitAddress", "author", "protocolVersion", "commentCid", "vote"];
 
-const CommentEditSignedPropertyNames = [
-    "timestamp",
-    "flair",
-    "subplebbitAddress",
-    "author",
-    "protocolVersion",
-    "commentCid",
-    "content",
-    "deleted",
-    "spoiler",
-    "nsfw",
-    "reason"
-];
-
-const CommentModerationSignedPropertyNames = [
-    "timestamp",
-    "subplebbitAddress",
-    "author",
-    "protocolVersion",
-    "commentCid",
-    "commentModeration"
-];
-
-const SubplebbitEditSignedPropertyNames = ["timestamp", "subplebbitAddress", "author", "protocolVersion", "subplebbitEdit"];
-
 // Helper to create a properly signed publication signature (JSON format for publications)
 const signPublication = async (
     publication: Record<string, unknown>,
@@ -697,7 +672,7 @@ describe("API Routes", () => {
         }: {
             publicationWithoutSig: Record<string, unknown>;
             signedPropertyNames: string[];
-            publicationType: "comment" | "vote" | "commentEdit" | "commentModeration" | "subplebbitEdit";
+            publicationType: "comment" | "vote" | "commentEdit" | "commentModeration" | "subplebbitEdit"; // Note: commentEdit/commentModeration/subplebbitEdit rejected with 400
         }) => {
             // 1. Sign the publication WITHOUT author.subplebbit
             const pubSignature = await signPublication(publicationWithoutSig, authorSigner, signedPropertyNames);
@@ -760,7 +735,20 @@ describe("API Routes", () => {
             expect(response.statusCode).toBe(200);
         });
 
-        it("should accept CommentEdit signed without author.subplebbit", async () => {
+        it("should reject CommentEdit with 400", async () => {
+            const CommentEditSignedPropertyNames = [
+                "timestamp",
+                "flair",
+                "subplebbitAddress",
+                "author",
+                "protocolVersion",
+                "commentCid",
+                "content",
+                "deleted",
+                "spoiler",
+                "nsfw",
+                "reason"
+            ];
             const payload = await buildAndSignPayload({
                 publicationWithoutSig: {
                     author: { address: authorPlebbitAddress },
@@ -775,13 +763,18 @@ describe("API Routes", () => {
             });
 
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
-            if (response.statusCode !== 200) {
-                console.log("CommentEdit response:", response.json());
-            }
-            expect(response.statusCode).toBe(200);
+            expect(response.statusCode).toBe(400);
         });
 
-        it("should accept CommentModeration signed without author.subplebbit", async () => {
+        it("should reject CommentModeration with 400", async () => {
+            const CommentModerationSignedPropertyNames = [
+                "timestamp",
+                "subplebbitAddress",
+                "author",
+                "protocolVersion",
+                "commentCid",
+                "commentModeration"
+            ];
             const payload = await buildAndSignPayload({
                 publicationWithoutSig: {
                     author: { address: authorPlebbitAddress },
@@ -796,13 +789,11 @@ describe("API Routes", () => {
             });
 
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
-            if (response.statusCode !== 200) {
-                console.log("CommentModeration response:", response.json());
-            }
-            expect(response.statusCode).toBe(200);
+            expect(response.statusCode).toBe(400);
         });
 
-        it("should accept SubplebbitEdit signed without author.subplebbit", async () => {
+        it("should reject SubplebbitEdit with 400", async () => {
+            const SubplebbitEditSignedPropertyNames = ["timestamp", "subplebbitAddress", "author", "protocolVersion", "subplebbitEdit"];
             const payload = await buildAndSignPayload({
                 publicationWithoutSig: {
                     author: { address: authorPlebbitAddress },
@@ -816,10 +807,7 @@ describe("API Routes", () => {
             });
 
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
-            if (response.statusCode !== 200) {
-                console.log("SubplebbitEdit response:", response.json());
-            }
-            expect(response.statusCode).toBe(200);
+            expect(response.statusCode).toBe(400);
         });
     });
 

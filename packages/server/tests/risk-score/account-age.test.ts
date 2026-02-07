@@ -491,53 +491,5 @@ describe("calculateAccountAge", () => {
             expect(result.score).toBe(1.0);
             expect(result.explanation).toContain("No account history");
         });
-
-        it("should ignore engine comment edits when calculating account age", () => {
-            const author = createMockAuthor(undefined);
-            const challengeRequest = createMockChallengeRequest(author);
-
-            // Insert a comment edit from 45 days ago in ENGINE
-            const editTime = baseTimestamp - 45 * SECONDS_PER_DAY;
-            const sessionId = "old-edit";
-            db.insertChallengeSession({
-                sessionId,
-                subplebbitPublicKey: "pk",
-                expiresAt: baseTimestamp + 3600
-            });
-
-            db.insertCommentEdit({
-                sessionId,
-                publication: {
-                    author: { address: author.address },
-                    subplebbitAddress: "test-sub.eth",
-                    timestamp: editTime,
-                    protocolVersion: "1",
-                    signature: baseSignature,
-                    commentCid: "QmComment",
-                    content: "Edited content"
-                }
-            });
-
-            db.getDb()
-                .prepare("UPDATE commentEdits SET receivedAt = ? WHERE sessionId = ?")
-                .run(editTime * 1000, sessionId);
-
-            // NO indexed records - edits are not indexed
-
-            const ctx: RiskContext = {
-                challengeRequest,
-                now: baseTimestamp,
-                hasIpInfo: false,
-                db,
-                combinedData
-            };
-
-            const result = calculateAccountAge(ctx, 0.17);
-
-            // Should return NO_HISTORY because only indexed comments count
-            // Engine comment edits are ignored for account age calculation
-            expect(result.score).toBe(1.0);
-            expect(result.explanation).toContain("No account history");
-        });
     });
 });

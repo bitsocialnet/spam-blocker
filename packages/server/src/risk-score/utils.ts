@@ -10,9 +10,6 @@ import { derivePublicationFromChallengeRequest } from "../plebbit-js-internals.j
  * The challenge request can contain different publication types:
  * - comment
  * - vote
- * - commentEdit
- * - commentModeration
- * - subplebbitEdit
  *
  * This helper returns the publication object regardless of type.
  */
@@ -51,16 +48,13 @@ export function getAuthorPublicKeyFromChallengeRequest(challengeRequest: Decrypt
 /**
  * Publication types for velocity tracking.
  */
-export type PublicationType = "post" | "reply" | "vote" | "commentEdit" | "commentModeration" | "subplebbitEdit";
+export type PublicationType = "post" | "reply" | "vote";
 
 /**
  * Get the publication type from a challenge request.
  * - post: comment without parentCid
  * - reply: comment with parentCid
  * - vote: vote publication
- * - commentEdit: comment edit
- * - commentModeration: moderation action
- * - subplebbitEdit: subplebbit settings edit
  */
 export function getPublicationType(challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor): PublicationType {
     if (challengeRequest.comment) {
@@ -69,15 +63,6 @@ export function getPublicationType(challengeRequest: DecryptedChallengeRequestMe
     }
     if (challengeRequest.vote) {
         return "vote";
-    }
-    if (challengeRequest.commentEdit) {
-        return "commentEdit";
-    }
-    if (challengeRequest.commentModeration) {
-        return "commentModeration";
-    }
-    if (challengeRequest.subplebbitEdit) {
-        return "subplebbitEdit";
     }
     throw new Error("Unknown publication type in challenge request");
 }

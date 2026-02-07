@@ -26,18 +26,6 @@ const THRESHOLDS = {
         ELEVATED: 40,
         SUSPICIOUS: 60,
         BOT_LIKE: 100
-    },
-    commentEdit: {
-        NORMAL: 3,
-        ELEVATED: 5,
-        SUSPICIOUS: 10,
-        BOT_LIKE: 15
-    },
-    commentModeration: {
-        NORMAL: 5,
-        ELEVATED: 10,
-        SUSPICIOUS: 15,
-        BOT_LIKE: 25
     }
 };
 
@@ -71,13 +59,8 @@ const SCORES = {
 
 /**
  * Get thresholds for a publication type.
- * Returns null for types that don't have velocity tracking.
  */
-function getThresholdsForType(pubType: PublicationType): (typeof THRESHOLDS)["post"] | null {
-    if (pubType === "subplebbitEdit") {
-        // Subplebbit edits don't need velocity tracking
-        return null;
-    }
+function getThresholdsForType(pubType: PublicationType): (typeof THRESHOLDS)["post"] {
     return THRESHOLDS[pubType];
 }
 
@@ -110,15 +93,9 @@ function calculateScoreFromVelocity(
 function getMaxVelocityFromOtherTypes(
     combinedData: CombinedDataService,
     authorPublicKey: string,
-    excludeType: "post" | "reply" | "vote" | "commentEdit" | "commentModeration"
+    excludeType: "post" | "reply" | "vote"
 ): { score: number; level: string; type: string } {
-    const types: Array<"post" | "reply" | "vote" | "commentEdit" | "commentModeration"> = [
-        "post",
-        "reply",
-        "vote",
-        "commentEdit",
-        "commentModeration"
-    ];
+    const types: Array<"post" | "reply" | "vote"> = ["post", "reply", "vote"];
 
     let maxScore = 0;
     let maxLevel = "normal";
@@ -198,28 +175,15 @@ export function calculateVelocity(ctx: RiskContext, weight: number): RiskFactor 
     const pubType = getPublicationType(challengeRequest);
     const thresholds = getThresholdsForType(pubType);
 
-    // If this publication type doesn't have velocity tracking
-    if (!thresholds) {
-        return {
-            name: "velocityRisk",
-            score: 0,
-            weight: 0,
-            explanation: `Velocity: Not tracked for ${pubType}`
-        };
-    }
-
-    // At this point, pubType must be one of the tracked types (not subplebbitEdit)
-    const trackedPubType = pubType as "post" | "reply" | "vote" | "commentEdit" | "commentModeration";
-
     // 1. Calculate per-type velocity from combined data (engine + indexer)
-    const perTypeStats = combinedData.getAuthorVelocityStats(authorPublicKey, trackedPubType);
+    const perTypeStats = combinedData.getAuthorVelocityStats(authorPublicKey, pubType);
     const perTypeResult = calculateScoreFromVelocity(perTypeStats.lastHour, perTypeStats.last24Hours, thresholds);
 
     // 2. Calculate aggregate velocity across all types
     const aggregateResult = calculateAggregateVelocity(combinedData, authorPublicKey);
 
     // 3. Get max velocity from other types for cross-type penalty
-    const otherTypesMax = getMaxVelocityFromOtherTypes(combinedData, authorPublicKey, trackedPubType);
+    const otherTypesMax = getMaxVelocityFromOtherTypes(combinedData, authorPublicKey, pubType);
 
     // 4. Apply cross-type penalty: blend 50% of higher velocity from other types
     let crossTypePenaltyScore = perTypeResult.score;
@@ -234,7 +198,7 @@ export function calculateVelocity(ctx: RiskContext, weight: number): RiskFactor 
 
     // Build explanation with details about what triggered the score
     const explanationParts: string[] = [];
-    explanationParts.push(`${trackedPubType}: ${perTypeStats.lastHour}/hr (${perTypeResult.level})`);
+    explanationParts.push(`${pubType}: ${perTypeStats.lastHour}/hr (${perTypeResult.level})`);
 
     if (aggregateResult.score >= perTypeResult.score && aggregateResult.score > SCORES.NORMAL) {
         explanationParts.push(`aggregate: ${aggregateResult.lastHour}/hr (${aggregateResult.level})`);

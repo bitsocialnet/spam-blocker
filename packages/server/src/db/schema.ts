@@ -70,47 +70,6 @@ CREATE TABLE IF NOT EXISTS votes (
 CREATE INDEX IF NOT EXISTS idx_votes_author ON votes(author);
 CREATE INDEX IF NOT EXISTS idx_votes_commentCid ON votes(commentCid);
 
--- Comment edits table - stores comment edit publications
--- Note: timestamp is from publication (seconds), receivedAt is internal (milliseconds)
-CREATE TABLE IF NOT EXISTS commentEdits (
-  sessionId TEXT PRIMARY KEY,
-  author TEXT NOT NULL,
-  subplebbitAddress TEXT NOT NULL,
-  commentCid TEXT NOT NULL,
-  signature TEXT NOT NULL,
-  protocolVersion TEXT NOT NULL,
-  content TEXT,
-  reason TEXT,
-  deleted INTEGER,
-  flair TEXT,
-  spoiler INTEGER,
-  nsfw INTEGER,
-  timestamp INTEGER NOT NULL,
-  receivedAt INTEGER NOT NULL DEFAULT (CAST(strftime('%s', 'now') AS INTEGER) * 1000),
-  FOREIGN KEY (sessionId) REFERENCES challengeSessions(sessionId)
-);
-
-CREATE INDEX IF NOT EXISTS idx_commentEdits_author ON commentEdits(author);
-CREATE INDEX IF NOT EXISTS idx_commentEdits_commentCid ON commentEdits(commentCid);
-
--- Comment moderations table - stores comment moderation publications
--- Note: timestamp is from publication (seconds), receivedAt is internal (milliseconds)
-CREATE TABLE IF NOT EXISTS commentModerations (
-  sessionId TEXT PRIMARY KEY,
-  author TEXT NOT NULL,
-  subplebbitAddress TEXT NOT NULL,
-  commentCid TEXT NOT NULL,
-  commentModeration TEXT,
-  signature TEXT NOT NULL,
-  protocolVersion TEXT,
-  timestamp INTEGER NOT NULL,
-  receivedAt INTEGER NOT NULL DEFAULT (CAST(strftime('%s', 'now') AS INTEGER) * 1000),
-  FOREIGN KEY (sessionId) REFERENCES challengeSessions(sessionId)
-);
-
-CREATE INDEX IF NOT EXISTS idx_commentModerations_author ON commentModerations(author);
-CREATE INDEX IF NOT EXISTS idx_commentModerations_commentCid ON commentModerations(commentCid);
-
 -- Iframe IP records table - stores IP addresses of users accessing challenge iframes
 -- Note: timestamp is internal (milliseconds)
 CREATE TABLE IF NOT EXISTS iframeIpRecords (

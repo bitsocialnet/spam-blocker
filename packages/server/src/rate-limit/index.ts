@@ -26,7 +26,7 @@ export interface RateLimitPerType {
 
 export interface RateLimitConfig {
     /** Base rate limits per publication type (at multiplier 1.0) */
-    limits?: Partial<Record<Exclude<PublicationType, "subplebbitEdit">, RateLimitPerType>>;
+    limits?: Partial<Record<PublicationType, RateLimitPerType>>;
     /** Aggregate rate limits across all types */
     aggregate?: RateLimitPerType;
 }
@@ -43,14 +43,10 @@ export interface RateLimitResult {
 // Defaults
 // ============================================================================
 
-type RateLimitableType = Exclude<PublicationType, "subplebbitEdit">;
-
-export const DEFAULT_RATE_LIMITS: Record<RateLimitableType, RateLimitPerType> = {
+export const DEFAULT_RATE_LIMITS: Record<PublicationType, RateLimitPerType> = {
     post: { hourly: 4, daily: 20 },
     reply: { hourly: 6, daily: 60 },
-    vote: { hourly: 10, daily: 200 },
-    commentEdit: { hourly: 5, daily: 30 },
-    commentModeration: { hourly: 10, daily: 60 }
+    vote: { hourly: 10, daily: 200 }
 };
 
 export const DEFAULT_AGGREGATE_LIMITS: RateLimitPerType = {
@@ -151,16 +147,10 @@ export function checkRateLimit({
     db: SpamDetectionDatabase;
     config: RateLimitConfig;
 }): RateLimitResult {
-    // subplebbitEdit is never rate limited
-    if (publicationType === "subplebbitEdit") {
-        return { allowed: true };
-    }
-
-    const rateLimitableType = publicationType as RateLimitableType;
     const multiplier = computeBudgetMultiplier({ authorPublicKey, db });
 
     // Resolve per-type limits (merge config overrides with defaults)
-    const baseLimits = config.limits?.[rateLimitableType] ?? DEFAULT_RATE_LIMITS[rateLimitableType];
+    const baseLimits = config.limits?.[publicationType] ?? DEFAULT_RATE_LIMITS[publicationType];
     const baseAggregate = config.aggregate ?? DEFAULT_AGGREGATE_LIMITS;
 
     const effectiveHourly = Math.max(1, Math.floor(baseLimits.hourly * multiplier));
@@ -169,14 +159,14 @@ export function checkRateLimit({
     const effectiveAggDaily = Math.max(1, Math.floor(baseAggregate.daily * multiplier));
 
     // Get current velocity from engine DB only
-    const typeStats = db.getAuthorVelocityStats(authorPublicKey, rateLimitableType);
+    const typeStats = db.getAuthorVelocityStats(authorPublicKey, publicationType);
     const aggStats = db.getAuthorAggregateVelocityStats(authorPublicKey);
 
     // Check order: per-type hourly → per-type daily → aggregate hourly → aggregate daily
     if (typeStats.lastHour >= effectiveHourly) {
         return {
             allowed: false,
-            exceeded: `${rateLimitableType} hourly`,
+            exceeded: `${publicationType} hourly`,
             limit: effectiveHourly,
             current: typeStats.lastHour,
             multiplier
@@ -186,7 +176,7 @@ export function checkRateLimit({
     if (typeStats.last24Hours >= effectiveDaily) {
         return {
             allowed: false,
-            exceeded: `${rateLimitableType} daily`,
+            exceeded: `${publicationType} daily`,
             limit: effectiveDaily,
             current: typeStats.last24Hours,
             multiplier

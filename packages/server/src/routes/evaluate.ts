@@ -94,14 +94,19 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
                 throw invalidError;
             }
 
-            // Validate publication type - reject unknown types
+            // Validate publication type - only accept user-generated content (posts, replies, votes)
             const typedChallengeRequest = challengeRequest as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
-            const hasKnownPublicationType =
-                typedChallengeRequest.comment ||
-                typedChallengeRequest.vote ||
-                typedChallengeRequest.commentEdit ||
-                typedChallengeRequest.commentModeration ||
-                typedChallengeRequest.subplebbitEdit;
+
+            // Reject subplebbit-level actions - these are inherently authorized by the subplebbit's trust model
+            if (typedChallengeRequest.commentEdit || typedChallengeRequest.commentModeration || typedChallengeRequest.subplebbitEdit) {
+                const error = new Error(
+                    "commentEdit, commentModeration, and subplebbitEdit are subplebbit-level actions that do not require spam detection"
+                );
+                (error as { statusCode?: number }).statusCode = 400;
+                throw error;
+            }
+
+            const hasKnownPublicationType = typedChallengeRequest.comment || typedChallengeRequest.vote;
 
             if (!hasKnownPublicationType) {
                 const error = new Error("Unknown or missing publication type");
@@ -189,30 +194,28 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
                 const authorPublicKey = getAuthorPublicKeyFromChallengeRequest(typedChallengeRequest);
                 const publicationType = getPublicationType(typedChallengeRequest);
 
-                if (publicationType !== "subplebbitEdit") {
-                    const rateLimitResult = checkRateLimit({
-                        authorPublicKey,
-                        publicationType,
-                        db,
-                        config: rateLimitConfig
-                    });
+                const rateLimitResult = checkRateLimit({
+                    authorPublicKey,
+                    publicationType,
+                    db,
+                    config: rateLimitConfig
+                });
 
-                    if (!rateLimitResult.allowed) {
-                        request.log.warn(
-                            {
-                                exceeded: rateLimitResult.exceeded,
-                                limit: rateLimitResult.limit,
-                                current: rateLimitResult.current,
-                                multiplier: rateLimitResult.multiplier
-                            },
-                            `Rate limit exceeded: ${rateLimitResult.exceeded}`
-                        );
-                        const error = new Error(
-                            `Rate limit exceeded: ${rateLimitResult.exceeded} (${rateLimitResult.current}/${rateLimitResult.limit})`
-                        );
-                        (error as { statusCode?: number }).statusCode = 429;
-                        throw error;
-                    }
+                if (!rateLimitResult.allowed) {
+                    request.log.warn(
+                        {
+                            exceeded: rateLimitResult.exceeded,
+                            limit: rateLimitResult.limit,
+                            current: rateLimitResult.current,
+                            multiplier: rateLimitResult.multiplier
+                        },
+                        `Rate limit exceeded: ${rateLimitResult.exceeded}`
+                    );
+                    const error = new Error(
+                        `Rate limit exceeded: ${rateLimitResult.exceeded} (${rateLimitResult.current}/${rateLimitResult.limit})`
+                    );
+                    (error as { statusCode?: number }).statusCode = 429;
+                    throw error;
                 }
             }
 
@@ -281,18 +284,7 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
                     sessionId,
                     publication: typedChallengeRequest.vote
                 });
-            } else if (typedChallengeRequest.commentEdit) {
-                db.insertCommentEdit({
-                    sessionId,
-                    publication: typedChallengeRequest.commentEdit
-                });
-            } else if (typedChallengeRequest.commentModeration) {
-                db.insertCommentModeration({
-                    sessionId,
-                    publication: typedChallengeRequest.commentModeration
-                });
             }
-            // Note: subplebbitEdit is not stored as it's not relevant for velocity tracking
 
             // Queue author's previousCommentCid for background crawling (if indexer is enabled)
             if (author.previousCommentCid && indexer) {

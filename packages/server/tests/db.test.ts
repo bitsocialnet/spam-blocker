@@ -343,68 +343,6 @@ describe("SpamDetectionDatabase", () => {
             expect(db.publicationSignatureExists(signatureValue)).toBe(true);
         });
 
-        it("should detect existing commentEdit signature", () => {
-            const sessionId = "edit-session-1";
-            const signatureValue = "unique-edit-sig-789";
-
-            db.insertChallengeSession({
-                sessionId,
-                subplebbitPublicKey,
-                expiresAt: Date.now() + 3600000
-            });
-
-            db.insertCommentEdit({
-                sessionId,
-                publication: {
-                    author: { address: "test-author.eth" },
-                    subplebbitAddress: "test-sub.eth",
-                    commentCid: "Qm456",
-                    timestamp: baseTimestamp,
-                    protocolVersion: "1.0.0",
-                    signature: {
-                        signature: signatureValue,
-                        publicKey: "author-pubkey",
-                        type: "ed25519",
-                        signedPropertyNames: ["author", "content"]
-                    },
-                    content: "Edited content"
-                }
-            });
-
-            expect(db.publicationSignatureExists(signatureValue)).toBe(true);
-        });
-
-        it("should detect existing commentModeration signature", () => {
-            const sessionId = "mod-session-1";
-            const signatureValue = "unique-mod-sig-abc";
-
-            db.insertChallengeSession({
-                sessionId,
-                subplebbitPublicKey,
-                expiresAt: Date.now() + 3600000
-            });
-
-            db.insertCommentModeration({
-                sessionId,
-                publication: {
-                    author: { address: "test-mod.eth" },
-                    subplebbitAddress: "test-sub.eth",
-                    commentCid: "Qm789",
-                    timestamp: baseTimestamp,
-                    protocolVersion: "1.0.0",
-                    signature: {
-                        signature: signatureValue,
-                        publicKey: "mod-pubkey",
-                        type: "ed25519",
-                        signedPropertyNames: ["author", "commentModeration"]
-                    },
-                    commentModeration: { removed: true }
-                }
-            });
-
-            expect(db.publicationSignatureExists(signatureValue)).toBe(true);
-        });
-
         it("should return false for non-existent signature", () => {
             expect(db.publicationSignatureExists("completely-new-signature")).toBe(false);
         });

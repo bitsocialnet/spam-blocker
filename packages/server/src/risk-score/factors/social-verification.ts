@@ -8,9 +8,9 @@ import { getAuthorPublicKeyFromChallengeRequest } from "../utils.js";
  */
 const DEFAULT_PROVIDER_CREDIBILITY: Record<string, number> = {
     google: 1.0, // Phone verification, strong abuse detection
-    github: 1.0, // Email required, developer-focused
+    github: 0.8, // Email required, developer-focused
+    discord: 0.8, // Email required, bots common
     twitter: 0.85, // Phone/email verification
-    discord: 0.7, // Email required, bots common
     tiktok: 0.6, // Phone typically required
     reddit: 0.6, // Email required, common bots
     yandex: 0.5 // Less strict verification

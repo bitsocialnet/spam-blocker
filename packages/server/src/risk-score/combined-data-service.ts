@@ -113,13 +113,9 @@ export class CombinedDataService {
      * Get velocity stats combining both engine and indexer data.
      * The total posting rate across both sources indicates overall activity.
      *
-     * Note: Indexer only tracks posts and replies. Votes, edits, and moderations
-     * are only available from engine data.
+     * Note: Indexer only tracks posts and replies. Votes are only available from engine data.
      */
-    getAuthorVelocityStats(
-        authorPublicKey: string,
-        publicationType: "post" | "reply" | "vote" | "commentEdit" | "commentModeration"
-    ): { lastHour: number; last24Hours: number } {
+    getAuthorVelocityStats(authorPublicKey: string, publicationType: "post" | "reply" | "vote"): { lastHour: number; last24Hours: number } {
         const engineStats = this.db.getAuthorVelocityStats(authorPublicKey, publicationType);
 
         // Indexer only tracks posts and replies (comments)
@@ -131,7 +127,7 @@ export class CombinedDataService {
             };
         }
 
-        // For votes, edits, moderations - indexer doesn't track these
+        // For votes - indexer doesn't track these
         return engineStats;
     }
 
@@ -139,13 +135,7 @@ export class CombinedDataService {
      * Get aggregate velocity stats across ALL publication types from both sources.
      */
     getAuthorAggregateVelocityStats(authorPublicKey: string): { lastHour: number; last24Hours: number } {
-        const types: Array<"post" | "reply" | "vote" | "commentEdit" | "commentModeration"> = [
-            "post",
-            "reply",
-            "vote",
-            "commentEdit",
-            "commentModeration"
-        ];
+        const types: Array<"post" | "reply" | "vote"> = ["post", "reply", "vote"];
 
         let lastHour = 0;
         let last24Hours = 0;

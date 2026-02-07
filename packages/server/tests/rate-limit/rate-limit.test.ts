@@ -490,25 +490,6 @@ describe("Rate Limiting", () => {
         });
     });
 
-    describe("checkRateLimit - subplebbitEdit excluded", () => {
-        it("should always allow subplebbitEdit regardless of rate", () => {
-            const config: RateLimitConfig = {};
-
-            // Even with many publications, subplebbitEdit should always pass
-            for (let i = 0; i < 50; i++) {
-                insertPost(db, testPublicKey);
-            }
-
-            const result = checkRateLimit({
-                authorPublicKey: testPublicKey,
-                publicationType: "subplebbitEdit",
-                db,
-                config
-            });
-            expect(result.allowed).toBe(true);
-        });
-    });
-
     describe("checkRateLimit - custom config", () => {
         it("should respect custom per-type limits", () => {
             const config: RateLimitConfig = {

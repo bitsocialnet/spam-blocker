@@ -132,7 +132,7 @@ describe("calculateSocialVerification", () => {
             expect(result.explanation).toContain("google");
         });
 
-        it("should return score ~0.40 for single strong provider (GitHub)", () => {
+        it("should return score ~0.496 for single GitHub provider", () => {
             insertOAuthSession({
                 sessionId: "session1",
                 oauthIdentity: "github:789",
@@ -142,8 +142,8 @@ describe("calculateSocialVerification", () => {
             const ctx = createContext("pk1");
             const result = calculateSocialVerification(ctx, 0.08, ["github"]);
 
-            // GitHub credibility = 1.0, score = 1 - 0.75*1 + 0.15*1 = 0.40
-            expect(result.score).toBeCloseTo(0.4, 2);
+            // GitHub credibility = 0.8, score = 1 - 0.75*0.8 + 0.15*0.64 = 0.496
+            expect(result.score).toBeCloseTo(0.496, 2);
             expect(result.explanation).toContain("github");
         });
 
@@ -193,10 +193,10 @@ describe("calculateSocialVerification", () => {
             const result = calculateSocialVerification(ctx, 0.08, ["google", "github"]);
 
             // Google: 1.0 * 1.0 = 1.0
-            // GitHub: 1.0 * 0.7 = 0.7
-            // Combined: 1.7
-            // Score: 1 - 0.75*1.7 + 0.15*1.7^2 = 1 - 1.275 + 0.4335 = 0.1585
-            expect(result.score).toBeCloseTo(0.16, 1);
+            // GitHub: 0.8 * 0.7 = 0.56
+            // Combined: 1.56
+            // Score: 1 - 0.75*1.56 + 0.15*1.56^2 = 1 - 1.17 + 0.365 = 0.195
+            expect(result.score).toBeCloseTo(0.195, 1);
             expect(result.explanation).toContain("2 providers");
         });
 
@@ -342,9 +342,9 @@ describe("calculateSocialVerification", () => {
             const ctx = createContext("pk1");
             const result = calculateSocialVerification(ctx, 0.08, ["github"]);
 
-            // GitHub credibility = 1.0 * reuseFactor(1) * ageMultiplier(0.3) = 0.3
-            // Score = 1 - 0.75*0.3 + 0.15*0.3^2 = 1 - 0.225 + 0.0135 = 0.7885
-            expect(result.score).toBeCloseTo(0.789, 2);
+            // GitHub credibility = 0.8 * reuseFactor(1) * ageMultiplier(0.3) = 0.24
+            // Score = 1 - 0.75*0.24 + 0.15*0.24^2 = 1 - 0.18 + 0.00864 = 0.82864
+            expect(result.score).toBeCloseTo(0.829, 2);
             expect(result.explanation).toContain("age multiplier: 0.3");
         });
 
@@ -360,9 +360,9 @@ describe("calculateSocialVerification", () => {
             const ctx = createContext("pk1");
             const result = calculateSocialVerification(ctx, 0.08, ["github"]);
 
-            // Effective credibility = 1.0 * 0.5 = 0.5
-            // Score = 1 - 0.75*0.5 + 0.15*0.25 = 0.6625
-            expect(result.score).toBeCloseTo(0.66, 2);
+            // Effective credibility = 0.8 * 0.5 = 0.4
+            // Score = 1 - 0.75*0.4 + 0.15*0.16 = 0.724
+            expect(result.score).toBeCloseTo(0.724, 2);
         });
 
         it("should apply 0.7 multiplier for accounts 30-90 days old", () => {
@@ -377,9 +377,9 @@ describe("calculateSocialVerification", () => {
             const ctx = createContext("pk1");
             const result = calculateSocialVerification(ctx, 0.08, ["github"]);
 
-            // Effective credibility = 1.0 * 0.7 = 0.7
-            // Score = 1 - 0.75*0.7 + 0.15*0.49 = 1 - 0.525 + 0.0735 = 0.5485
-            expect(result.score).toBeCloseTo(0.549, 2);
+            // Effective credibility = 0.8 * 0.7 = 0.56
+            // Score = 1 - 0.75*0.56 + 0.15*0.3136 = 1 - 0.42 + 0.04704 = 0.62704
+            expect(result.score).toBeCloseTo(0.627, 2);
         });
 
         it("should apply 0.9 multiplier for accounts 90-365 days old", () => {
@@ -394,9 +394,9 @@ describe("calculateSocialVerification", () => {
             const ctx = createContext("pk1");
             const result = calculateSocialVerification(ctx, 0.08, ["github"]);
 
-            // Effective credibility = 1.0 * 0.9 = 0.9
-            // Score = 1 - 0.75*0.9 + 0.15*0.81 = 1 - 0.675 + 0.1215 = 0.4465
-            expect(result.score).toBeCloseTo(0.447, 2);
+            // Effective credibility = 0.8 * 0.9 = 0.72
+            // Score = 1 - 0.75*0.72 + 0.15*0.5184 = 1 - 0.54 + 0.07776 = 0.53776
+            expect(result.score).toBeCloseTo(0.538, 2);
         });
 
         it("should apply 1.0 multiplier for accounts > 365 days old", () => {
@@ -411,9 +411,9 @@ describe("calculateSocialVerification", () => {
             const ctx = createContext("pk1");
             const result = calculateSocialVerification(ctx, 0.08, ["github"]);
 
-            // Effective credibility = 1.0 * 1.0 = 1.0
-            // Score = 0.40 (same as default single strong provider)
-            expect(result.score).toBeCloseTo(0.4, 2);
+            // Effective credibility = 0.8 * 1.0 = 0.8
+            // Score = 1 - 0.75*0.8 + 0.15*0.64 = 0.496
+            expect(result.score).toBeCloseTo(0.496, 2);
         });
 
         it("should apply 1.0 multiplier (no penalty) for unknown creation date (null)", () => {
@@ -452,12 +452,12 @@ describe("calculateSocialVerification", () => {
             const ctx = createContext("pk1");
             const result = calculateSocialVerification(ctx, 0.08, ["github"]);
 
-            // GitHub credibility = 1.0
+            // GitHub credibility = 0.8
             // reuseFactor = 1/2² = 0.25
             // ageMultiplier = 0.3
-            // effectiveCredibility = 1.0 * 0.25 * 0.3 = 0.075
-            // Score = 1 - 0.75*0.075 + 0.15*0.075^2 ≈ 0.944
-            expect(result.score).toBeCloseTo(0.944, 2);
+            // effectiveCredibility = 0.8 * 0.25 * 0.3 = 0.06
+            // Score = 1 - 0.75*0.06 + 0.15*0.06^2 ≈ 0.95554
+            expect(result.score).toBeCloseTo(0.956, 2);
         });
     });
 
@@ -641,31 +641,6 @@ describe("calculateSocialVerification", () => {
 
             const identities = db.getAuthorOAuthIdentities("voter-pk");
             expect(identities).toContain("google:voter");
-        });
-
-        it("should work with commentEdits table", () => {
-            const sessionId = "edit-session";
-            db.insertChallengeSession({
-                sessionId,
-                subplebbitPublicKey: "subpk",
-                expiresAt: Date.now() + 3600000
-            });
-            db.updateChallengeSessionStatus(sessionId, "completed", Date.now(), "github:editor");
-
-            db.insertCommentEdit({
-                sessionId,
-                publication: {
-                    author: createMockAuthor(),
-                    subplebbitAddress: "test-sub.eth",
-                    timestamp: baseTimestamp,
-                    protocolVersion: "1",
-                    signature: createMockSignature("editor-pk"),
-                    commentCid: "QmTest"
-                }
-            });
-
-            const identities = db.getAuthorOAuthIdentities("editor-pk");
-            expect(identities).toContain("github:editor");
         });
     });
 });

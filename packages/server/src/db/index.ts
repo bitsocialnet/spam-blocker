@@ -308,7 +308,7 @@ export class SpamDetectionDatabase {
      */
     getAuthorPublicKeyBySessionId(sessionId: string): string | undefined {
         // Try each publication table until we find a match
-        const tables = ["comments", "votes", "commentEdits", "commentModerations"] as const;
+        const tables = ["comments", "votes"] as const;
 
         for (const table of tables) {
             const result = this.db
@@ -464,7 +464,7 @@ export class SpamDetectionDatabase {
      */
     countPublicationsByAuthorPublicKey(
         authorPublicKey: string,
-        publicationType: "post" | "reply" | "vote" | "commentEdit" | "commentModeration",
+        publicationType: "post" | "reply" | "vote",
         sinceTimestamp: number
     ): number {
         let count = 0;
@@ -495,22 +495,6 @@ export class SpamDetectionDatabase {
                 )
                 .get(authorPublicKey, sinceTimestamp) as { count: number };
             count = result.count;
-        } else if (publicationType === "commentEdit") {
-            const result = this.db
-                .prepare(
-                    `SELECT COUNT(*) as count FROM commentEdits
-                    WHERE json_extract(signature, '$.publicKey') = ? AND receivedAt >= ?`
-                )
-                .get(authorPublicKey, sinceTimestamp) as { count: number };
-            count = result.count;
-        } else if (publicationType === "commentModeration") {
-            const result = this.db
-                .prepare(
-                    `SELECT COUNT(*) as count FROM commentModerations
-                    WHERE json_extract(signature, '$.publicKey') = ? AND receivedAt >= ?`
-                )
-                .get(authorPublicKey, sinceTimestamp) as { count: number };
-            count = result.count;
         }
 
         return count;
@@ -523,10 +507,7 @@ export class SpamDetectionDatabase {
      * @param authorPublicKey - The Ed25519 public key from the publication's signature
      * @param publicationType - The type of publication to count
      */
-    getAuthorVelocityStats(
-        authorPublicKey: string,
-        publicationType: "post" | "reply" | "vote" | "commentEdit" | "commentModeration"
-    ): { lastHour: number; last24Hours: number } {
+    getAuthorVelocityStats(authorPublicKey: string, publicationType: "post" | "reply" | "vote"): { lastHour: number; last24Hours: number } {
         const now = Date.now();
         const oneHourAgo = now - 3600 * 1000;
         const oneDayAgo = now - 86400 * 1000;
@@ -548,13 +529,7 @@ export class SpamDetectionDatabase {
      * @param authorPublicKey - The Ed25519 public key from the publication's signature
      */
     getAuthorAggregateVelocityStats(authorPublicKey: string): { lastHour: number; last24Hours: number } {
-        const types: Array<"post" | "reply" | "vote" | "commentEdit" | "commentModeration"> = [
-            "post",
-            "reply",
-            "vote",
-            "commentEdit",
-            "commentModeration"
-        ];
+        const types: Array<"post" | "reply" | "vote"> = ["post", "reply", "vote"];
 
         let lastHour = 0;
         let last24Hours = 0;
@@ -580,7 +555,7 @@ export class SpamDetectionDatabase {
      * @returns true if the signature exists in any publication table
      */
     publicationSignatureExists(signatureValue: string): boolean {
-        const tables = ["comments", "votes", "commentEdits", "commentModerations"] as const;
+        const tables = ["comments", "votes"] as const;
         for (const table of tables) {
             const result = this.db
                 .prepare(`SELECT 1 FROM ${table} WHERE json_extract(signature, '$.signature') = ? LIMIT 1`)
@@ -688,90 +663,6 @@ export class SpamDetectionDatabase {
         });
     }
 
-    /**
-     * Insert a comment edit publication.
-     */
-    insertCommentEdit(params: {
-        sessionId: string;
-        publication: {
-            author: unknown;
-            subplebbitAddress: string;
-            commentCid: string;
-            signature: unknown;
-            protocolVersion: string;
-            content?: string;
-            reason?: string;
-            deleted?: boolean;
-            flair?: unknown;
-            spoiler?: boolean;
-            nsfw?: boolean;
-            timestamp: number;
-        };
-    }): void {
-        const stmt = this.db.prepare(`
-            INSERT INTO commentEdits (
-                sessionId, author, subplebbitAddress, commentCid, signature,
-                protocolVersion, content, reason, deleted, flair, spoiler, nsfw, timestamp
-            ) VALUES (
-                @sessionId, @author, @subplebbitAddress, @commentCid, @signature,
-                @protocolVersion, @content, @reason, @deleted, @flair, @spoiler, @nsfw, @timestamp
-            )
-        `);
-
-        stmt.run({
-            sessionId: params.sessionId,
-            author: JSON.stringify(params.publication.author),
-            subplebbitAddress: params.publication.subplebbitAddress,
-            commentCid: params.publication.commentCid,
-            signature: JSON.stringify(params.publication.signature),
-            protocolVersion: params.publication.protocolVersion,
-            content: params.publication.content ?? null,
-            reason: params.publication.reason ?? null,
-            deleted: params.publication.deleted !== undefined ? (params.publication.deleted ? 1 : 0) : null,
-            flair: params.publication.flair ? JSON.stringify(params.publication.flair) : null,
-            spoiler: params.publication.spoiler !== undefined ? (params.publication.spoiler ? 1 : 0) : null,
-            nsfw: params.publication.nsfw !== undefined ? (params.publication.nsfw ? 1 : 0) : null,
-            timestamp: params.publication.timestamp
-        });
-    }
-
-    /**
-     * Insert a comment moderation publication.
-     */
-    insertCommentModeration(params: {
-        sessionId: string;
-        publication: {
-            author: unknown;
-            subplebbitAddress: string;
-            commentCid: string;
-            commentModeration?: unknown;
-            signature: unknown;
-            protocolVersion?: string;
-            timestamp: number;
-        };
-    }): void {
-        const stmt = this.db.prepare(`
-            INSERT INTO commentModerations (
-                sessionId, author, subplebbitAddress, commentCid, commentModeration,
-                signature, protocolVersion, timestamp
-            ) VALUES (
-                @sessionId, @author, @subplebbitAddress, @commentCid, @commentModeration,
-                @signature, @protocolVersion, @timestamp
-            )
-        `);
-
-        stmt.run({
-            sessionId: params.sessionId,
-            author: JSON.stringify(params.publication.author),
-            subplebbitAddress: params.publication.subplebbitAddress,
-            commentCid: params.publication.commentCid,
-            commentModeration: params.publication.commentModeration ? JSON.stringify(params.publication.commentModeration) : null,
-            signature: JSON.stringify(params.publication.signature),
-            protocolVersion: params.publication.protocolVersion ?? null,
-            timestamp: params.publication.timestamp
-        });
-    }
-
     // ============================================
     // Wallet Velocity Query Methods
     // ============================================
@@ -780,11 +671,7 @@ export class SpamDetectionDatabase {
      * Count publications by wallet address for a specific publication type within a time window.
      * Searches for wallet addresses in author.wallets.
      */
-    countPublicationsByWallet(
-        walletAddress: string,
-        publicationType: "post" | "reply" | "vote" | "commentEdit" | "commentModeration",
-        sinceTimestamp: number
-    ): number {
+    countPublicationsByWallet(walletAddress: string, publicationType: "post" | "reply" | "vote", sinceTimestamp: number): number {
         // Normalize wallet address to lowercase for case-insensitive comparison
         const normalizedWallet = walletAddress.toLowerCase();
 
@@ -825,22 +712,6 @@ export class SpamDetectionDatabase {
                 )
                 .get(normalizedWallet, sinceTimestamp) as { count: number };
             count = result.count;
-        } else if (publicationType === "commentEdit") {
-            const result = this.db
-                .prepare(
-                    `SELECT COUNT(*) as count FROM commentEdits
-                    WHERE ${walletCondition} AND receivedAt >= ?`
-                )
-                .get(normalizedWallet, sinceTimestamp) as { count: number };
-            count = result.count;
-        } else if (publicationType === "commentModeration") {
-            const result = this.db
-                .prepare(
-                    `SELECT COUNT(*) as count FROM commentModerations
-                    WHERE ${walletCondition} AND receivedAt >= ?`
-                )
-                .get(normalizedWallet, sinceTimestamp) as { count: number };
-            count = result.count;
         }
 
         return count;
@@ -850,10 +721,7 @@ export class SpamDetectionDatabase {
      * Get wallet velocity stats for a specific publication type.
      * Returns publication counts in the last hour and last 24 hours.
      */
-    getWalletVelocityStats(
-        walletAddress: string,
-        publicationType: "post" | "reply" | "vote" | "commentEdit" | "commentModeration"
-    ): { lastHour: number; last24Hours: number } {
+    getWalletVelocityStats(walletAddress: string, publicationType: "post" | "reply" | "vote"): { lastHour: number; last24Hours: number } {
         const now = Date.now();
         const oneHourAgo = now - 3600 * 1000;
         const oneDayAgo = now - 86400 * 1000;
@@ -887,7 +755,7 @@ export class SpamDetectionDatabase {
 
         const otherAuthorCondition = `json_extract(signature, '$.publicKey') != @authorPublicKey`;
 
-        const tables = ["comments", "votes", "commentEdits", "commentModerations"] as const;
+        const tables = ["comments", "votes"] as const;
 
         for (const table of tables) {
             const result = this.db
@@ -955,42 +823,6 @@ export class SpamDetectionDatabase {
             .all(authorPublicKey) as Array<{ subplebbitAddress: string; postScore: number; replyScore: number; receivedAt: number }>;
 
         for (const row of voteRows) {
-            updateKarmaMap(row.subplebbitAddress, row.postScore, row.replyScore, row.receivedAt);
-        }
-
-        // Query comment edits for karma data
-        const editRows = this.db
-            .prepare(
-                `SELECT
-                    subplebbitAddress,
-                    COALESCE(json_extract(author, '$.subplebbit.postScore'), 0) as postScore,
-                    COALESCE(json_extract(author, '$.subplebbit.replyScore'), 0) as replyScore,
-                    receivedAt
-                 FROM commentEdits
-                 WHERE json_extract(signature, '$.publicKey') = ?
-                 ORDER BY receivedAt DESC`
-            )
-            .all(authorPublicKey) as Array<{ subplebbitAddress: string; postScore: number; replyScore: number; receivedAt: number }>;
-
-        for (const row of editRows) {
-            updateKarmaMap(row.subplebbitAddress, row.postScore, row.replyScore, row.receivedAt);
-        }
-
-        // Query comment moderations for karma data
-        const moderationRows = this.db
-            .prepare(
-                `SELECT
-                    subplebbitAddress,
-                    COALESCE(json_extract(author, '$.subplebbit.postScore'), 0) as postScore,
-                    COALESCE(json_extract(author, '$.subplebbit.replyScore'), 0) as replyScore,
-                    receivedAt
-                 FROM commentModerations
-                 WHERE json_extract(signature, '$.publicKey') = ?
-                 ORDER BY receivedAt DESC`
-            )
-            .all(authorPublicKey) as Array<{ subplebbitAddress: string; postScore: number; replyScore: number; receivedAt: number }>;
-
-        for (const row of moderationRows) {
             updateKarmaMap(row.subplebbitAddress, row.postScore, row.replyScore, row.receivedAt);
         }
 
@@ -1319,24 +1151,8 @@ export class SpamDetectionDatabase {
             )
             .get(authorPublicKey) as { minTime: number | null };
 
-        const editMin = this.db
-            .prepare(
-                `SELECT MIN(receivedAt) as minTime FROM commentEdits
-                 WHERE json_extract(signature, '$.publicKey') = ?`
-            )
-            .get(authorPublicKey) as { minTime: number | null };
-
-        const moderationMin = this.db
-            .prepare(
-                `SELECT MIN(receivedAt) as minTime FROM commentModerations
-                 WHERE json_extract(signature, '$.publicKey') = ?`
-            )
-            .get(authorPublicKey) as { minTime: number | null };
-
         // Collect all non-null timestamps
-        const timestamps = [commentMin.minTime, voteMin.minTime, editMin.minTime, moderationMin.minTime].filter(
-            (t): t is number => t !== null
-        );
+        const timestamps = [commentMin.minTime, voteMin.minTime].filter((t): t is number => t !== null);
 
         if (timestamps.length === 0) {
             return undefined;
@@ -1638,8 +1454,6 @@ export class SpamDetectionDatabase {
               AND (
                 EXISTS (SELECT 1 FROM comments c WHERE c.sessionId = cs.sessionId AND json_extract(c.signature, '$.publicKey') = @authorPublicKey)
                 OR EXISTS (SELECT 1 FROM votes v WHERE v.sessionId = cs.sessionId AND json_extract(v.signature, '$.publicKey') = @authorPublicKey)
-                OR EXISTS (SELECT 1 FROM commentEdits ce WHERE ce.sessionId = cs.sessionId AND json_extract(ce.signature, '$.publicKey') = @authorPublicKey)
-                OR EXISTS (SELECT 1 FROM commentModerations cm WHERE cm.sessionId = cs.sessionId AND json_extract(cm.signature, '$.publicKey') = @authorPublicKey)
               )
         `;
 
@@ -1685,16 +1499,6 @@ export class SpamDetectionDatabase {
                 SELECT json_extract(v.signature, '$.publicKey') as authorPublicKey
                 FROM challengeSessions cs
                 JOIN votes v ON v.sessionId = cs.sessionId
-                WHERE cs.oauthIdentity = @oauthIdentity AND cs.status = 'completed'
-                UNION
-                SELECT json_extract(ce.signature, '$.publicKey') as authorPublicKey
-                FROM challengeSessions cs
-                JOIN commentEdits ce ON ce.sessionId = cs.sessionId
-                WHERE cs.oauthIdentity = @oauthIdentity AND cs.status = 'completed'
-                UNION
-                SELECT json_extract(cm.signature, '$.publicKey') as authorPublicKey
-                FROM challengeSessions cs
-                JOIN commentModerations cm ON cm.sessionId = cs.sessionId
                 WHERE cs.oauthIdentity = @oauthIdentity AND cs.status = 'completed'
             )
         `;

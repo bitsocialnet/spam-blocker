@@ -381,16 +381,14 @@ An opt-in pre-check that hard-rejects publications (HTTP 429) when an author exc
 
 **Base limits (at 1.0× multiplier), effective = `max(1, floor(base × multiplier))`:**
 
-| Type              | Hourly | Daily   |
-| ----------------- | ------ | ------- |
-| post              | 4      | 20      |
-| reply             | 6      | 60      |
-| vote              | 10     | 200     |
-| commentEdit       | 5      | 30      |
-| commentModeration | 10     | 60      |
-| **aggregate**     | **40** | **250** |
+| Type          | Hourly | Daily   |
+| ------------- | ------ | ------- |
+| post          | 4      | 20      |
+| reply         | 6      | 60      |
+| vote          | 10     | 200     |
+| **aggregate** | **40** | **250** |
 
-`subplebbitEdit` is excluded. Check order: per-type hourly → per-type daily → aggregate hourly → aggregate daily.
+Check order: per-type hourly → per-type daily → aggregate hourly → aggregate daily. Only user-generated content (posts, replies, votes) is rate-limited. Subplebbit-level actions (commentEdit, commentModeration, subplebbitEdit) are rejected by the evaluate endpoint since they don't require spam detection.
 
 ## Challenge Verification
 
@@ -451,39 +449,6 @@ Stores vote publications.
 - `signature` TEXT NOT NULL
 - `protocolVersion` TEXT NOT NULL
 - `vote` INTEGER NOT NULL (-1, 0 or 1)
-- `timestamp` INTEGER NOT NULL
-- `receivedAt` INTEGER NOT NULL
-
-### `commentEdits`
-
-Stores comment edit publications.
-
-- `sessionId` TEXT PRIMARY KEY (foreign key of challengeSessions)
-- `author` TEXT NOT NULL -- is actually a json
-- `subplebbitAddress` TEXT NOT NULL
-- `commentCid` TEXT NOT NULL
-- `signature` TEXT NOT NULL
-- `protocolVersion` TEXT NOT NULL
-- `content` TEXT
-- `reason` TEXT
-- `deleted` INTEGER (BOOLEAN 0/1)
-- `flair` TEXT
-- `spoiler` INTEGER (BOOLEAN 0/1)
-- `nsfw` INTEGER (BOOLEAN 0/1)
-- `timestamp` INTEGER NOT NULL
-- `receivedAt` INTEGER NOT NULL
-
-### `commentModerations`
-
-Stores comment moderation publications.
-
-- `sessionId` TEXT PRIMARY KEY (foreign key of challengeSessions)
-- `author` TEXT NOT NULL -- is actually a json
-- `subplebbitAddress` TEXT NOT NULL
-- `commentCid` TEXT NOT NULL
-- `commentModeration` TEXT
-- `signature` TEXT NOT NULL
-- `protocolVersion` TEXT
 - `timestamp` INTEGER NOT NULL
 - `receivedAt` INTEGER NOT NULL
 

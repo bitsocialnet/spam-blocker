@@ -29,7 +29,7 @@ function createMockAuthor() {
 }
 
 function createMockChallengeRequest(
-    pubType: "comment" | "vote" | "commentEdit" | "commentModeration",
+    pubType: "comment" | "vote",
     publicKey: string,
     isPost = true
 ): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
@@ -56,44 +56,17 @@ function createMockChallengeRequest(
             }
         } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
     }
-    if (pubType === "vote") {
-        return {
-            ...base,
-            vote: {
-                author,
-                subplebbitAddress: "test-sub.eth",
-                timestamp: baseTimestamp,
-                protocolVersion: "1",
-                signature,
-                commentCid: "QmCommentCid",
-                vote: 1
-            }
-        } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
-    }
-    if (pubType === "commentEdit") {
-        return {
-            ...base,
-            commentEdit: {
-                author,
-                subplebbitAddress: "test-sub.eth",
-                timestamp: baseTimestamp,
-                protocolVersion: "1",
-                signature,
-                commentCid: "QmCommentCid",
-                content: "Edited content"
-            }
-        } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
-    }
-    // commentModeration
+    // vote
     return {
         ...base,
-        commentModeration: {
+        vote: {
             author,
             subplebbitAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature,
-            commentCid: "QmCommentCid"
+            commentCid: "QmCommentCid",
+            vote: 1
         }
     } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
 }
@@ -275,42 +248,8 @@ describe("calculateVelocity", () => {
                 });
             }
 
-            // Comment edits
-            for (let i = 0; i < 5; i++) {
-                const sessionId = `edit-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
-                db.insertCommentEdit({
-                    sessionId,
-                    publication: {
-                        author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
-                        timestamp: baseTimestamp,
-                        protocolVersion: "1",
-                        signature: createSignature(testPublicKey),
-                        commentCid: `QmComment${i}`,
-                        content: "edited"
-                    }
-                });
-            }
-
-            // Comment moderations
-            for (let i = 0; i < 5; i++) {
-                const sessionId = `mod-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
-                db.insertCommentModeration({
-                    sessionId,
-                    publication: {
-                        author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
-                        timestamp: baseTimestamp,
-                        signature: createSignature(testPublicKey),
-                        commentCid: `QmComment${i}`
-                    }
-                });
-            }
-
-            // Total: 65 publications, aggregate SUSPICIOUS (50-80)
-            // Individual: 5 posts (elevated), 10 replies (elevated), 40 votes (elevated), 5 edits (elevated), 5 mods (normal)
+            // Total: 55 publications, aggregate SUSPICIOUS (50-80)
+            // Individual: 5 posts (elevated), 10 replies (elevated), 40 votes (elevated)
 
             const challengeRequest = createMockChallengeRequest("comment", testPublicKey, true);
 
@@ -324,10 +263,10 @@ describe("calculateVelocity", () => {
 
             const result = calculateVelocity(ctx, 0.1);
 
-            // Should flag as SUSPICIOUS from aggregate (65 > 50)
+            // Should flag as SUSPICIOUS from aggregate (55 > 50)
             expect(result.score).toBe(0.7); // SUSPICIOUS score
             expect(result.explanation).toContain("aggregate");
-            expect(result.explanation).toContain("65/hr");
+            expect(result.explanation).toContain("55/hr");
         });
 
         it("should flag BOT_LIKE when aggregate exceeds 150/hour", () => {

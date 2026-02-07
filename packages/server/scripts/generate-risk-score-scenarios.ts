@@ -52,6 +52,7 @@ interface ScenarioConfig {
     distinctSubs?: number;
     modqueueRejection: "no_data" | "0%" | "50%" | "80%";
     removalRate: "no_data" | "0%" | "30%" | "60%";
+    purgeRate: "no_data" | "0%" | "30%" | "60%";
     contentDuplicates: "none" | "3" | "5+";
     urlSpam: "no_urls" | "1_unique" | "5+_same";
     hasOAuthVerification?: string[]; // Provider names, empty means unverified
@@ -199,6 +200,11 @@ function getRemovalRateScoreDescription(scenario: ScenarioConfig): string {
     return `${scenario.removalRate} removed`;
 }
 
+function getPurgeRateScoreDescription(scenario: ScenarioConfig): string {
+    if (scenario.purgeRate === "no_data") return "no data";
+    return `${scenario.purgeRate} purged`;
+}
+
 function getContentRiskScoreDescription(scenario: ScenarioConfig): string {
     if (scenario.contentDuplicates === "none") return "unique content";
     if (scenario.contentDuplicates === "3") return "3 duplicates";
@@ -312,6 +318,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         exampleContent: {
@@ -329,6 +336,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "0%",
         removalRate: "0%",
+        purgeRate: "0%",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         hasOAuthVerification: ["google"],
@@ -348,6 +356,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "1_unique",
         exampleContent: {
@@ -367,6 +376,7 @@ const SCENARIOS: ScenarioConfig[] = [
         distinctSubs: 5,
         modqueueRejection: "50%",
         removalRate: "30%",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "5+_same",
         exampleContent: {
@@ -385,6 +395,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "5+",
         urlSpam: "no_urls",
         exampleContent: {
@@ -402,6 +413,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         exampleContent: {
@@ -420,6 +432,7 @@ const SCENARIOS: ScenarioConfig[] = [
         distinctSubs: 5,
         modqueueRejection: "80%",
         removalRate: "60%",
+        purgeRate: "no_data",
         contentDuplicates: "3",
         urlSpam: "1_unique",
         exampleContent: {
@@ -438,6 +451,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         hasOAuthVerification: ["google", "github"],
@@ -456,6 +470,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         exampleContent: {
@@ -472,6 +487,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "0%",
         removalRate: "0%",
+        purgeRate: "0%",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         exampleContent: {
@@ -488,6 +504,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "50%",
         removalRate: "0%",
+        purgeRate: "0%",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         exampleContent: {
@@ -505,11 +522,30 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "60%",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         exampleContent: {
             title: "Trying again with this post",
             content: "Mods keep removing my content but I'm not sure what rules I'm breaking..."
+        }
+    },
+    {
+        name: "High Purge Rate",
+        description: "An established user whose content is frequently purged (60%). Purges have 1.5× weight compared to regular removals.",
+        publicationType: "post",
+        accountAge: "90_days",
+        karma: "0",
+        velocity: "normal",
+        banCount: 0,
+        modqueueRejection: "no_data",
+        removalRate: "no_data",
+        purgeRate: "60%",
+        contentDuplicates: "none",
+        urlSpam: "no_urls",
+        exampleContent: {
+            title: "Trying to post again",
+            content: "My posts keep getting purged permanently..."
         }
     },
     {
@@ -522,6 +558,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         hasOAuthVerification: [], // OAuth enabled but unverified
@@ -540,6 +577,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "3",
         urlSpam: "no_urls",
         exampleContent: {
@@ -557,6 +595,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "0%",
         removalRate: "0%",
+        purgeRate: "0%",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         hasOAuthVerification: ["google", "github"],
@@ -576,6 +615,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         walletNonce: 150,
@@ -594,6 +634,7 @@ const SCENARIOS: ScenarioConfig[] = [
         banCount: 0,
         modqueueRejection: "no_data",
         removalRate: "no_data",
+        purgeRate: "no_data",
         contentDuplicates: "none",
         urlSpam: "no_urls",
         walletNonce: 5,
@@ -1023,6 +1064,64 @@ function seedDatabase(
         }
     }
 
+    // Seed purge rate
+    if (scenario.purgeRate !== "no_data") {
+        const db_raw = db.getDb();
+        const totalComments = 10;
+        let purgedCount = 0;
+        switch (scenario.purgeRate) {
+            case "0%":
+                purgedCount = 0;
+                break;
+            case "30%":
+                purgedCount = 3;
+                break;
+            case "60%":
+                purgedCount = 6;
+                break;
+        }
+
+        const purgeSubAddr = "purge-sub.eth";
+        db_raw
+            .prepare(
+                `
+            INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+            VALUES (?, 'manual', ?, 1)
+        `
+            )
+            .run(purgeSubAddr, nowMs);
+
+        for (let i = 0; i < totalComments; i++) {
+            const cid = `QmPurge${generateUniqueId()}`;
+            const purged = i < purgedCount;
+
+            db_raw
+                .prepare(
+                    `
+                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion)
+                VALUES (?, ?, ?, ?, ?, ?, '1')
+            `
+                )
+                .run(
+                    cid,
+                    purgeSubAddr,
+                    JSON.stringify({ address: "seed-author" }),
+                    JSON.stringify({ publicKey: authorPublicKey, signature: "dummy", type: "ed25519" }),
+                    now - 86400 * 10,
+                    nowMs - 86400000 * 10
+                );
+
+            db_raw
+                .prepare(
+                    `
+                INSERT INTO indexed_comments_update (cid, purged, updatedAt, fetchedAt)
+                VALUES (?, ?, ?, ?)
+            `
+                )
+                .run(cid, purged ? 1 : 0, now - 86400, nowMs - 86400000);
+        }
+    }
+
     // Seed content duplicates
     if (scenario.contentDuplicates !== "none") {
         const dupContent = "This is duplicate spam content that appears multiple times.";
@@ -1299,8 +1398,6 @@ interface RateLimitBudget {
     post: { hourly: number; daily: number };
     reply: { hourly: number; daily: number };
     vote: { hourly: number; daily: number };
-    commentEdit: { hourly: number; daily: number };
-    commentModeration: { hourly: number; daily: number };
     aggregate: { hourly: number; daily: number };
 }
 
@@ -1326,8 +1423,6 @@ function computeRateLimitBudget(scenario: ScenarioConfig): RateLimitBudget {
             post: effectiveLimit(DEFAULT_RATE_LIMITS.post),
             reply: effectiveLimit(DEFAULT_RATE_LIMITS.reply),
             vote: effectiveLimit(DEFAULT_RATE_LIMITS.vote),
-            commentEdit: effectiveLimit(DEFAULT_RATE_LIMITS.commentEdit),
-            commentModeration: effectiveLimit(DEFAULT_RATE_LIMITS.commentModeration),
             aggregate: effectiveLimit(DEFAULT_AGGREGATE_LIMITS)
         };
     } finally {
@@ -1347,8 +1442,6 @@ function generateRateLimitTable(budget: RateLimitBudget): string[] {
     lines.push(`| Post | ${budget.post.hourly} | ${budget.post.daily} |`);
     lines.push(`| Reply | ${budget.reply.hourly} | ${budget.reply.daily} |`);
     lines.push(`| Vote | ${budget.vote.hourly} | ${budget.vote.daily} |`);
-    lines.push(`| Comment Edit | ${budget.commentEdit.hourly} | ${budget.commentEdit.daily} |`);
-    lines.push(`| Comment Moderation | ${budget.commentModeration.hourly} | ${budget.commentModeration.daily} |`);
     lines.push(`| **Aggregate** | **${budget.aggregate.hourly}** | **${budget.aggregate.daily}** |`);
     lines.push("");
 
@@ -1533,6 +1626,18 @@ function generateAuthorProfileTable(scenario: ScenarioConfig, sampleResult?: Sce
                 ? "Moderate risk"
                 : "High risk";
     lines.push(`| Removal Rate | ${removalDisplay} | ${removalRisk} |`);
+
+    // Purge Rate
+    const purgeDisplay = scenario.purgeRate === "no_data" ? "No data" : scenario.purgeRate;
+    const purgeRisk =
+        scenario.purgeRate === "no_data"
+            ? "Unknown (neutral)"
+            : scenario.purgeRate === "0%"
+              ? "Low risk"
+              : scenario.purgeRate === "30%"
+                ? "Moderate risk (1.5× weight)"
+                : "High risk (1.5× weight)";
+    lines.push(`| Purge Rate | ${purgeDisplay} | ${purgeRisk} |`);
 
     // OAuth Verification (if applicable)
     if (scenario.hasOAuthVerification !== undefined) {
@@ -1788,11 +1893,9 @@ function generateMarkdown(): string {
     lines.push(`| Post | ${DEFAULT_RATE_LIMITS.post.hourly} | ${DEFAULT_RATE_LIMITS.post.daily} |`);
     lines.push(`| Reply | ${DEFAULT_RATE_LIMITS.reply.hourly} | ${DEFAULT_RATE_LIMITS.reply.daily} |`);
     lines.push(`| Vote | ${DEFAULT_RATE_LIMITS.vote.hourly} | ${DEFAULT_RATE_LIMITS.vote.daily} |`);
-    lines.push(`| Comment Edit | ${DEFAULT_RATE_LIMITS.commentEdit.hourly} | ${DEFAULT_RATE_LIMITS.commentEdit.daily} |`);
-    lines.push(`| Comment Moderation | ${DEFAULT_RATE_LIMITS.commentModeration.hourly} | ${DEFAULT_RATE_LIMITS.commentModeration.daily} |`);
     lines.push(`| **Aggregate** | **${DEFAULT_AGGREGATE_LIMITS.hourly}** | **${DEFAULT_AGGREGATE_LIMITS.daily}** |`);
     lines.push("");
-    lines.push("Effective limit = `max(1, floor(base × multiplier))`. `subplebbitEdit` is excluded from rate limiting.");
+    lines.push("Effective limit = `max(1, floor(base × multiplier))`.");
     lines.push("");
     lines.push("---");
     lines.push("");

@@ -64,7 +64,7 @@ The Ed25519 public key in the signature is the cryptographic identifier that tru
 
 Risk factors query data from two separate database table sets:
 
-1. **Engine tables** (`comments`, `votes`, `commentEdits`, `commentModerations`): Populated by `/evaluate` endpoint when publications are submitted for spam detection
+1. **Engine tables** (`comments`, `votes`): Populated by `/evaluate` endpoint when publications are submitted for spam detection
 2. **Indexer tables** (`indexed_comments_ipfs`, `indexed_comments_update`, `modqueue_*`): Populated by the background indexer which crawls subplebbits
 
 The `CombinedDataService` queries both sources and combines data using factor-specific strategies:
@@ -643,7 +643,7 @@ Each wallet can only be associated with **one** author public key. This prevents
 | Used by any other author public key | Ignored entirely           |
 | All wallets discarded               | Factor skipped (weight: 0) |
 
-The enforcement queries all publication tables (`comments`, `votes`, `commentEdits`, `commentModerations`) for any record with a different `publicKey` that has the same wallet address.
+The enforcement queries all publication tables (`comments`, `votes`) for any record with a different `publicKey` that has the same wallet address.
 
 **Best Wallet Wins:**
 
@@ -678,10 +678,9 @@ Some factors may be **skipped** (return `weight: 0`) when their required data is
 
 | Factor              | Conditions for Skipping                                            |
 | ------------------- | ------------------------------------------------------------------ |
-| Velocity            | Publication is `subplebbitEdit`                                    |
 | IP Risk             | No IP intelligence data available (user hasn't accessed iframe)    |
-| Content/Title Risk  | Publication is not a comment (vote, edit, moderation)              |
-| URL/Link Risk       | Publication is not a comment (vote, edit, moderation)              |
+| Content/Title Risk  | Publication is not a comment (vote)                                |
+| URL/Link Risk       | Publication is not a comment (vote)                                |
 | Social Verification | OAuth is completely disabled (no enabled providers)                |
 | Wallet Activity     | No wallets, no transaction data, nonce=0, or all wallets discarded |
 
