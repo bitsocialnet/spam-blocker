@@ -93,7 +93,8 @@ export class Indexer {
                     ? (previousCid) => {
                           this.previousCidCrawler?.queueCrawl(previousCid);
                       }
-                    : undefined
+                    : undefined,
+                onSubplebbitUpdate: (subplebbit) => this.modQueueTracker?.processModQueue(subplebbit) ?? Promise.resolve()
             });
 
             // Start workers

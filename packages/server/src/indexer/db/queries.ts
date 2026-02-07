@@ -68,6 +68,7 @@ export class IndexerQueries {
         lastPostsPageCidNew: string | null;
         lastSubplebbitUpdatedAt: number | null;
         lastUpdateCid: string;
+        lastModQueuePendingApprovalPageCid?: string | null;
     }): void {
         this.db
             .prepare(
@@ -75,6 +76,7 @@ export class IndexerQueries {
                  SET lastPostsPageCidNew = @lastPostsPageCidNew,
                      lastSubplebbitUpdatedAt = @lastSubplebbitUpdatedAt,
                      lastUpdateCid = @lastUpdateCid,
+                     lastModQueuePendingApprovalPageCid = @lastModQueuePendingApprovalPageCid,
                      consecutiveErrors = 0,
                      lastError = NULL
                  WHERE address = @address`
@@ -83,7 +85,8 @@ export class IndexerQueries {
                 address: params.address,
                 lastPostsPageCidNew: params.lastPostsPageCidNew,
                 lastSubplebbitUpdatedAt: params.lastSubplebbitUpdatedAt,
-                lastUpdateCid: params.lastUpdateCid
+                lastUpdateCid: params.lastUpdateCid,
+                lastModQueuePendingApprovalPageCid: params.lastModQueuePendingApprovalPageCid ?? null
             });
     }
 

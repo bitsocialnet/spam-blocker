@@ -152,6 +152,7 @@ CREATE TABLE IF NOT EXISTS indexed_subplebbits (
     lastPostsPageCidNew TEXT,        -- To detect changes (pageCids.new)
     lastSubplebbitUpdatedAt INTEGER, -- subplebbit.updatedAt - skip if unchanged (seconds from protocol)
     lastUpdateCid TEXT,              -- subplebbit.updateCid - IPFS CID of SubplebbitUpdate record
+    lastModQueuePendingApprovalPageCid TEXT,  -- To detect modQueue changes (modQueue.pageCids.pendingApproval)
     consecutiveErrors INTEGER DEFAULT 0,
     lastError TEXT
 );

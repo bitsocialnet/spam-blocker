@@ -20,6 +20,7 @@ interface SubplebbitSubscription {
     subplebbit: RemoteSubplebbit;
     lastPostsPageCidNew: string | null;
     lastSubplebbitUpdatedAt: number | null;
+    lastModQueuePendingApprovalPageCid: string | null;
     isUpdating: boolean;
 }
 
@@ -33,18 +34,21 @@ export class SubplebbitIndexer {
     private queries: IndexerQueries;
     private isRunning = false;
     private onNewPreviousCid?: (previousCid: string) => void;
+    private onSubplebbitUpdate?: (subplebbit: RemoteSubplebbit) => Promise<void>;
 
     constructor(
         plebbit: PlebbitInstance,
         db: Database,
         options: {
             onNewPreviousCid?: (previousCid: string) => void;
+            onSubplebbitUpdate?: (subplebbit: RemoteSubplebbit) => Promise<void>;
         } = {}
     ) {
         this.plebbit = plebbit;
         this.db = db;
         this.queries = new IndexerQueries(db);
         this.onNewPreviousCid = options.onNewPreviousCid;
+        this.onSubplebbitUpdate = options.onSubplebbitUpdate;
     }
 
     /**
@@ -68,7 +72,8 @@ export class SubplebbitIndexer {
             try {
                 await this.subscribeToSubplebbit(sub.address, {
                     lastPostsPageCidNew: sub.lastPostsPageCidNew,
-                    lastSubplebbitUpdatedAt: sub.lastSubplebbitUpdatedAt
+                    lastSubplebbitUpdatedAt: sub.lastSubplebbitUpdatedAt,
+                    lastModQueuePendingApprovalPageCid: sub.lastModQueuePendingApprovalPageCid
                 });
             } catch (error) {
                 console.error(`[SubplebbitIndexer] Failed to subscribe to ${sub.address}:`, error);
@@ -109,6 +114,7 @@ export class SubplebbitIndexer {
         cachedState?: {
             lastPostsPageCidNew: string | null;
             lastSubplebbitUpdatedAt: number | null;
+            lastModQueuePendingApprovalPageCid: string | null;
         }
     ): Promise<void> {
         if (this.subscriptions.has(address)) {
@@ -125,6 +131,7 @@ export class SubplebbitIndexer {
             subplebbit,
             lastPostsPageCidNew: cachedState?.lastPostsPageCidNew ?? null,
             lastSubplebbitUpdatedAt: cachedState?.lastSubplebbitUpdatedAt ?? null,
+            lastModQueuePendingApprovalPageCid: cachedState?.lastModQueuePendingApprovalPageCid ?? null,
             isUpdating: false
         };
 
@@ -162,22 +169,36 @@ export class SubplebbitIndexer {
             return;
         }
 
-        // Check if posts pageCids.new changed
+        // Check what changed independently
         const currentPageCidNew = subplebbit.posts?.pageCids?.new ?? null;
-        if (currentPageCidNew === subscription.lastPostsPageCidNew && subscription.lastPostsPageCidNew !== null) {
-            // Posts haven't changed, only updatedAt (maybe other metadata)
-            // Still update the cache marker
+        const currentModQueuePageCid = (subplebbit as any).modQueue?.pageCids?.pendingApproval ?? null;
+
+        const postsChanged = currentPageCidNew !== subscription.lastPostsPageCidNew || subscription.lastPostsPageCidNew === null;
+        const modQueueChanged = currentModQueuePageCid !== subscription.lastModQueuePendingApprovalPageCid;
+
+        // If modQueue pageCid changed, trigger the callback (fire-and-forget, don't block posts indexing)
+        if (modQueueChanged && this.onSubplebbitUpdate) {
+            this.onSubplebbitUpdate(subplebbit).catch((error) => {
+                console.error(`[SubplebbitIndexer] Error in onSubplebbitUpdate callback for ${address}:`, error);
+            });
+        }
+
+        if (!postsChanged) {
+            // Posts haven't changed, only updatedAt and/or modQueue
+            // Still update the cache markers
             this.queries.updateSubplebbitCacheMarkers({
                 address,
                 lastPostsPageCidNew: currentPageCidNew,
                 lastSubplebbitUpdatedAt: currentUpdatedAt ?? null,
-                lastUpdateCid: subplebbit.updateCid!
+                lastUpdateCid: subplebbit.updateCid!,
+                lastModQueuePendingApprovalPageCid: currentModQueuePageCid
             });
             subscription.lastSubplebbitUpdatedAt = currentUpdatedAt ?? null;
+            subscription.lastModQueuePendingApprovalPageCid = currentModQueuePageCid;
             return;
         }
 
-        // Something changed - need to fetch new posts
+        // Posts changed - need to fetch new posts
         subscription.isUpdating = true;
         console.log(`[SubplebbitIndexer] Update detected for ${address}, fetching comments...`);
 
@@ -199,11 +220,13 @@ export class SubplebbitIndexer {
                 address,
                 lastPostsPageCidNew: currentPageCidNew,
                 lastSubplebbitUpdatedAt: currentUpdatedAt ?? null,
-                lastUpdateCid: subplebbit.updateCid!
+                lastUpdateCid: subplebbit.updateCid!,
+                lastModQueuePendingApprovalPageCid: currentModQueuePageCid
             });
 
             subscription.lastPostsPageCidNew = currentPageCidNew;
             subscription.lastSubplebbitUpdatedAt = currentUpdatedAt ?? null;
+            subscription.lastModQueuePendingApprovalPageCid = currentModQueuePageCid;
 
             console.log(
                 `[SubplebbitIndexer] Indexed ${result.postsCount} posts from ${address}` +
