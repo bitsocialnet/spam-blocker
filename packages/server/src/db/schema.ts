@@ -188,6 +188,7 @@ CREATE TABLE IF NOT EXISTS indexed_comments_update (
     fetchedAt INTEGER,                     -- last successful fetch (milliseconds, NULL if never succeeded)
     lastFetchFailedAt INTEGER,
     fetchFailureCount INTEGER DEFAULT 0,   -- reset to 0 on success
+    lastSeenInPagesAt INTEGER,             -- last time this CID appeared in subplebbit pages (milliseconds)
     FOREIGN KEY (cid) REFERENCES indexed_comments_ipfs(cid)
 );
 

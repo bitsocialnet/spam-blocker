@@ -71,6 +71,7 @@ export interface IndexedCommentUpdate {
     fetchedAt: number | null;
     lastFetchFailedAt: number | null;
     fetchFailureCount: number;
+    lastSeenInPagesAt: number | null;
 }
 
 /**
@@ -199,6 +200,8 @@ export interface IndexerConfig {
     maxPreviousCidDepth: number;
     /** Number of consecutive errors before disabling indexing for a sub (default: 5) */
     maxConsecutiveErrors: number;
+    /** Enable the previousCommentCid crawler (default: false) */
+    enablePreviousCidCrawler: boolean;
 }
 
 /**
@@ -208,5 +211,6 @@ export const DEFAULT_INDEXER_CONFIG: IndexerConfig = {
     maxConcurrentPageFetches: 10,
     previousCidCrawlTimeout: 60000,
     maxPreviousCidDepth: 10,
-    maxConsecutiveErrors: 5
+    maxConsecutiveErrors: 5,
+    enablePreviousCidCrawler: false
 };

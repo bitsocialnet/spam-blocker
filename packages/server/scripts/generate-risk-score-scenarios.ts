@@ -1733,9 +1733,7 @@ function generateMarkdown(): string {
         lines.push("### Results by Configuration");
         lines.push("");
 
-        for (const pubType of PUBLICATION_TYPES) {
-            lines.push(...generatePublicationTypeResults(pubType, scenarioResults, scenario));
-        }
+        lines.push(...generatePublicationTypeResults(scenario.publicationType, scenarioResults, scenario));
 
         // Add detailed factor breakdown for the base configuration
         const baseResult = scenarioResults.find(
@@ -1771,21 +1769,18 @@ function generateMarkdown(): string {
         let anyCaptchaOAuthSufficient = false;
         let allCaptchaOAuthSufficient = true;
 
-        for (const pubType of PUBLICATION_TYPES) {
-            const modifiedScenario = { ...scenario, publicationType: pubType };
-            for (const ipType of IP_TYPES) {
-                for (const oauthConfig of OAUTH_CONFIGS) {
-                    const result = runScenario(modifiedScenario, ipType, oauthConfig);
-                    minScore = Math.min(minScore, result.riskScore);
-                    maxScore = Math.max(maxScore, result.riskScore);
-                    outcomes.add(getAdjustedOutcome(result));
+        for (const ipType of IP_TYPES) {
+            for (const oauthConfig of OAUTH_CONFIGS) {
+                const result = runScenario(scenario, ipType, oauthConfig);
+                minScore = Math.min(minScore, result.riskScore);
+                maxScore = Math.max(maxScore, result.riskScore);
+                outcomes.add(getAdjustedOutcome(result));
 
-                    if (result.tier !== "auto_accept" && result.tier !== "auto_reject") {
-                        if (result.captchaSufficient) anyCaptchaSufficient = true;
-                        else allCaptchaSufficient = false;
-                        if (result.captchaAndOAuthSufficient) anyCaptchaOAuthSufficient = true;
-                        else allCaptchaOAuthSufficient = false;
-                    }
+                if (result.tier !== "auto_accept" && result.tier !== "auto_reject") {
+                    if (result.captchaSufficient) anyCaptchaSufficient = true;
+                    else allCaptchaSufficient = false;
+                    if (result.captchaAndOAuthSufficient) anyCaptchaOAuthSufficient = true;
+                    else allCaptchaOAuthSufficient = false;
                 }
             }
         }

@@ -256,6 +256,42 @@ export class IndexerQueries {
         return this.db.prepare(`SELECT * FROM indexed_comments_update WHERE cid = ?`).get(cid) as IndexedCommentUpdate | undefined;
     }
 
+    /**
+     * Bulk-update lastSeenInPagesAt for a batch of CIDs.
+     * Sets the timestamp for all specified CIDs in a single transaction.
+     */
+    updateLastSeenInPagesAtBatch({ cids, timestamp }: { cids: string[]; timestamp: number }): void {
+        if (cids.length === 0) return;
+
+        const stmt = this.db.prepare(`UPDATE indexed_comments_update SET lastSeenInPagesAt = @timestamp WHERE cid = @cid`);
+        const runBatch = this.db.transaction((cids: string[]) => {
+            for (const cid of cids) {
+                stmt.run({ cid, timestamp });
+            }
+        });
+        runBatch(cids);
+    }
+
+    /**
+     * Find CIDs that have disappeared from subplebbit pages.
+     * Returns posts (parentCid IS NULL) where lastSeenInPagesAt < crawlTimestamp,
+     * meaning they were previously seen but not present in the latest crawl.
+     * Replies are excluded because reply pages are truncated and skipped when unchanged.
+     */
+    getDisappearedFromPagesCids({ subplebbitAddress, crawlTimestamp }: { subplebbitAddress: string; crawlTimestamp: number }): string[] {
+        const rows = this.db
+            .prepare(
+                `SELECT u.cid FROM indexed_comments_update u
+                 JOIN indexed_comments_ipfs i ON u.cid = i.cid
+                 WHERE i.subplebbitAddress = @subplebbitAddress
+                   AND i.parentCid IS NULL
+                   AND u.lastSeenInPagesAt IS NOT NULL
+                   AND u.lastSeenInPagesAt < @crawlTimestamp`
+            )
+            .all({ subplebbitAddress, crawlTimestamp }) as Array<{ cid: string }>;
+        return rows.map((r) => r.cid);
+    }
+
     // ============================================
     // ModQueue Comments (IPFS)
     // ============================================
