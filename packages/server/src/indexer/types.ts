@@ -28,6 +28,7 @@ export interface IndexedSubplebbit {
     indexingEnabled: number; // 1 or 0
     lastPostsPageCidNew: string | null;
     lastSubplebbitUpdatedAt: SubplebbitIpfsType["updatedAt"] | null;
+    lastUpdateCid: string | null;
     consecutiveErrors: number;
     lastError: string | null; // Plain text error message, not JSON
 }

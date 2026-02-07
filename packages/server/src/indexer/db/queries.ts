@@ -63,20 +63,27 @@ export class IndexerQueries {
     /**
      * Update subplebbit cache markers (for change detection).
      */
-    updateSubplebbitCacheMarkers(address: string, lastPostsPageCidNew: string | null, lastSubplebbitUpdatedAt: number | null): void {
+    updateSubplebbitCacheMarkers(params: {
+        address: string;
+        lastPostsPageCidNew: string | null;
+        lastSubplebbitUpdatedAt: number | null;
+        lastUpdateCid: string;
+    }): void {
         this.db
             .prepare(
                 `UPDATE indexed_subplebbits
                  SET lastPostsPageCidNew = @lastPostsPageCidNew,
                      lastSubplebbitUpdatedAt = @lastSubplebbitUpdatedAt,
+                     lastUpdateCid = @lastUpdateCid,
                      consecutiveErrors = 0,
                      lastError = NULL
                  WHERE address = @address`
             )
             .run({
-                address,
-                lastPostsPageCidNew,
-                lastSubplebbitUpdatedAt
+                address: params.address,
+                lastPostsPageCidNew: params.lastPostsPageCidNew,
+                lastSubplebbitUpdatedAt: params.lastSubplebbitUpdatedAt,
+                lastUpdateCid: params.lastUpdateCid
             });
     }
 
@@ -209,6 +216,17 @@ export class IndexerQueries {
                 lastRepliesPageCid: params.lastRepliesPageCid ?? null,
                 fetchedAt: now
             });
+    }
+
+    /**
+     * Get the stored updatedAt for a comment.
+     * Used as primary change detection for reply fetching.
+     */
+    getCommentUpdatedAt(cid: string): number | null {
+        const result = this.db.prepare(`SELECT updatedAt FROM indexed_comments_update WHERE cid = ?`).get(cid) as
+            | { updatedAt: number | null }
+            | undefined;
+        return result?.updatedAt ?? null;
     }
 
     /**

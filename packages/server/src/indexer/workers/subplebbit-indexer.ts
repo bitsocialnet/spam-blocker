@@ -167,7 +167,12 @@ export class SubplebbitIndexer {
         if (currentPageCidNew === subscription.lastPostsPageCidNew && subscription.lastPostsPageCidNew !== null) {
             // Posts haven't changed, only updatedAt (maybe other metadata)
             // Still update the cache marker
-            this.queries.updateSubplebbitCacheMarkers(address, currentPageCidNew, currentUpdatedAt ?? null);
+            this.queries.updateSubplebbitCacheMarkers({
+                address,
+                lastPostsPageCidNew: currentPageCidNew,
+                lastSubplebbitUpdatedAt: currentUpdatedAt ?? null,
+                lastUpdateCid: subplebbit.updateCid!
+            });
             subscription.lastSubplebbitUpdatedAt = currentUpdatedAt ?? null;
             return;
         }
@@ -190,7 +195,12 @@ export class SubplebbitIndexer {
             });
 
             // Update cache markers
-            this.queries.updateSubplebbitCacheMarkers(address, currentPageCidNew, currentUpdatedAt ?? null);
+            this.queries.updateSubplebbitCacheMarkers({
+                address,
+                lastPostsPageCidNew: currentPageCidNew,
+                lastSubplebbitUpdatedAt: currentUpdatedAt ?? null,
+                lastUpdateCid: subplebbit.updateCid!
+            });
 
             subscription.lastPostsPageCidNew = currentPageCidNew;
             subscription.lastSubplebbitUpdatedAt = currentUpdatedAt ?? null;

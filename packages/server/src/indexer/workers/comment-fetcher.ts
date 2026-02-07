@@ -194,6 +194,9 @@ export async function fetchAndStoreSubplebbitComments(
     ): Promise<{ comments: number; replies: number }> => {
         if (!pageComment.cid) return { comments: 0, replies: 0 };
 
+        // Read stored updatedAt BEFORE upserting (for primary change detection)
+        const storedUpdatedAt = queries.getCommentUpdatedAt(pageComment.cid);
+
         // Store this comment
         storeCommentFromPage(pageComment, subAddress, queries);
 
@@ -211,6 +214,11 @@ export async function fetchAndStoreSubplebbitComments(
             return { comments: commentCount, replies: replyCount };
         }
 
+        // Primary check: if updatedAt hasn't changed, replies are the same
+        if (storedUpdatedAt !== null && pageComment.updatedAt === storedUpdatedAt) {
+            return { comments: commentCount, replies: replyCount };
+        }
+
         // Load and store replies from pageCids or preloaded pages
         const repliesPageCids = pageComment.replies?.pageCids || {};
         const repliesPages = pageComment.replies?.pages || {};
@@ -218,7 +226,7 @@ export async function fetchAndStoreSubplebbitComments(
         const hasPreloadedReplies = Object.keys(repliesPages).length > 0;
 
         if (currentRepliesPageCid || hasPreloadedReplies) {
-            // Check if we've already indexed this comment's replies with the same pageCid
+            // Secondary optimization: skip if pageCid unchanged
             if (currentRepliesPageCid) {
                 const lastIndexedPageCid = queries.getLastRepliesPageCid(pageComment.cid);
                 if (lastIndexedPageCid === currentRepliesPageCid) {
