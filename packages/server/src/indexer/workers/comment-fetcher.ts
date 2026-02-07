@@ -208,28 +208,51 @@ export async function fetchAndStoreSubplebbitComments(
             return { comments: commentCount, replies: replyCount };
         }
 
-        // Load and store replies if the comment has pageCids to fetch
-        const currentRepliesPageCid = pageComment.replies?.pageCids?.new || Object.values(pageComment.replies?.pageCids || {})[0];
+        // Load and store replies from pageCids or preloaded pages
+        const repliesPageCids = pageComment.replies?.pageCids || {};
+        const repliesPages = pageComment.replies?.pages || {};
+        const currentRepliesPageCid = repliesPageCids.new || Object.values(repliesPageCids)[0];
+        const hasPreloadedReplies = Object.keys(repliesPages).length > 0;
 
-        if (currentRepliesPageCid) {
+        if (currentRepliesPageCid || hasPreloadedReplies) {
             // Check if we've already indexed this comment's replies with the same pageCid
-            const lastIndexedPageCid = queries.getLastRepliesPageCid(pageComment.cid);
-
-            if (lastIndexedPageCid === currentRepliesPageCid) {
-                // Replies haven't changed, skip fetching
-                return { comments: commentCount, replies: replyCount };
+            if (currentRepliesPageCid) {
+                const lastIndexedPageCid = queries.getLastRepliesPageCid(pageComment.cid);
+                if (lastIndexedPageCid === currentRepliesPageCid) {
+                    // Replies haven't changed, skip fetching
+                    return { comments: commentCount, replies: replyCount };
+                }
             }
 
-            // Create a Comment instance from the page comment to get access to getPage
-            const comment = await plebbit.createComment(pageComment);
-            const replies = await loadAllRepliesFromComment(comment);
+            let replies: PageTypeJson["comments"] = [];
+
+            if (currentRepliesPageCid) {
+                // Fetch replies via pageCid - use loadAllPages directly to bypass
+                // the early-return check in loadAllRepliesFromComment (which checks
+                // the Comment instance's replies, not the raw page data)
+                const comment = await plebbit.createComment(pageComment);
+                replies = await loadAllPages(currentRepliesPageCid, comment.replies);
+            } else {
+                // Edge case: all replies in preloaded pages (small sub)
+                const preloadedPage = repliesPages.best || repliesPages.new || Object.values(repliesPages)[0];
+                replies = preloadedPage?.comments || [];
+
+                // Follow nextCid pagination if the preloaded page has more pages
+                if (preloadedPage?.nextCid) {
+                    const comment = await plebbit.createComment(pageComment);
+                    const remainingReplies = await loadAllPages(preloadedPage.nextCid, comment.replies);
+                    replies = replies.concat(remainingReplies);
+                }
+            }
+
             for (const reply of replies) {
                 const result = await storeCommentWithReplies(reply, currentDepth + 1);
                 replyCount += result.comments + result.replies;
             }
 
-            // Update the lastRepliesPageCid after successfully fetching
-            queries.updateLastRepliesPageCid(pageComment.cid, currentRepliesPageCid);
+            if (currentRepliesPageCid) {
+                queries.updateLastRepliesPageCid(pageComment.cid, currentRepliesPageCid);
+            }
         }
 
         return { comments: commentCount, replies: replyCount };

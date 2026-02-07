@@ -50,6 +50,9 @@ const SCORES = {
  */
 export function calculateAccountAge(ctx: RiskContext, weight: number): RiskFactor {
     const { challengeRequest, now, combinedData } = ctx;
+    // TODO actually maybe only query fetchedAt from indexer
+    // we don't an author to keep posting to a spam blocker but fail later, but still considered old
+    // we only care if the subplebbit decided to include their comments in the subplebbit
     const authorPublicKey = getAuthorPublicKeyFromChallengeRequest(challengeRequest);
 
     // Get first seen timestamp from combined data (engine receivedAt + indexer fetchedAt)
