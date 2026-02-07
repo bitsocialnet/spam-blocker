@@ -12,6 +12,14 @@ The risk score is a value between 0.0 and 1.0 that indicates the likelihood a pu
 
 The score is calculated as a weighted combination of multiple factors, each analyzing different aspects of the publication and its author.
 
+## Rate Limiting Pre-Check
+
+Before risk scoring, an optional **dynamic rate limiter** can hard-reject publications (HTTP 429) when an author exceeds their budget. This feature is opt-in (pass `rateLimitConfig: {}` to enable) and runs before the risk score is calculated.
+
+Budgets are dynamic: each author's limits scale by `ageFactor × reputationFactor` (clamped 0.25–5.0). Established, clean authors get up to 5× the base limits, while new/problematic authors may get as low as 0.25×.
+
+This prevents manual spammers who solve CAPTCHAs from posting at high rates. See the scenario document for examples of how different profiles map to different budgets.
+
 ## Trust Model
 
 **Important**: Not all author data can be trusted equally.

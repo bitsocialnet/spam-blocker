@@ -362,6 +362,36 @@ With default values (threshold 0.4):
 - OAuth + second OAuth sufficient when raw score < ~1.33 (all non-auto-rejected pass)
 - OAuth + CAPTCHA sufficient when raw score < ~0.95 (most non-auto-rejected pass)
 
+## Dynamic Rate Limiting
+
+An opt-in pre-check that hard-rejects publications (HTTP 429) when an author exceeds their budget. This runs before risk scoring and prevents manual spammers who solve CAPTCHAs from posting at high rates.
+
+**Enabling:** Pass `rateLimitConfig: {}` in `RouteOptions` to enable with defaults. Omit it to disable entirely.
+
+**Dynamic budgets:** Each author gets a budget multiplier based on `ageFactor × reputationFactor` (clamped 0.25–5.0):
+
+| Account Age          | ageFactor |     | Condition              | reputationFactor |
+| -------------------- | --------- | --- | ---------------------- | ---------------- |
+| No history / < 1 day | 0.5       |     | Any active bans        | 0.5              |
+| 1–7 days             | 0.75      |     | Removal rate > 30%     | 0.5              |
+| 7–30 days            | 1.0       |     | Removal rate 15–30%    | 0.75             |
+| 30–90 days           | 1.5       |     | No history or < 15%    | 1.0              |
+| 90–365 days          | 2.0       |     | < 5% AND > 10 comments | 1.25             |
+| > 365 days           | 3.0       |     |                        |                  |
+
+**Base limits (at 1.0× multiplier), effective = `max(1, floor(base × multiplier))`:**
+
+| Type              | Hourly | Daily   |
+| ----------------- | ------ | ------- |
+| post              | 4      | 20      |
+| reply             | 6      | 60      |
+| vote              | 10     | 200     |
+| commentEdit       | 5      | 30      |
+| commentModeration | 10     | 60      |
+| **aggregate**     | **40** | **250** |
+
+`subplebbitEdit` is excluded. Check order: per-type hourly → per-type daily → aggregate hourly → aggregate daily.
+
 ## Challenge Verification
 
 Challenge completion is tracked **server-side** in the database - no tokens are passed to the user's client.

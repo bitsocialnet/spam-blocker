@@ -9,6 +9,7 @@ import { registerIframeRoute } from "./iframe.js";
 import { registerCompleteRoute } from "./complete.js";
 import { registerOAuthRoutes } from "./oauth.js";
 import type { ChallengeTierConfig } from "../risk-score/challenge-tier.js";
+import type { RateLimitConfig } from "../rate-limit/index.js";
 
 export interface RouteOptions {
     db: SpamDetectionDatabase;
@@ -23,6 +24,8 @@ export interface RouteOptions {
     challengeTierConfig?: Partial<ChallengeTierConfig>;
     /** Allow non-domain (IPNS) subplebbits. Default: false */
     allowNonDomainSubplebbits?: boolean;
+    /** Rate limit configuration. Undefined = feature disabled. Pass {} to enable with defaults. */
+    rateLimitConfig?: RateLimitConfig;
     /** Multiplier applied to riskScore after CAPTCHA (0-1]. Default: 0.7 */
     captchaScoreMultiplier?: number;
     /** Multiplier applied to riskScore after first OAuth (0-1]. Default: 0.6 */
@@ -47,6 +50,7 @@ export function registerRoutes(fastify: FastifyInstance, options: RouteOptions):
         oauthProvidersResult,
         challengeTierConfig,
         allowNonDomainSubplebbits,
+        rateLimitConfig,
         captchaScoreMultiplier,
         oauthScoreMultiplier,
         secondOauthScoreMultiplier,
@@ -66,7 +70,8 @@ export function registerRoutes(fastify: FastifyInstance, options: RouteOptions):
         challengeTierConfig,
         enabledOAuthProviders,
         hasTurnstile,
-        allowNonDomainSubplebbits
+        allowNonDomainSubplebbits,
+        rateLimitConfig
     });
     registerVerifyRoute(fastify, { db });
     registerIframeRoute(fastify, {

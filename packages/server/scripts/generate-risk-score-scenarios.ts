@@ -20,6 +20,7 @@ const OAUTH_SCORE_MULTIPLIER = process.env.OAUTH_SCORE_MULTIPLIER ? parseFloat(p
 const CHALLENGE_PASS_THRESHOLD = process.env.CHALLENGE_PASS_THRESHOLD ? parseFloat(process.env.CHALLENGE_PASS_THRESHOLD) : 0.4;
 import type { IpIntelligence } from "../src/risk-score/factors/ip-risk.js";
 import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import { computeBudgetMultiplier, DEFAULT_RATE_LIMITS, DEFAULT_AGGREGATE_LIMITS } from "../src/rate-limit/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1290,6 +1291,71 @@ function runScenario(scenario: ScenarioConfig, ipType: IpType, oauthConfig: OAut
 }
 
 // ============================================================================
+// Rate Limit Budget Computation
+// ============================================================================
+
+interface RateLimitBudget {
+    multiplier: number;
+    post: { hourly: number; daily: number };
+    reply: { hourly: number; daily: number };
+    vote: { hourly: number; daily: number };
+    commentEdit: { hourly: number; daily: number };
+    commentModeration: { hourly: number; daily: number };
+    aggregate: { hourly: number; daily: number };
+}
+
+function computeRateLimitBudget(scenario: ScenarioConfig): RateLimitBudget {
+    // Create fresh in-memory database seeded with scenario data
+    const db = new SpamDetectionDatabase({ path: ":memory:" });
+    const now = Math.floor(Date.now() / 1000);
+    const authorPublicKey = `ratelimit-author-${generateUniqueId()}`;
+
+    try {
+        // Seed only the data that affects the budget multiplier (account age, bans, removals)
+        seedDatabase(db, scenario, authorPublicKey, now, "disabled");
+
+        const multiplier = computeBudgetMultiplier({ authorPublicKey, db });
+
+        const effectiveLimit = (base: { hourly: number; daily: number }) => ({
+            hourly: Math.max(1, Math.floor(base.hourly * multiplier)),
+            daily: Math.max(1, Math.floor(base.daily * multiplier))
+        });
+
+        return {
+            multiplier,
+            post: effectiveLimit(DEFAULT_RATE_LIMITS.post),
+            reply: effectiveLimit(DEFAULT_RATE_LIMITS.reply),
+            vote: effectiveLimit(DEFAULT_RATE_LIMITS.vote),
+            commentEdit: effectiveLimit(DEFAULT_RATE_LIMITS.commentEdit),
+            commentModeration: effectiveLimit(DEFAULT_RATE_LIMITS.commentModeration),
+            aggregate: effectiveLimit(DEFAULT_AGGREGATE_LIMITS)
+        };
+    } finally {
+        db.close();
+    }
+}
+
+function generateRateLimitTable(budget: RateLimitBudget): string[] {
+    const lines: string[] = [];
+
+    lines.push("### Rate Limit Budget");
+    lines.push("");
+    lines.push(`**Budget multiplier:** ${budget.multiplier.toFixed(2)}×`);
+    lines.push("");
+    lines.push("| Type | Hourly Limit | Daily Limit |");
+    lines.push("|------|-------------|-------------|");
+    lines.push(`| Post | ${budget.post.hourly} | ${budget.post.daily} |`);
+    lines.push(`| Reply | ${budget.reply.hourly} | ${budget.reply.daily} |`);
+    lines.push(`| Vote | ${budget.vote.hourly} | ${budget.vote.daily} |`);
+    lines.push(`| Comment Edit | ${budget.commentEdit.hourly} | ${budget.commentEdit.daily} |`);
+    lines.push(`| Comment Moderation | ${budget.commentModeration.hourly} | ${budget.commentModeration.daily} |`);
+    lines.push(`| **Aggregate** | **${budget.aggregate.hourly}** | **${budget.aggregate.daily}** |`);
+    lines.push("");
+
+    return lines;
+}
+
+// ============================================================================
 // Markdown Generation
 // ============================================================================
 
@@ -1689,6 +1755,45 @@ function generateMarkdown(): string {
     lines.push(`- **CAPTCHA + OAuth sufficient** when raw score < ${formatScore(CHALLENGE_PASS_THRESHOLD / combinedMul)}`);
     lines.push(`- Scores ≥ 0.8 are auto-rejected regardless`);
     lines.push("");
+    lines.push("## Dynamic Rate Limiting");
+    lines.push("");
+    lines.push("Publications are hard-rejected (HTTP 429) when an author exceeds their budget.");
+    lines.push("Budgets scale dynamically based on `multiplier = ageFactor × reputationFactor` (clamped 0.25–5.0).");
+    lines.push("");
+    lines.push("**Age Factor:**");
+    lines.push("");
+    lines.push("| Account Age | Factor |");
+    lines.push("|-------------|--------|");
+    lines.push("| No history / < 1 day | 0.5 |");
+    lines.push("| 1–7 days | 0.75 |");
+    lines.push("| 7–30 days | 1.0 |");
+    lines.push("| 30–90 days | 1.5 |");
+    lines.push("| 90–365 days | 2.0 |");
+    lines.push("| > 365 days | 3.0 |");
+    lines.push("");
+    lines.push("**Reputation Factor:**");
+    lines.push("");
+    lines.push("| Condition | Factor |");
+    lines.push("|-----------|--------|");
+    lines.push("| Any active bans | 0.5 |");
+    lines.push("| Weighted removal rate > 30% | 0.5 |");
+    lines.push("| Weighted removal rate 15–30% | 0.75 |");
+    lines.push("| No history or removal rate < 15% | 1.0 |");
+    lines.push("| Removal rate < 5% AND > 10 comments | 1.25 |");
+    lines.push("");
+    lines.push("**Base Limits (at 1.0× multiplier):**");
+    lines.push("");
+    lines.push("| Type | Hourly | Daily |");
+    lines.push("|------|--------|-------|");
+    lines.push(`| Post | ${DEFAULT_RATE_LIMITS.post.hourly} | ${DEFAULT_RATE_LIMITS.post.daily} |`);
+    lines.push(`| Reply | ${DEFAULT_RATE_LIMITS.reply.hourly} | ${DEFAULT_RATE_LIMITS.reply.daily} |`);
+    lines.push(`| Vote | ${DEFAULT_RATE_LIMITS.vote.hourly} | ${DEFAULT_RATE_LIMITS.vote.daily} |`);
+    lines.push(`| Comment Edit | ${DEFAULT_RATE_LIMITS.commentEdit.hourly} | ${DEFAULT_RATE_LIMITS.commentEdit.daily} |`);
+    lines.push(`| Comment Moderation | ${DEFAULT_RATE_LIMITS.commentModeration.hourly} | ${DEFAULT_RATE_LIMITS.commentModeration.daily} |`);
+    lines.push(`| **Aggregate** | **${DEFAULT_AGGREGATE_LIMITS.hourly}** | **${DEFAULT_AGGREGATE_LIMITS.daily}** |`);
+    lines.push("");
+    lines.push("Effective limit = `max(1, floor(base × multiplier))`. `subplebbitEdit` is excluded from rate limiting.");
+    lines.push("");
     lines.push("---");
     lines.push("");
 
@@ -1732,6 +1837,10 @@ function generateMarkdown(): string {
         // Add author profile table (with sample result to detect skipped factors)
         lines.push(...generateAuthorProfileTable(scenario, sampleResult?.result));
 
+        // Add rate limit budget table
+        const rateLimitBudget = computeRateLimitBudget(scenario);
+        lines.push(...generateRateLimitTable(rateLimitBudget));
+
         // Generate results grouped by publication type
         lines.push("### Results by Configuration");
         lines.push("");
@@ -1758,8 +1867,8 @@ function generateMarkdown(): string {
     lines.push("");
     lines.push("Overview of risk score ranges and challenge outcomes for each scenario:");
     lines.push("");
-    lines.push("| # | Scenario | Score Range | CAPTCHA Passes? | CAPTCHA+OAuth Passes? | Possible Outcomes |");
-    lines.push("|---|----------|-------------|-----------------|----------------------|-------------------|");
+    lines.push("| # | Scenario | Score Range | CAPTCHA Passes? | CAPTCHA+OAuth Passes? | Rate Limit ×  | Possible Outcomes |");
+    lines.push("|---|----------|-------------|-----------------|----------------------|---------------|-------------------|");
 
     for (let scenarioIdx = 0; scenarioIdx < SCENARIOS.length; scenarioIdx++) {
         const scenario = SCENARIOS[scenarioIdx];
@@ -1791,8 +1900,9 @@ function generateMarkdown(): string {
         const captchaStatus = allCaptchaSufficient ? "Always" : anyCaptchaSufficient ? "Sometimes" : "Never";
         const oauthStatus = allCaptchaOAuthSufficient ? "Always" : anyCaptchaOAuthSufficient ? "Sometimes" : "Never";
         const outcomeList = Array.from(outcomes).join(", ");
+        const summaryBudget = computeRateLimitBudget(scenario);
         lines.push(
-            `| ${scenarioIdx + 1} | ${scenario.name} | ${formatScore(minScore)}–${formatScore(maxScore)} | ${captchaStatus} | ${oauthStatus} | ${outcomeList} |`
+            `| ${scenarioIdx + 1} | ${scenario.name} | ${formatScore(minScore)}–${formatScore(maxScore)} | ${captchaStatus} | ${oauthStatus} | ${summaryBudget.multiplier.toFixed(2)}× | ${outcomeList} |`
         );
     }
 

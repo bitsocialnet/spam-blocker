@@ -10,7 +10,8 @@ import { verifySignedRequest } from "../security/request-signature.js";
 import { verifyPublicationSignature } from "../security/publication-signature.js";
 import { resolveSubplebbitPublicKey } from "../subplebbit-resolver.js";
 import { calculateRiskScore } from "../risk-score/index.js";
-import { getAuthorFromChallengeRequest } from "../risk-score/utils.js";
+import { getAuthorFromChallengeRequest, getAuthorPublicKeyFromChallengeRequest, getPublicationType } from "../risk-score/utils.js";
+import { checkRateLimit, type RateLimitConfig } from "../rate-limit/index.js";
 import { fetchWalletTransactionCounts } from "../security/author-field-signature.js";
 import { determineChallengeTier, type ChallengeTierConfig } from "../risk-score/challenge-tier.js";
 import { IndexerQueries } from "../indexer/db/queries.js";
@@ -32,6 +33,8 @@ export interface EvaluateRouteOptions {
     hasTurnstile?: boolean;
     /** Allow non-domain (IPNS) subplebbits. Default: false */
     allowNonDomainSubplebbits?: boolean;
+    /** Rate limit configuration. Undefined = feature disabled. Pass {} to enable with defaults. */
+    rateLimitConfig?: RateLimitConfig;
 }
 
 /**
@@ -45,7 +48,8 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
         challengeTierConfig,
         enabledOAuthProviders = [],
         hasTurnstile = false,
-        allowNonDomainSubplebbits = false
+        allowNonDomainSubplebbits = false,
+        rateLimitConfig
     } = options;
 
     const hasOAuthProviders = enabledOAuthProviders.length > 0;
@@ -178,6 +182,38 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
                 const error = new Error("Publication already submitted");
                 (error as { statusCode?: number }).statusCode = 409;
                 throw error;
+            }
+
+            // Rate limit pre-check (hard reject before risk scoring)
+            if (rateLimitConfig !== undefined) {
+                const authorPublicKey = getAuthorPublicKeyFromChallengeRequest(typedChallengeRequest);
+                const publicationType = getPublicationType(typedChallengeRequest);
+
+                if (publicationType !== "subplebbitEdit") {
+                    const rateLimitResult = checkRateLimit({
+                        authorPublicKey,
+                        publicationType,
+                        db,
+                        config: rateLimitConfig
+                    });
+
+                    if (!rateLimitResult.allowed) {
+                        request.log.warn(
+                            {
+                                exceeded: rateLimitResult.exceeded,
+                                limit: rateLimitResult.limit,
+                                current: rateLimitResult.current,
+                                multiplier: rateLimitResult.multiplier
+                            },
+                            `Rate limit exceeded: ${rateLimitResult.exceeded}`
+                        );
+                        const error = new Error(
+                            `Rate limit exceeded: ${rateLimitResult.exceeded} (${rateLimitResult.current}/${rateLimitResult.limit})`
+                        );
+                        (error as { statusCode?: number }).statusCode = 429;
+                        throw error;
+                    }
+                }
             }
 
             // Calculate risk score using the risk-score module

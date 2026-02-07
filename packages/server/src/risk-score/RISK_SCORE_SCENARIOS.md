@@ -50,6 +50,45 @@ After evaluation, CAPTCHA is always the first challenge. The score is then adjus
 - **CAPTCHA + OAuth sufficient** when raw score < 1.14
 - Scores ≥ 0.8 are auto-rejected regardless
 
+## Dynamic Rate Limiting
+
+Publications are hard-rejected (HTTP 429) when an author exceeds their budget.
+Budgets scale dynamically based on `multiplier = ageFactor × reputationFactor` (clamped 0.25–5.0).
+
+**Age Factor:**
+
+| Account Age          | Factor |
+| -------------------- | ------ |
+| No history / < 1 day | 0.5    |
+| 1–7 days             | 0.75   |
+| 7–30 days            | 1.0    |
+| 30–90 days           | 1.5    |
+| 90–365 days          | 2.0    |
+| > 365 days           | 3.0    |
+
+**Reputation Factor:**
+
+| Condition                           | Factor |
+| ----------------------------------- | ------ |
+| Any active bans                     | 0.5    |
+| Weighted removal rate > 30%         | 0.5    |
+| Weighted removal rate 15–30%        | 0.75   |
+| No history or removal rate < 15%    | 1.0    |
+| Removal rate < 5% AND > 10 comments | 1.25   |
+
+**Base Limits (at 1.0× multiplier):**
+
+| Type               | Hourly | Daily   |
+| ------------------ | ------ | ------- |
+| Post               | 4      | 20      |
+| Reply              | 6      | 60      |
+| Vote               | 10     | 200     |
+| Comment Edit       | 5      | 30      |
+| Comment Moderation | 10     | 60      |
+| **Aggregate**      | **40** | **250** |
+
+Effective limit = `max(1, floor(base × multiplier))`. `subplebbitEdit` is excluded from rate limiting.
+
 ---
 
 ## Scenario 1: Brand New User
@@ -75,6 +114,19 @@ content: "Hey everyone, just discovered plebbit and wanted to introduce myself..
 | URL Spam           | no urls    | Low risk               |
 | ModQueue Rejection | No data    | Unknown (neutral)      |
 | Removal Rate       | No data    | Unknown (neutral)      |
+
+### Rate Limit Budget
+
+**Budget multiplier:** 0.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 2            | 10          |
+| Reply              | 3            | 30          |
+| Vote               | 5            | 100         |
+| Comment Edit       | 2            | 15          |
+| Comment Moderation | 5            | 30          |
+| **Aggregate**      | **20**       | **125**     |
 
 ### Results by Configuration
 
@@ -152,6 +204,19 @@ content: "Has anyone figured out how to run a subplebbit on a VPS? I've been her
 | OAuth Verification | google           | Reduced risk (verified) |
 | Wallet Activity    | 250 transactions | Very strong activity    |
 
+### Rate Limit Budget
+
+**Budget multiplier:** 1.88×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 7            | 37          |
+| Reply              | 11           | 112         |
+| Vote               | 18           | 375         |
+| Comment Edit       | 9            | 56          |
+| Comment Moderation | 18           | 112         |
+| **Aggregate**      | **75**       | **468**     |
+
 ### Results by Configuration
 
 #### Posts
@@ -226,6 +291,19 @@ content: "Check out my thoughts on the future of social platforms..."
 | URL Spam           | 1 unique | Low risk (single URL) |
 | ModQueue Rejection | No data  | Unknown (neutral)     |
 | Removal Rate       | No data  | Unknown (neutral)     |
+
+### Rate Limit Budget
+
+**Budget multiplier:** 0.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 2            | 10          |
+| Reply              | 3            | 30          |
+| Vote               | 5            | 100         |
+| Comment Edit       | 2            | 15          |
+| Comment Moderation | 5            | 30          |
+| **Aggregate**      | **20**       | **125**     |
 
 ### Results by Configuration
 
@@ -302,6 +380,19 @@ content: "Click here for FREE money!!!"
 | ModQueue Rejection | 50%      | Moderate risk            |
 | Removal Rate       | 30%      | Moderate risk            |
 
+### Rate Limit Budget
+
+**Budget multiplier:** 0.75×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 3            | 15          |
+| Reply              | 4            | 45          |
+| Vote               | 7            | 150         |
+| Comment Edit       | 3            | 22          |
+| Comment Moderation | 7            | 45          |
+| **Aggregate**      | **30**       | **187**     |
+
 ### Results by Configuration
 
 #### Posts
@@ -376,6 +467,19 @@ content: "This is duplicate spam content that appears multiple times."
 | ModQueue Rejection | No data  | Unknown (neutral)        |
 | Removal Rate       | No data  | Unknown (neutral)        |
 
+### Rate Limit Budget
+
+**Budget multiplier:** 1.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 6            | 30          |
+| Reply              | 9            | 90          |
+| Vote               | 15           | 300         |
+| Comment Edit       | 7            | 45          |
+| Comment Moderation | 15           | 90          |
+| **Aggregate**      | **60**       | **375**     |
+
 ### Results by Configuration
 
 #### Posts
@@ -449,6 +553,19 @@ content: "Automated content generation test message..."
 | URL Spam           | no urls  | Low risk                  |
 | ModQueue Rejection | No data  | Unknown (neutral)         |
 | Removal Rate       | No data  | Unknown (neutral)         |
+
+### Rate Limit Budget
+
+**Budget multiplier:** 0.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 2            | 10          |
+| Reply              | 3            | 30          |
+| Vote               | 5            | 100         |
+| Comment Edit       | 2            | 15          |
+| Comment Moderation | 5            | 30          |
+| **Aggregate**      | **20**       | **125**     |
 
 ### Results by Configuration
 
@@ -525,6 +642,19 @@ content: "CLICK HERE NOW!!! DON'T MISS OUT!!!"
 | ModQueue Rejection | 80%      | High risk              |
 | Removal Rate       | 60%      | High risk              |
 
+### Rate Limit Budget
+
+**Budget multiplier:** 0.75×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 3            | 15          |
+| Reply              | 4            | 45          |
+| Vote               | 7            | 150         |
+| Comment Edit       | 3            | 22          |
+| Comment Moderation | 7            | 45          |
+| **Aggregate**      | **30**       | **187**     |
+
 ### Results by Configuration
 
 #### Posts
@@ -599,6 +729,19 @@ content: "Hi all, I'm a developer interested in decentralized platforms. Verifie
 | ModQueue Rejection | No data        | Unknown (neutral)       |
 | Removal Rate       | No data        | Unknown (neutral)       |
 | OAuth Verification | google, github | Reduced risk (verified) |
+
+### Rate Limit Budget
+
+**Budget multiplier:** 0.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 2            | 10          |
+| Reply              | 3            | 30          |
+| Vote               | 5            | 100         |
+| Comment Edit       | 2            | 15          |
+| Comment Moderation | 5            | 30          |
+| **Aggregate**      | **20**       | **125**     |
 
 ### Results by Configuration
 
@@ -675,6 +818,19 @@ commentCid: "QmTargetComment123..."
 | ModQueue Rejection | No data  | Unknown (neutral)         |
 | Removal Rate       | No data  | Unknown (neutral)         |
 
+### Rate Limit Budget
+
+**Budget multiplier:** 1.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 6            | 30          |
+| Reply              | 9            | 90          |
+| Vote               | 15           | 300         |
+| Comment Edit       | 7            | 45          |
+| Comment Moderation | 15           | 90          |
+| **Aggregate**      | **60**       | **375**     |
+
 ### Results by Configuration
 
 #### Votes
@@ -748,6 +904,19 @@ parentCid: "QmParentComment..."
 | URL Spam           | no urls   | Low risk                |
 | ModQueue Rejection | 0%        | Low risk                |
 | Removal Rate       | 0%        | Low risk                |
+
+### Rate Limit Budget
+
+**Budget multiplier:** 1.88×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 7            | 37          |
+| Reply              | 11           | 112         |
+| Vote               | 18           | 375         |
+| Comment Edit       | 9            | 56          |
+| Comment Moderation | 18           | 112         |
+| **Aggregate**      | **75**       | **468**     |
 
 ### Results by Configuration
 
@@ -823,6 +992,19 @@ content: "Half of my submissions keep getting rejected, not sure why..."
 | ModQueue Rejection | 50%     | Moderate risk           |
 | Removal Rate       | 0%      | Low risk                |
 
+### Rate Limit Budget
+
+**Budget multiplier:** 1.88×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 7            | 37          |
+| Reply              | 11           | 112         |
+| Vote               | 18           | 375         |
+| Comment Edit       | 9            | 56          |
+| Comment Moderation | 18           | 112         |
+| **Aggregate**      | **75**       | **468**     |
+
 ### Results by Configuration
 
 #### Posts
@@ -896,6 +1078,19 @@ content: "Mods keep removing my content but I'm not sure what rules I'm breaking
 | URL Spam           | no urls | Low risk                |
 | ModQueue Rejection | No data | Unknown (neutral)       |
 | Removal Rate       | 60%     | High risk               |
+
+### Rate Limit Budget
+
+**Budget multiplier:** 0.75×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 3            | 15          |
+| Reply              | 4            | 45          |
+| Vote               | 7            | 150         |
+| Comment Edit       | 3            | 22          |
+| Comment Moderation | 7            | 45          |
+| **Aggregate**      | **30**       | **187**     |
 
 ### Results by Configuration
 
@@ -972,6 +1167,19 @@ content: "Decided not to link my social accounts, is that okay?"
 | Removal Rate       | No data            | Unknown (neutral)      |
 | OAuth Verification | None (but enabled) | High risk (unverified) |
 
+### Rate Limit Budget
+
+**Budget multiplier:** 0.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 2            | 10          |
+| Reply              | 3            | 30          |
+| Vote               | 5            | 100         |
+| Comment Edit       | 2            | 15          |
+| Comment Moderation | 5            | 30          |
+| **Aggregate**      | **20**       | **125**     |
+
 ### Results by Configuration
 
 #### Posts
@@ -1045,6 +1253,19 @@ content: "This is duplicate spam content that appears multiple times."
 | URL Spam           | no urls | Low risk                |
 | ModQueue Rejection | No data | Unknown (neutral)       |
 | Removal Rate       | No data | Unknown (neutral)       |
+
+### Rate Limit Budget
+
+**Budget multiplier:** 1.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 6            | 30          |
+| Reply              | 9            | 90          |
+| Vote               | 15           | 300         |
+| Comment Edit       | 7            | 45          |
+| Comment Moderation | 15           | 90          |
+| **Aggregate**      | **60**       | **375**     |
 
 ### Results by Configuration
 
@@ -1122,6 +1343,19 @@ content: "After over a year on the platform, I've compiled everything I've learn
 | OAuth Verification | google, github   | Reduced risk (verified) |
 | Wallet Activity    | 500 transactions | Very strong activity    |
 
+### Rate Limit Budget
+
+**Budget multiplier:** 1.88×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 7            | 37          |
+| Reply              | 11           | 112         |
+| Vote               | 18           | 375         |
+| Comment Edit       | 9            | 56          |
+| Comment Moderation | 18           | 112         |
+| **Aggregate**      | **75**       | **468**     |
+
 ### Results by Configuration
 
 #### Posts
@@ -1196,6 +1430,19 @@ content: "Excited to finally have a decentralized alternative to Reddit..."
 | ModQueue Rejection | No data          | Unknown (neutral)      |
 | Removal Rate       | No data          | Unknown (neutral)      |
 | Wallet Activity    | 150 transactions | Strong activity        |
+
+### Rate Limit Budget
+
+**Budget multiplier:** 0.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 2            | 10          |
+| Reply              | 3            | 30          |
+| Vote               | 5            | 100         |
+| Comment Edit       | 2            | 15          |
+| Comment Moderation | 5            | 30          |
+| **Aggregate**      | **20**       | **125**     |
 
 ### Results by Configuration
 
@@ -1272,6 +1519,19 @@ content: "New to both but excited to learn..."
 | Removal Rate       | No data        | Unknown (neutral)            |
 | Wallet Activity    | 5 transactions | Some activity (modest trust) |
 
+### Rate Limit Budget
+
+**Budget multiplier:** 0.50×
+
+| Type               | Hourly Limit | Daily Limit |
+| ------------------ | ------------ | ----------- |
+| Post               | 2            | 10          |
+| Reply              | 3            | 30          |
+| Vote               | 5            | 100         |
+| Comment Edit       | 2            | 15          |
+| Comment Moderation | 5            | 30          |
+| **Aggregate**      | **20**       | **125**     |
+
 ### Results by Configuration
 
 #### Posts
@@ -1326,25 +1586,25 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 Overview of risk score ranges and challenge outcomes for each scenario:
 
-| #   | Scenario                      | Score Range | CAPTCHA Passes? | CAPTCHA+OAuth Passes? | Possible Outcomes             |
-| --- | ----------------------------- | ----------- | --------------- | --------------------- | ----------------------------- |
-| 1   | Brand New User                | 0.34–0.64   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 2   | Established Trusted User      | 0.19–0.37   | Always          | Always                | Auto-accepted, CAPTCHA passes |
-| 3   | New User with Link            | 0.34–0.64   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 4   | Repeat Link Spammer           | 0.47–0.70   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 5   | Content Duplicator            | 0.34–0.57   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 6   | Bot-like Velocity             | 0.43–0.74   | Sometimes       | Always                | Needs OAuth, CAPTCHA passes   |
-| 7   | Serial Offender               | 0.47–0.69   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 8   | New User, Dual OAuth          | 0.34–0.60   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 9   | Vote Spammer                  | 0.37–0.69   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 10  | Trusted Reply Author          | 0.20–0.45   | Always          | Always                | CAPTCHA passes                |
-| 11  | Borderline Modqueue           | 0.26–0.50   | Always          | Always                | CAPTCHA passes                |
-| 12  | High Removal Rate             | 0.32–0.57   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 13  | New, OAuth Unverified         | 0.43–0.64   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 14  | Moderate Content Spam         | 0.28–0.54   | Always          | Always                | CAPTCHA passes                |
-| 15  | Perfect User                  | 0.19–0.36   | Always          | Always                | Auto-accepted, CAPTCHA passes |
-| 16  | New User, Active Wallet       | 0.32–0.61   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
-| 17  | New User, Low-Activity Wallet | 0.34–0.62   | Sometimes       | Always                | CAPTCHA passes, Needs OAuth   |
+| #   | Scenario                      | Score Range | CAPTCHA Passes? | CAPTCHA+OAuth Passes? | Rate Limit × | Possible Outcomes             |
+| --- | ----------------------------- | ----------- | --------------- | --------------------- | ------------ | ----------------------------- |
+| 1   | Brand New User                | 0.34–0.64   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 2   | Established Trusted User      | 0.19–0.37   | Always          | Always                | 1.88×        | Auto-accepted, CAPTCHA passes |
+| 3   | New User with Link            | 0.34–0.64   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 4   | Repeat Link Spammer           | 0.47–0.70   | Sometimes       | Always                | 0.75×        | CAPTCHA passes, Needs OAuth   |
+| 5   | Content Duplicator            | 0.34–0.57   | Sometimes       | Always                | 1.50×        | CAPTCHA passes, Needs OAuth   |
+| 6   | Bot-like Velocity             | 0.43–0.74   | Sometimes       | Always                | 0.50×        | Needs OAuth, CAPTCHA passes   |
+| 7   | Serial Offender               | 0.47–0.69   | Sometimes       | Always                | 0.75×        | CAPTCHA passes, Needs OAuth   |
+| 8   | New User, Dual OAuth          | 0.34–0.60   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 9   | Vote Spammer                  | 0.37–0.69   | Sometimes       | Always                | 1.50×        | CAPTCHA passes, Needs OAuth   |
+| 10  | Trusted Reply Author          | 0.20–0.45   | Always          | Always                | 1.88×        | CAPTCHA passes                |
+| 11  | Borderline Modqueue           | 0.26–0.50   | Always          | Always                | 1.88×        | CAPTCHA passes                |
+| 12  | High Removal Rate             | 0.32–0.57   | Sometimes       | Always                | 0.75×        | CAPTCHA passes, Needs OAuth   |
+| 13  | New, OAuth Unverified         | 0.43–0.64   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 14  | Moderate Content Spam         | 0.28–0.54   | Always          | Always                | 1.50×        | CAPTCHA passes                |
+| 15  | Perfect User                  | 0.19–0.36   | Always          | Always                | 1.88×        | Auto-accepted, CAPTCHA passes |
+| 16  | New User, Active Wallet       | 0.32–0.61   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 17  | New User, Low-Activity Wallet | 0.34–0.62   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
 
 ---
 
