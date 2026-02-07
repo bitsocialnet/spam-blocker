@@ -18,7 +18,8 @@ CREATE TABLE IF NOT EXISTS challengeSessions (
   challengeTier TEXT CHECK (challengeTier IS NULL OR challengeTier IN ('oauth_sufficient', 'oauth_plus_more')),
   oauthCompleted INTEGER DEFAULT 0,  -- 1 if first OAuth completed (session may still need more verification)
   captchaCompleted INTEGER DEFAULT 0,  -- 1 if CAPTCHA portion completed
-  riskScore REAL  -- The risk score at evaluation time (used for score adjustment after CAPTCHA/OAuth)
+  riskScore REAL,  -- The risk score at evaluation time (used for score adjustment after CAPTCHA/OAuth)
+  oauthAccountCreatedAt INTEGER  -- OAuth account creation date (Unix seconds, null if unknown)
 );
 
 CREATE INDEX IF NOT EXISTS idx_challengeSessions_expiresAt ON challengeSessions(expiresAt);

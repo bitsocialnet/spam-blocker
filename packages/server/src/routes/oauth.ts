@@ -385,7 +385,7 @@ export function registerOAuthRoutes(fastify: FastifyInstance, options: OAuthRout
 
         // Exchange code for token and get user identity
         const providerInstance = providers[provider]!;
-        let userIdentity: { provider: string; userId: string };
+        let userIdentity: { provider: string; userId: string; accountCreatedAt: number | null };
         try {
             userIdentity = await validateAuthorizationCode(providerInstance, provider, code, oauthState.codeVerifier ?? undefined);
         } catch (e) {
@@ -397,6 +397,11 @@ export function registerOAuthRoutes(fastify: FastifyInstance, options: OAuthRout
         const oauthIdentity = `${userIdentity.provider}:${userIdentity.userId}`;
         const riskScore = session.riskScore ?? 0;
         const nowMs = Date.now();
+
+        // Store OAuth account creation date if available
+        if (userIdentity.accountCreatedAt !== null) {
+            db.updateChallengeSessionOAuthAccountCreatedAt(oauthState.sessionId, userIdentity.accountCreatedAt);
+        }
 
         // Clean up OAuth state
         db.deleteOAuthState(state);

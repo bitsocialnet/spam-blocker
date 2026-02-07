@@ -56,38 +56,81 @@ function extractProvider(oauthIdentity: string): string {
 }
 
 /**
- * Calculate the diminishing returns factor for multi-author reuse.
- * Uses inverse square root: 1/sqrt(n)
+ * Calculate the reuse factor for multi-author sharing of an OAuth identity.
+ * Uses inverse square: 1/n² with hard cap at 3 authors.
  *
- * - Author 1: 100% benefit (1/sqrt(1) = 1.0)
- * - Author 2: 71% benefit (1/sqrt(2) = 0.71)
- * - Author 3: 58% benefit (1/sqrt(3) = 0.58)
- * - Author 4+: Continues diminishing
+ * - Author 1: 100% benefit (1/1² = 1.0)
+ * - Author 2: 25% benefit (1/2² = 0.25)
+ * - Author 3: 11% benefit (1/3² = 0.11)
+ * - Author 4+: Completely discarded (0)
  */
-function calculateMultiAuthorDiminishingFactor(authorCount: number): number {
+function calculateMultiAuthorReuseFactor(authorCount: number): number {
     if (authorCount <= 0) return 0;
-    return 1 / Math.sqrt(authorCount);
+    if (authorCount > 3) return 0; // Hard cap: completely discarded
+    return 1 / (authorCount * authorCount);
+}
+
+/**
+ * Calculate the account age multiplier from an OAuth account creation timestamp.
+ * Only applies a penalty for providers that expose account creation dates (GitHub, Discord).
+ * Unknown/null creation dates get multiplier 1.0 (no penalty).
+ *
+ * | OAuth Account Age | Multiplier |
+ * |-------------------|------------|
+ * | < 7 days          | 0.3        |
+ * | 7–30 days         | 0.5        |
+ * | 30–90 days        | 0.7        |
+ * | 90–365 days       | 0.9        |
+ * | > 365 days        | 1.0        |
+ * | Unknown (null)    | 1.0        |
+ */
+function calculateOAuthAccountAgeMultiplier(accountCreatedAt: number | null, nowSeconds: number): number {
+    if (accountCreatedAt === null) return 1.0; // Unknown — no penalty
+
+    const ageSeconds = nowSeconds - accountCreatedAt;
+    const ageDays = ageSeconds / 86400;
+
+    if (ageDays < 7) return 0.3;
+    if (ageDays < 30) return 0.5;
+    if (ageDays < 90) return 0.7;
+    if (ageDays < 365) return 0.9;
+    return 1.0;
 }
 
 /**
  * Calculate combined credibility from multiple OAuth identities.
  * Applies:
- * 1. Per-identity diminishing returns based on how many authors share that identity
- * 2. Multiple service decay (70% decay for each additional provider)
- * 3. Maximum credibility cap
+ * 1. Per-identity reuse factor (1/n², hard cap at 3 authors)
+ * 2. Per-identity OAuth account age multiplier
+ * 3. Multiple service decay (70% decay for each additional provider)
+ * 4. Maximum credibility cap
  */
 function calculateCombinedCredibility(params: {
     oauthIdentities: string[];
     db: SpamDetectionDatabase;
+    nowSeconds: number;
     providerCredibility?: Record<string, number>;
 }): {
     combinedCredibility: number;
-    breakdown: Array<{ identity: string; provider: string; baseCredibility: number; effectiveCredibility: number; authorCount: number }>;
+    breakdown: Array<{
+        identity: string;
+        provider: string;
+        baseCredibility: number;
+        effectiveCredibility: number;
+        authorCount: number;
+        accountAgeMultiplier: number;
+    }>;
 } {
-    const { oauthIdentities, db, providerCredibility } = params;
+    const { oauthIdentities, db, nowSeconds, providerCredibility } = params;
 
     if (oauthIdentities.length === 0) {
         return { combinedCredibility: 0, breakdown: [] };
+    }
+
+    // Batch-fetch account creation dates for all identities (one query each, cached per call)
+    const accountCreatedAtMap = new Map<string, number | null>();
+    for (const identity of oauthIdentities) {
+        accountCreatedAtMap.set(identity, db.getOAuthAccountCreatedAt(identity));
     }
 
     // Calculate effective credibility for each identity
@@ -97,6 +140,7 @@ function calculateCombinedCredibility(params: {
         baseCredibility: number;
         effectiveCredibility: number;
         authorCount: number;
+        accountAgeMultiplier: number;
     }> = [];
 
     for (const identity of oauthIdentities) {
@@ -106,16 +150,22 @@ function calculateCombinedCredibility(params: {
         // Count how many authors share this OAuth identity
         const authorCount = db.countAuthorsWithOAuthIdentity(identity);
 
-        // Apply diminishing returns for multi-author reuse
-        const diminishingFactor = calculateMultiAuthorDiminishingFactor(authorCount);
-        const effectiveCredibility = baseCredibility * diminishingFactor;
+        // Apply 1/n² reuse factor with hard cap at 3 authors
+        const reuseFactor = calculateMultiAuthorReuseFactor(authorCount);
+
+        // Apply OAuth account age multiplier (uses pre-fetched data)
+        const accountCreatedAt = accountCreatedAtMap.get(identity) ?? null;
+        const accountAgeMultiplier = calculateOAuthAccountAgeMultiplier(accountCreatedAt, nowSeconds);
+
+        const effectiveCredibility = baseCredibility * reuseFactor * accountAgeMultiplier;
 
         identityCredibilities.push({
             identity,
             provider,
             baseCredibility,
             effectiveCredibility,
-            authorCount
+            authorCount,
+            accountAgeMultiplier
         });
     }
 
@@ -202,10 +252,11 @@ export function calculateSocialVerification(ctx: RiskContext, weight: number, en
         };
     }
 
-    // Calculate combined credibility with diminishing returns
+    // Calculate combined credibility with reuse cap and account age
     const { combinedCredibility, breakdown } = calculateCombinedCredibility({
         oauthIdentities,
-        db
+        db,
+        nowSeconds: ctx.now
     });
 
     // Convert credibility to risk score
@@ -214,8 +265,17 @@ export function calculateSocialVerification(ctx: RiskContext, weight: number, en
     // Build explanation
     const providerSummary = breakdown
         .map((item) => {
-            const reuse = item.authorCount > 1 ? ` (shared by ${item.authorCount} authors)` : "";
-            return `${item.provider}${reuse}`;
+            const parts: string[] = [];
+            if (item.authorCount > 3) {
+                parts.push(`shared by ${item.authorCount} authors, discarded`);
+            } else if (item.authorCount > 1) {
+                parts.push(`shared by ${item.authorCount} authors`);
+            }
+            if (item.accountAgeMultiplier < 1.0) {
+                parts.push(`age multiplier: ${item.accountAgeMultiplier}`);
+            }
+            const suffix = parts.length > 0 ? ` (${parts.join(", ")})` : "";
+            return `${item.provider}${suffix}`;
         })
         .join(", ");
 

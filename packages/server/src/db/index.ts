@@ -1704,6 +1704,49 @@ export class SpamDetectionDatabase {
     }
 
     // ============================================
+    // OAuth Account Age Methods
+    // ============================================
+
+    /**
+     * Store the OAuth account creation date for a challenge session.
+     *
+     * @param sessionId - The challenge session ID
+     * @param accountCreatedAt - OAuth account creation timestamp in Unix seconds
+     */
+    updateChallengeSessionOAuthAccountCreatedAt(sessionId: string, accountCreatedAt: number): boolean {
+        const stmt = this.db.prepare(`
+            UPDATE challengeSessions
+            SET oauthAccountCreatedAt = @accountCreatedAt
+            WHERE sessionId = @sessionId
+        `);
+
+        const result = stmt.run({ sessionId, accountCreatedAt });
+        return result.changes > 0;
+    }
+
+    /**
+     * Get the OAuth account creation date for a specific OAuth identity.
+     * Retrieves from the most recent completed session that has this data.
+     *
+     * @param oauthIdentity - OAuth identity in format "provider:userId"
+     * @returns OAuth account creation timestamp in Unix seconds, or null if not available
+     */
+    getOAuthAccountCreatedAt(oauthIdentity: string): number | null {
+        const stmt = this.db.prepare(`
+            SELECT oauthAccountCreatedAt
+            FROM challengeSessions
+            WHERE oauthIdentity = @oauthIdentity
+              AND status = 'completed'
+              AND oauthAccountCreatedAt IS NOT NULL
+            ORDER BY completedAt DESC
+            LIMIT 1
+        `);
+
+        const result = stmt.get({ oauthIdentity }) as { oauthAccountCreatedAt: number } | undefined;
+        return result?.oauthAccountCreatedAt ?? null;
+    }
+
+    // ============================================
     // Link/URL Query Methods (by public key)
     // ============================================
 

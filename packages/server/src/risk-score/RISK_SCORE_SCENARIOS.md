@@ -132,28 +132,28 @@ content: "Hey everyone, just discovered plebbit and wanted to introduce myself..
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                              |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------ |
-| No IP check | OAuth disabled             | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| No IP check | OAuth enabled (unverified) | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| No IP check | Google verified            | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| No IP check | Google + GitHub verified   | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Residential | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Residential | OAuth enabled (unverified) | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| Residential | Google verified            | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Residential | Google + GitHub verified   | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Datacenter  | OAuth disabled             | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | Google verified            | 0.58      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | Google + GitHub verified   | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| VPN         | OAuth disabled             | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | Google verified            | 0.58      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | Google + GitHub verified   | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| Tor         | OAuth disabled             | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | Google verified            | 0.58      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | Google + GitHub verified   | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                 |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | --------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)                 |
+| No IP check | OAuth enabled (unverified) | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified)    |
+| No IP check | Google verified            | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)                 |
+| No IP check | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)                 |
+| Residential | OAuth disabled             | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP)              |
+| Residential | OAuth enabled (unverified) | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (1.00, no history)    |
+| Residential | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (0.40, Google verified) |
+| Residential | Google + GitHub verified   | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP)              |
+| Datacenter  | OAuth disabled             | 0.59      | 0.41 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)               |
+| Datacenter  | OAuth enabled (unverified) | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)     |
+| Datacenter  | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)               |
+| Datacenter  | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)               |
+| VPN         | OAuth disabled             | 0.59      | 0.41 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)                |
+| VPN         | OAuth enabled (unverified) | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)      |
+| VPN         | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)                |
+| VPN         | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)                |
+| Tor         | OAuth disabled             | 0.59      | 0.41 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)               |
+| Tor         | OAuth enabled (unverified) | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)     |
+| Tor         | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)               |
+| Tor         | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)               |
 
 ### Detailed Factor Breakdown
 
@@ -161,20 +161,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 1.00  | no history     | 22.6%    | 0.23         |
-| Karma Score         | 0.60  | no data        | 19.4%    | 0.12         |
-| Content/Title Risk  | 0.20  | unique content | 22.6%    | 0.05         |
-| URL/Link Risk       | 0.20  | no URLs        | 19.4%    | 0.04         |
-| Velocity            | 0.10  | normal rate    | 16.1%    | 0.02         |
+| Account Age         | 1.00  | no history     | 20.7%    | 0.21         |
+| Karma Score         | 0.60  | no data        | 17.2%    | 0.10         |
+| Content/Title Risk  | 0.20  | unique content | 24.1%    | 0.05         |
+| URL/Link Risk       | 0.20  | no URLs        | 20.7%    | 0.04         |
+| Velocity            | 0.10  | normal rate    | 17.2%    | 0.02         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
 | Ban History         | -     | no active bans | 0%       | (skipped)    |
 | ModQueue Rejection  | -     | no data        | 0%       | (skipped)    |
 | Removal Rate        | -     | no data        | 0%       | (skipped)    |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.44**     |
+| **Total**           |       |                | **100%** | **0.42**     |
 
-**Outcome:** OAuth + more — Raw score 0.44. After CAPTCHA: 0.44 × 0.7 = 0.31 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.42. After CAPTCHA: 0.42 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -221,28 +221,28 @@ content: "Has anyone figured out how to run a subplebbit on a VPS? I've been her
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                               |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------- |
-| No IP check | OAuth disabled             | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 90+ days), Content/Title Risk (0.20, unique content)   |
-| No IP check | OAuth enabled (unverified) | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 90+ days), Social Verification (0.40, google verified) |
-| No IP check | Google verified            | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 90+ days), Social Verification (0.40, google verified) |
-| No IP check | Google + GitHub verified   | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 90+ days), Social Verification (0.40, google verified) |
-| Residential | OAuth disabled             | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 90+ days), IP Risk (0.20, residential IP)              |
-| Residential | OAuth enabled (unverified) | 0.21      | 0.14 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 90+ days), IP Risk (0.20, residential IP)              |
-| Residential | Google verified            | 0.21      | 0.14 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 90+ days), IP Risk (0.20, residential IP)              |
-| Residential | Google + GitHub verified   | 0.21      | 0.14 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 90+ days), IP Risk (0.20, residential IP)              |
-| Datacenter  | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 90+ days)               |
-| Datacenter  | OAuth enabled (unverified) | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 90+ days)               |
-| Datacenter  | Google verified            | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 90+ days)               |
-| Datacenter  | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 90+ days)               |
-| VPN         | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 90+ days)                |
-| VPN         | OAuth enabled (unverified) | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 90+ days)                |
-| VPN         | Google verified            | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 90+ days)                |
-| VPN         | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 90+ days)                |
-| Tor         | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 90+ days)               |
-| Tor         | OAuth enabled (unverified) | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 90+ days)               |
-| Tor         | Google verified            | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 90+ days)               |
-| Tor         | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 90+ days)               |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                 |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | --------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 90+ days), Content/Title Risk (0.20, unique content)     |
+| No IP check | OAuth enabled (unverified) | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 90+ days), Social Verification (0.40, google verified)   |
+| No IP check | Google verified            | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 90+ days), Social Verification (0.40, google verified)   |
+| No IP check | Google + GitHub verified   | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 90+ days), Social Verification (0.40, google verified)   |
+| Residential | OAuth disabled             | 0.18      | —                    | —                           | Auto-accepted  | IP Risk (0.20, residential IP), Account Age (0.50, 90+ days)                |
+| Residential | OAuth enabled (unverified) | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Social Verification (0.40, google verified), IP Risk (0.20, residential IP) |
+| Residential | Google verified            | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Social Verification (0.40, google verified), IP Risk (0.20, residential IP) |
+| Residential | Google + GitHub verified   | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Social Verification (0.40, google verified), IP Risk (0.20, residential IP) |
+| Datacenter  | OAuth disabled             | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 90+ days)                 |
+| Datacenter  | OAuth enabled (unverified) | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (0.40, google verified)  |
+| Datacenter  | Google verified            | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (0.40, google verified)  |
+| Datacenter  | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (0.40, google verified)  |
+| VPN         | OAuth disabled             | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 90+ days)                  |
+| VPN         | OAuth enabled (unverified) | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (0.40, google verified)   |
+| VPN         | Google verified            | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (0.40, google verified)   |
+| VPN         | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (0.40, google verified)   |
+| Tor         | OAuth disabled             | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 90+ days)                 |
+| Tor         | OAuth enabled (unverified) | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (0.40, google verified)  |
+| Tor         | Google verified            | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (0.40, google verified)  |
+| Tor         | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (0.40, google verified)  |
 
 ### Detailed Factor Breakdown
 
@@ -250,17 +250,17 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description          | Weight   | Contribution |
 | ------------------- | ----- | -------------------- | -------- | ------------ |
-| Account Age         | 0.50  | 90+ days             | 15.2%    | 0.08         |
-| Karma Score         | 0.10  | positive (+5)        | 13.0%    | 0.01         |
-| Content/Title Risk  | 0.20  | unique content       | 15.2%    | 0.03         |
-| URL/Link Risk       | 0.20  | no URLs              | 13.0%    | 0.03         |
-| Velocity            | 0.10  | normal rate          | 10.9%    | 0.01         |
+| Account Age         | 0.50  | 90+ days             | 13.6%    | 0.07         |
+| Karma Score         | 0.10  | positive (+5)        | 11.4%    | 0.01         |
+| Content/Title Risk  | 0.20  | unique content       | 15.9%    | 0.03         |
+| URL/Link Risk       | 0.20  | no URLs              | 13.6%    | 0.03         |
+| Velocity            | 0.10  | normal rate          | 11.4%    | 0.01         |
 | IP Risk             | -     | skipped              | 0%       | (skipped)    |
-| Ban History         | 0.12  | no active bans       | 10.9%    | 0.01         |
-| ModQueue Rejection  | 0.10  | 0% rejected          | 6.5%     | 0.01         |
-| Removal Rate        | 0.10  | 0% removed           | 8.7%     | 0.01         |
+| Ban History         | 0.12  | no active bans       | 11.4%    | 0.01         |
+| ModQueue Rejection  | 0.10  | 0% rejected          | 6.8%     | 0.01         |
+| Removal Rate        | 0.10  | 0% removed           | 9.1%     | 0.01         |
 | Social Verification | -     | skipped              | 0%       | (skipped)    |
-| Wallet Activity     | 0.10  | 250 tx (very strong) | 6.5%     | 0.01         |
+| Wallet Activity     | 0.10  | 250 tx (very strong) | 6.8%     | 0.01         |
 | **Total**           |       |                      | **100%** | **0.19**     |
 
 **Outcome:** Auto-accepted — Score 0.19 falls in the auto-accept tier (< 0.2), allowing the publication without any challenge.
@@ -309,28 +309,28 @@ content: "Check out my thoughts on the future of social platforms..."
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                              |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------ |
-| No IP check | OAuth disabled             | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Karma Score (0.60, no data)              |
-| No IP check | OAuth enabled (unverified) | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Social Verification (1.00, not verified) |
-| No IP check | Google verified            | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Karma Score (0.60, no data)              |
-| No IP check | Google + GitHub verified   | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Karma Score (0.60, no data)              |
-| Residential | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Karma Score (0.60, no data)              |
-| Residential | OAuth enabled (unverified) | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Social Verification (1.00, not verified) |
-| Residential | Google verified            | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Karma Score (0.60, no data)              |
-| Residential | Google + GitHub verified   | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Karma Score (0.60, no data)              |
-| Datacenter  | OAuth disabled             | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
-| Datacenter  | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
-| Datacenter  | Google verified            | 0.58      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
-| Datacenter  | Google + GitHub verified   | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
-| VPN         | OAuth disabled             | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
-| VPN         | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
-| VPN         | Google verified            | 0.58      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
-| VPN         | Google + GitHub verified   | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
-| Tor         | OAuth disabled             | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
-| Tor         | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
-| Tor         | Google verified            | 0.58      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
-| Tor         | Google + GitHub verified   | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                 |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | --------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Karma Score (0.60, no data)                 |
+| No IP check | OAuth enabled (unverified) | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Social Verification (1.00, not verified)    |
+| No IP check | Google verified            | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Karma Score (0.60, no data)                 |
+| No IP check | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Karma Score (0.60, no data)                 |
+| Residential | OAuth disabled             | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), IP Risk (0.20, residential IP)              |
+| Residential | OAuth enabled (unverified) | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (1.00, <1 day old)    |
+| Residential | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Social Verification (0.40, Google verified) |
+| Residential | Google + GitHub verified   | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), IP Risk (0.20, residential IP)              |
+| Datacenter  | OAuth disabled             | 0.59      | 0.41 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)               |
+| Datacenter  | OAuth enabled (unverified) | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)     |
+| Datacenter  | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)               |
+| Datacenter  | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)               |
+| VPN         | OAuth disabled             | 0.59      | 0.41 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)                |
+| VPN         | OAuth enabled (unverified) | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)      |
+| VPN         | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)                |
+| VPN         | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)                |
+| Tor         | OAuth disabled             | 0.59      | 0.41 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)               |
+| Tor         | OAuth enabled (unverified) | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)     |
+| Tor         | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)               |
+| Tor         | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)               |
 
 ### Detailed Factor Breakdown
 
@@ -338,20 +338,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 1.00  | <1 day old     | 22.6%    | 0.23         |
-| Karma Score         | 0.60  | no data        | 19.4%    | 0.12         |
-| Content/Title Risk  | 0.20  | unique content | 22.6%    | 0.05         |
-| URL/Link Risk       | 0.20  | 1 unique URL   | 19.4%    | 0.04         |
-| Velocity            | 0.10  | normal rate    | 16.1%    | 0.02         |
+| Account Age         | 1.00  | <1 day old     | 20.7%    | 0.21         |
+| Karma Score         | 0.60  | no data        | 17.2%    | 0.10         |
+| Content/Title Risk  | 0.20  | unique content | 24.1%    | 0.05         |
+| URL/Link Risk       | 0.20  | 1 unique URL   | 20.7%    | 0.04         |
+| Velocity            | 0.10  | normal rate    | 17.2%    | 0.02         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
 | Ban History         | -     | no active bans | 0%       | (skipped)    |
 | ModQueue Rejection  | -     | no data        | 0%       | (skipped)    |
 | Removal Rate        | -     | no data        | 0%       | (skipped)    |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.44**     |
+| **Total**           |       |                | **100%** | **0.42**     |
 
-**Outcome:** OAuth + more — Raw score 0.44. After CAPTCHA: 0.44 × 0.7 = 0.31 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.42. After CAPTCHA: 0.42 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -399,26 +399,26 @@ content: "Click here for FREE money!!!"
 
 | IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                 |
 | ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | --------------------------------------------------------------------------- |
-| No IP check | OAuth disabled             | 0.57      | 0.40 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
-| No IP check | OAuth enabled (unverified) | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
-| No IP check | Google verified            | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
-| No IP check | Google + GitHub verified   | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
-| Residential | OAuth disabled             | 0.48      | 0.34 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
-| Residential | OAuth enabled (unverified) | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Social Verification (1.00, not verified) |
-| Residential | Google verified            | 0.47      | 0.33 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
-| Residential | Google + GitHub verified   | 0.48      | 0.34 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
+| No IP check | OAuth disabled             | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
+| No IP check | OAuth enabled (unverified) | 0.61      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | URL/Link Risk (1.00, 5+ same URL), Social Verification (1.00, not verified) |
+| No IP check | Google verified            | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
+| No IP check | Google + GitHub verified   | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
+| Residential | OAuth disabled             | 0.47      | 0.33 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
+| Residential | OAuth enabled (unverified) | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), URL/Link Risk (1.00, 5+ same URL) |
+| Residential | Google verified            | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Karma Score (0.90, negative karma)       |
+| Residential | Google + GitHub verified   | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | URL/Link Risk (1.00, 5+ same URL), Velocity (0.70, elevated rate)           |
 | Datacenter  | OAuth disabled             | 0.67      | 0.47 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), URL/Link Risk (1.00, 5+ same URL)            |
-| Datacenter  | OAuth enabled (unverified) | 0.70      | 0.49 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), URL/Link Risk (1.00, 5+ same URL)            |
-| Datacenter  | Google verified            | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), URL/Link Risk (1.00, 5+ same URL)            |
-| Datacenter  | Google + GitHub verified   | 0.65      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), URL/Link Risk (1.00, 5+ same URL)            |
+| Datacenter  | OAuth enabled (unverified) | 0.71      | 0.50 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)     |
+| Datacenter  | Google verified            | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), URL/Link Risk (1.00, 5+ same URL)            |
+| Datacenter  | Google + GitHub verified   | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), URL/Link Risk (1.00, 5+ same URL)            |
 | VPN         | OAuth disabled             | 0.67      | 0.47 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), URL/Link Risk (1.00, 5+ same URL)             |
-| VPN         | OAuth enabled (unverified) | 0.70      | 0.49 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), URL/Link Risk (1.00, 5+ same URL)             |
-| VPN         | Google verified            | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), URL/Link Risk (1.00, 5+ same URL)             |
-| VPN         | Google + GitHub verified   | 0.65      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), URL/Link Risk (1.00, 5+ same URL)             |
+| VPN         | OAuth enabled (unverified) | 0.71      | 0.50 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)      |
+| VPN         | Google verified            | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), URL/Link Risk (1.00, 5+ same URL)             |
+| VPN         | Google + GitHub verified   | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), URL/Link Risk (1.00, 5+ same URL)             |
 | Tor         | OAuth disabled             | 0.67      | 0.47 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), URL/Link Risk (1.00, 5+ same URL)            |
-| Tor         | OAuth enabled (unverified) | 0.70      | 0.49 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), URL/Link Risk (1.00, 5+ same URL)            |
-| Tor         | Google verified            | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), URL/Link Risk (1.00, 5+ same URL)            |
-| Tor         | Google + GitHub verified   | 0.65      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), URL/Link Risk (1.00, 5+ same URL)            |
+| Tor         | OAuth enabled (unverified) | 0.71      | 0.50 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)     |
+| Tor         | Google verified            | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), URL/Link Risk (1.00, 5+ same URL)            |
+| Tor         | Google + GitHub verified   | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), URL/Link Risk (1.00, 5+ same URL)            |
 
 ### Detailed Factor Breakdown
 
@@ -426,20 +426,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description            | Weight   | Contribution |
 | ------------------- | ----- | ---------------------- | -------- | ------------ |
-| Account Age         | 0.50  | ~7 days                | 16.3%    | 0.08         |
-| Karma Score         | 0.90  | negative karma         | 14.0%    | 0.13         |
-| Content/Title Risk  | 0.20  | unique content         | 16.3%    | 0.03         |
-| URL/Link Risk       | 1.00  | 5+ same URL            | 14.0%    | 0.14         |
-| Velocity            | 0.40  | elevated rate          | 11.6%    | 0.05         |
+| Account Age         | 0.50  | ~7 days                | 14.6%    | 0.07         |
+| Karma Score         | 0.90  | negative karma         | 12.2%    | 0.11         |
+| Content/Title Risk  | 0.20  | unique content         | 17.1%    | 0.03         |
+| URL/Link Risk       | 1.00  | 5+ same URL            | 14.6%    | 0.15         |
+| Velocity            | 0.40  | elevated rate          | 12.2%    | 0.05         |
 | IP Risk             | -     | skipped                | 0%       | (skipped)    |
-| Ban History         | 0.50  | 1 active ban in 5 subs | 11.6%    | 0.06         |
-| ModQueue Rejection  | 0.50  | 50% rejected           | 7.0%     | 0.03         |
-| Removal Rate        | 0.50  | 30% removed            | 9.3%     | 0.05         |
+| Ban History         | 0.50  | 1 active ban in 5 subs | 12.2%    | 0.06         |
+| ModQueue Rejection  | 0.50  | 50% rejected           | 7.3%     | 0.04         |
+| Removal Rate        | 0.50  | 30% removed            | 9.8%     | 0.05         |
 | Social Verification | -     | skipped                | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet              | 0%       | (skipped)    |
-| **Total**           |       |                        | **100%** | **0.57**     |
+| **Total**           |       |                        | **100%** | **0.56**     |
 
-**Outcome:** OAuth + more — Raw score 0.57. After CAPTCHA: 0.57 × 0.7 = 0.40 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.56. After CAPTCHA: 0.56 × 0.7 = 0.39 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -484,28 +484,28 @@ content: "This is duplicate spam content that appears multiple times."
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                        |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ---------------------------------------------------------------------------------- |
-| No IP check | OAuth disabled             | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), Karma Score (0.60, neutral)              |
-| No IP check | OAuth enabled (unverified) | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Content/Title Risk (0.55, 5+ duplicates) |
-| No IP check | Google verified            | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), Karma Score (0.60, neutral)              |
-| No IP check | Google + GitHub verified   | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), Karma Score (0.60, neutral)              |
-| Residential | OAuth disabled             | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), Account Age (0.50, ~30 days)             |
-| Residential | OAuth enabled (unverified) | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Content/Title Risk (0.55, 5+ duplicates) |
-| Residential | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), Account Age (0.50, ~30 days)             |
-| Residential | Google + GitHub verified   | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | Velocity (0.70, elevated rate), Content/Title Risk (0.55, 5+ duplicates)           |
-| Datacenter  | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Content/Title Risk (0.55, 5+ duplicates)            |
-| Datacenter  | OAuth enabled (unverified) | 0.57      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)            |
-| Datacenter  | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Content/Title Risk (0.55, 5+ duplicates)            |
-| Datacenter  | Google + GitHub verified   | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Velocity (0.70, elevated rate)                      |
-| VPN         | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Content/Title Risk (0.55, 5+ duplicates)             |
-| VPN         | OAuth enabled (unverified) | 0.57      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)             |
-| VPN         | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Content/Title Risk (0.55, 5+ duplicates)             |
-| VPN         | Google + GitHub verified   | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Velocity (0.70, elevated rate)                       |
-| Tor         | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Content/Title Risk (0.55, 5+ duplicates)            |
-| Tor         | OAuth enabled (unverified) | 0.57      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)            |
-| Tor         | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Content/Title Risk (0.55, 5+ duplicates)            |
-| Tor         | Google + GitHub verified   | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Velocity (0.70, elevated rate)                      |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                           |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.39      | 0.28 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), Account Age (0.50, ~30 days)                |
+| No IP check | OAuth enabled (unverified) | 0.48      | 0.33 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Content/Title Risk (0.55, 5+ duplicates)    |
+| No IP check | Google verified            | 0.39      | 0.28 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), Account Age (0.50, ~30 days)                |
+| No IP check | Google + GitHub verified   | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), Velocity (0.70, elevated rate)              |
+| Residential | OAuth disabled             | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), IP Risk (0.20, residential IP)              |
+| Residential | OAuth enabled (unverified) | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Content/Title Risk (0.55, 5+ duplicates)    |
+| Residential | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.55, 5+ duplicates), Social Verification (0.40, Google verified) |
+| Residential | Google + GitHub verified   | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Velocity (0.70, elevated rate), Content/Title Risk (0.55, 5+ duplicates)              |
+| Datacenter  | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Content/Title Risk (0.55, 5+ duplicates)               |
+| Datacenter  | OAuth enabled (unverified) | 0.59      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)               |
+| Datacenter  | Google verified            | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Content/Title Risk (0.55, 5+ duplicates)               |
+| Datacenter  | Google + GitHub verified   | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Velocity (0.70, elevated rate)                         |
+| VPN         | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Content/Title Risk (0.55, 5+ duplicates)                |
+| VPN         | OAuth enabled (unverified) | 0.59      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)                |
+| VPN         | Google verified            | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Content/Title Risk (0.55, 5+ duplicates)                |
+| VPN         | Google + GitHub verified   | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Velocity (0.70, elevated rate)                          |
+| Tor         | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Content/Title Risk (0.55, 5+ duplicates)               |
+| Tor         | OAuth enabled (unverified) | 0.59      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)               |
+| Tor         | Google verified            | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Content/Title Risk (0.55, 5+ duplicates)               |
+| Tor         | Google + GitHub verified   | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Velocity (0.70, elevated rate)                         |
 
 ### Detailed Factor Breakdown
 
@@ -513,20 +513,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 0.50  | ~30 days       | 17.5%    | 0.09         |
-| Karma Score         | 0.60  | neutral        | 15.0%    | 0.09         |
-| Content/Title Risk  | 0.55  | 5+ duplicates  | 17.5%    | 0.10         |
-| URL/Link Risk       | 0.20  | no URLs        | 15.0%    | 0.03         |
-| Velocity            | 0.40  | elevated rate  | 12.5%    | 0.05         |
+| Account Age         | 0.50  | ~30 days       | 15.8%    | 0.08         |
+| Karma Score         | 0.60  | neutral        | 13.2%    | 0.08         |
+| Content/Title Risk  | 0.55  | 5+ duplicates  | 18.4%    | 0.10         |
+| URL/Link Risk       | 0.20  | no URLs        | 15.8%    | 0.03         |
+| Velocity            | 0.40  | elevated rate  | 13.2%    | 0.05         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
-| Ban History         | 0.30  | no active bans | 12.5%    | 0.04         |
+| Ban History         | 0.30  | no active bans | 13.2%    | 0.04         |
 | ModQueue Rejection  | -     | no data        | 0%       | (skipped)    |
-| Removal Rate        | 0.10  | no data        | 10.0%    | 0.01         |
+| Removal Rate        | 0.10  | no data        | 10.5%    | 0.01         |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.40**     |
+| **Total**           |       |                | **100%** | **0.39**     |
 
-**Outcome:** OAuth + more — Raw score 0.40. After CAPTCHA: 0.40 × 0.7 = 0.28 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.39. After CAPTCHA: 0.39 × 0.7 = 0.28 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -573,26 +573,26 @@ content: "Automated content generation test message..."
 
 | IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                              |
 | ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------ |
-| No IP check | OAuth disabled             | 0.58      | 0.41 ✗               | 0.20 ✓                      | Needs OAuth    | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
-| No IP check | OAuth enabled (unverified) | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
-| No IP check | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
-| No IP check | Google + GitHub verified   | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
-| Residential | OAuth disabled             | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
-| Residential | OAuth enabled (unverified) | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Social Verification (1.00, not verified) |
-| Residential | Google verified            | 0.45      | 0.32 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
-| Residential | Google + GitHub verified   | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
-| Datacenter  | OAuth disabled             | 0.70      | 0.49 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
-| Datacenter  | OAuth enabled (unverified) | 0.74      | 0.51 ✗               | 0.26 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
-| Datacenter  | Google verified            | 0.67      | 0.47 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
-| Datacenter  | Google + GitHub verified   | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
-| VPN         | OAuth disabled             | 0.70      | 0.49 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
-| VPN         | OAuth enabled (unverified) | 0.74      | 0.51 ✗               | 0.26 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
-| VPN         | Google verified            | 0.67      | 0.47 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
-| VPN         | Google + GitHub verified   | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
-| Tor         | OAuth disabled             | 0.70      | 0.49 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
-| Tor         | OAuth enabled (unverified) | 0.74      | 0.51 ✗               | 0.26 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
-| Tor         | Google verified            | 0.67      | 0.47 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
-| Tor         | Google + GitHub verified   | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
+| No IP check | OAuth disabled             | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
+| No IP check | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.22 ✓                      | Needs OAuth    | Account Age (1.00, <1 day old), Social Verification (1.00, not verified) |
+| No IP check | Google verified            | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
+| No IP check | Google + GitHub verified   | 0.49      | 0.35 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
+| Residential | OAuth disabled             | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
+| Residential | OAuth enabled (unverified) | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (1.00, <1 day old) |
+| Residential | Google verified            | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
+| Residential | Google + GitHub verified   | 0.39      | 0.28 ✓               | —                           | CAPTCHA passes | Account Age (1.00, <1 day old), Velocity (0.95, bot-like rate)           |
+| Datacenter  | OAuth disabled             | 0.70      | 0.49 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
+| Datacenter  | OAuth enabled (unverified) | 0.75      | 0.52 ✗               | 0.26 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)  |
+| Datacenter  | Google verified            | 0.65      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
+| Datacenter  | Google + GitHub verified   | 0.61      | 0.43 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, <1 day old)            |
+| VPN         | OAuth disabled             | 0.70      | 0.49 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
+| VPN         | OAuth enabled (unverified) | 0.75      | 0.52 ✗               | 0.26 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)   |
+| VPN         | Google verified            | 0.65      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
+| VPN         | Google + GitHub verified   | 0.61      | 0.43 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, <1 day old)             |
+| Tor         | OAuth disabled             | 0.70      | 0.49 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
+| Tor         | OAuth enabled (unverified) | 0.75      | 0.52 ✗               | 0.26 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)  |
+| Tor         | Google verified            | 0.65      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
+| Tor         | Google + GitHub verified   | 0.61      | 0.43 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, <1 day old)            |
 
 ### Detailed Factor Breakdown
 
@@ -600,20 +600,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 1.00  | <1 day old     | 22.6%    | 0.23         |
-| Karma Score         | 0.60  | no data        | 19.4%    | 0.12         |
-| Content/Title Risk  | 0.20  | unique content | 22.6%    | 0.05         |
-| URL/Link Risk       | 0.20  | no URLs        | 19.4%    | 0.04         |
-| Velocity            | 0.95  | bot-like rate  | 16.1%    | 0.15         |
+| Account Age         | 1.00  | <1 day old     | 20.7%    | 0.21         |
+| Karma Score         | 0.60  | no data        | 17.2%    | 0.10         |
+| Content/Title Risk  | 0.20  | unique content | 24.1%    | 0.05         |
+| URL/Link Risk       | 0.20  | no URLs        | 20.7%    | 0.04         |
+| Velocity            | 0.95  | bot-like rate  | 17.2%    | 0.16         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
 | Ban History         | -     | no active bans | 0%       | (skipped)    |
 | ModQueue Rejection  | -     | no data        | 0%       | (skipped)    |
 | Removal Rate        | -     | no data        | 0%       | (skipped)    |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.58**     |
+| **Total**           |       |                | **100%** | **0.56**     |
 
-**Outcome:** OAuth + more — Raw score 0.58. After CAPTCHA: 0.58 × 0.7 = 0.41 >= 0.4 — CAPTCHA not sufficient. After CAPTCHA+OAuth: 0.58 × 0.35 = 0.20 < 0.4 — **CAPTCHA + OAuth passes**.
+**Outcome:** OAuth + more — Raw score 0.56. After CAPTCHA: 0.56 × 0.7 = 0.39 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -659,28 +659,28 @@ content: "CLICK HERE NOW!!! DON'T MISS OUT!!!"
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                     |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------------- |
-| No IP check | OAuth disabled             | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | Karma Score (0.90, negative karma), Account Age (0.50, 90+ days)                |
-| No IP check | OAuth enabled (unverified) | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | Karma Score (0.90, negative karma), Social Verification (1.00, not verified)    |
-| No IP check | Google verified            | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | Karma Score (0.90, negative karma), Account Age (0.50, 90+ days)                |
-| No IP check | Google + GitHub verified   | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | Karma Score (0.90, negative karma), Account Age (0.50, 90+ days)                |
-| Residential | OAuth disabled             | 0.47      | 0.33 ✓               | —                           | CAPTCHA passes | Karma Score (0.90, negative karma), Ban History (0.70, 3 active bans in 5 subs) |
-| Residential | OAuth enabled (unverified) | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Karma Score (0.90, negative karma)    |
-| Residential | Google verified            | 0.47      | 0.33 ✓               | —                           | CAPTCHA passes | Karma Score (0.90, negative karma), Ban History (0.70, 3 active bans in 5 subs) |
-| Residential | Google + GitHub verified   | 0.47      | 0.33 ✓               | —                           | CAPTCHA passes | Karma Score (0.90, negative karma), Velocity (0.70, elevated rate)              |
-| Datacenter  | OAuth disabled             | 0.66      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Karma Score (0.90, negative karma)               |
-| Datacenter  | OAuth enabled (unverified) | 0.69      | 0.48 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)         |
-| Datacenter  | Google verified            | 0.64      | 0.45 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Karma Score (0.90, negative karma)               |
-| Datacenter  | Google + GitHub verified   | 0.64      | 0.45 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Karma Score (0.90, negative karma)               |
-| VPN         | OAuth disabled             | 0.66      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Karma Score (0.90, negative karma)                |
-| VPN         | OAuth enabled (unverified) | 0.69      | 0.48 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)          |
-| VPN         | Google verified            | 0.64      | 0.45 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Karma Score (0.90, negative karma)                |
-| VPN         | Google + GitHub verified   | 0.64      | 0.45 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Karma Score (0.90, negative karma)                |
-| Tor         | OAuth disabled             | 0.66      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Karma Score (0.90, negative karma)               |
-| Tor         | OAuth enabled (unverified) | 0.69      | 0.48 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)         |
-| Tor         | Google verified            | 0.64      | 0.45 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Karma Score (0.90, negative karma)               |
-| Tor         | Google + GitHub verified   | 0.64      | 0.45 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Karma Score (0.90, negative karma)               |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                           |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | Karma Score (0.90, negative karma), Ban History (0.70, 3 active bans in 5 subs)       |
+| No IP check | OAuth enabled (unverified) | 0.61      | 0.43 ✗               | 0.21 ✓                      | Needs OAuth    | Social Verification (1.00, not verified), Karma Score (0.90, negative karma)          |
+| No IP check | Google verified            | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | Karma Score (0.90, negative karma), Ban History (0.70, 3 active bans in 5 subs)       |
+| No IP check | Google + GitHub verified   | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | Karma Score (0.90, negative karma), Velocity (0.70, elevated rate)                    |
+| Residential | OAuth disabled             | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | Ban History (0.70, 3 active bans in 5 subs), Removal Rate (0.70, 60% removed)         |
+| Residential | OAuth enabled (unverified) | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Ban History (0.70, 3 active bans in 5 subs) |
+| Residential | Google verified            | 0.45      | 0.32 ✓               | —                           | CAPTCHA passes | Ban History (0.70, 3 active bans in 5 subs), Removal Rate (0.70, 60% removed)         |
+| Residential | Google + GitHub verified   | 0.45      | 0.31 ✓               | —                           | CAPTCHA passes | Velocity (0.70, elevated rate), Ban History (0.70, 3 active bans in 5 subs)           |
+| Datacenter  | OAuth disabled             | 0.66      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Ban History (0.70, 3 active bans in 5 subs)            |
+| Datacenter  | OAuth enabled (unverified) | 0.70      | 0.49 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)               |
+| Datacenter  | Google verified            | 0.62      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Ban History (0.70, 3 active bans in 5 subs)            |
+| Datacenter  | Google + GitHub verified   | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Velocity (0.70, elevated rate)                         |
+| VPN         | OAuth disabled             | 0.66      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Ban History (0.70, 3 active bans in 5 subs)             |
+| VPN         | OAuth enabled (unverified) | 0.70      | 0.49 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)                |
+| VPN         | Google verified            | 0.62      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Ban History (0.70, 3 active bans in 5 subs)             |
+| VPN         | Google + GitHub verified   | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Velocity (0.70, elevated rate)                          |
+| Tor         | OAuth disabled             | 0.66      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Ban History (0.70, 3 active bans in 5 subs)            |
+| Tor         | OAuth enabled (unverified) | 0.70      | 0.49 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)               |
+| Tor         | Google verified            | 0.62      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Ban History (0.70, 3 active bans in 5 subs)            |
+| Tor         | Google + GitHub verified   | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Velocity (0.70, elevated rate)                         |
 
 ### Detailed Factor Breakdown
 
@@ -688,15 +688,15 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description             | Weight   | Contribution |
 | ------------------- | ----- | ----------------------- | -------- | ------------ |
-| Account Age         | 0.50  | 90+ days                | 16.3%    | 0.08         |
-| Karma Score         | 0.90  | negative karma          | 14.0%    | 0.13         |
-| Content/Title Risk  | 0.45  | 3 duplicates            | 16.3%    | 0.07         |
-| URL/Link Risk       | 0.20  | 1 unique URL            | 14.0%    | 0.03         |
-| Velocity            | 0.40  | elevated rate           | 11.6%    | 0.05         |
+| Account Age         | 0.50  | 90+ days                | 14.6%    | 0.07         |
+| Karma Score         | 0.90  | negative karma          | 12.2%    | 0.11         |
+| Content/Title Risk  | 0.45  | 3 duplicates            | 17.1%    | 0.08         |
+| URL/Link Risk       | 0.20  | 1 unique URL            | 14.6%    | 0.03         |
+| Velocity            | 0.40  | elevated rate           | 12.2%    | 0.05         |
 | IP Risk             | -     | skipped                 | 0%       | (skipped)    |
-| Ban History         | 0.70  | 3 active bans in 5 subs | 11.6%    | 0.08         |
-| ModQueue Rejection  | 0.90  | 80% rejected            | 7.0%     | 0.06         |
-| Removal Rate        | 0.70  | 60% removed             | 9.3%     | 0.07         |
+| Ban History         | 0.70  | 3 active bans in 5 subs | 12.2%    | 0.09         |
+| ModQueue Rejection  | 0.90  | 80% rejected            | 7.3%     | 0.07         |
+| Removal Rate        | 0.70  | 60% removed             | 9.8%     | 0.07         |
 | Social Verification | -     | skipped                 | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet               | 0%       | (skipped)    |
 | **Total**           |       |                         | **100%** | **0.56**     |
@@ -747,28 +747,28 @@ content: "Hi all, I'm a developer interested in decentralized platforms. Verifie
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                   |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------- |
-| No IP check | OAuth disabled             | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)   |
-| No IP check | OAuth enabled (unverified) | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)   |
-| No IP check | Google verified            | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)   |
-| No IP check | Google + GitHub verified   | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)   |
-| Residential | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)   |
-| Residential | OAuth enabled (unverified) | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)   |
-| Residential | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)   |
-| Residential | Google + GitHub verified   | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)   |
-| Datacenter  | OAuth disabled             | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history) |
-| Datacenter  | OAuth enabled (unverified) | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history) |
-| Datacenter  | Google verified            | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history) |
-| Datacenter  | Google + GitHub verified   | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history) |
-| VPN         | OAuth disabled             | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)  |
-| VPN         | OAuth enabled (unverified) | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)  |
-| VPN         | Google verified            | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)  |
-| VPN         | Google + GitHub verified   | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)  |
-| Tor         | OAuth disabled             | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history) |
-| Tor         | OAuth enabled (unverified) | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history) |
-| Tor         | Google verified            | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history) |
-| Tor         | Google + GitHub verified   | 0.55      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history) |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                    |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | -------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)    |
+| No IP check | OAuth enabled (unverified) | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)    |
+| No IP check | Google verified            | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)    |
+| No IP check | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)    |
+| Residential | OAuth disabled             | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP) |
+| Residential | OAuth enabled (unverified) | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP) |
+| Residential | Google verified            | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP) |
+| Residential | Google + GitHub verified   | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP) |
+| Datacenter  | OAuth disabled             | 0.59      | 0.41 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)  |
+| Datacenter  | OAuth enabled (unverified) | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)  |
+| Datacenter  | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)  |
+| Datacenter  | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)  |
+| VPN         | OAuth disabled             | 0.59      | 0.41 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)   |
+| VPN         | OAuth enabled (unverified) | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)   |
+| VPN         | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)   |
+| VPN         | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)   |
+| Tor         | OAuth disabled             | 0.59      | 0.41 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)  |
+| Tor         | OAuth enabled (unverified) | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)  |
+| Tor         | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)  |
+| Tor         | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)  |
 
 ### Detailed Factor Breakdown
 
@@ -776,20 +776,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 1.00  | no history     | 22.6%    | 0.23         |
-| Karma Score         | 0.60  | no data        | 19.4%    | 0.12         |
-| Content/Title Risk  | 0.20  | unique content | 22.6%    | 0.05         |
-| URL/Link Risk       | 0.20  | no URLs        | 19.4%    | 0.04         |
-| Velocity            | 0.10  | normal rate    | 16.1%    | 0.02         |
+| Account Age         | 1.00  | no history     | 20.7%    | 0.21         |
+| Karma Score         | 0.60  | no data        | 17.2%    | 0.10         |
+| Content/Title Risk  | 0.20  | unique content | 24.1%    | 0.05         |
+| URL/Link Risk       | 0.20  | no URLs        | 20.7%    | 0.04         |
+| Velocity            | 0.10  | normal rate    | 17.2%    | 0.02         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
 | Ban History         | -     | no active bans | 0%       | (skipped)    |
 | ModQueue Rejection  | -     | no data        | 0%       | (skipped)    |
 | Removal Rate        | -     | no data        | 0%       | (skipped)    |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.44**     |
+| **Total**           |       |                | **100%** | **0.42**     |
 
-**Outcome:** OAuth + more — Raw score 0.44. After CAPTCHA: 0.44 × 0.7 = 0.31 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.42. After CAPTCHA: 0.42 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -835,28 +835,28 @@ commentCid: "QmTargetComment123..."
 
 #### Votes
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                              |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------ |
-| No IP check | OAuth disabled             | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Karma Score (0.60, neutral)              |
-| No IP check | OAuth enabled (unverified) | 0.57      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | Velocity (0.95, bot-like rate), Social Verification (1.00, not verified) |
-| No IP check | Google verified            | 0.50      | 0.35 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Karma Score (0.60, neutral)              |
-| No IP check | Google + GitHub verified   | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Karma Score (0.60, neutral)              |
-| Residential | OAuth disabled             | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Account Age (0.50, ~7 days)              |
-| Residential | OAuth enabled (unverified) | 0.47      | 0.33 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Velocity (0.95, bot-like rate) |
-| Residential | Google verified            | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Account Age (0.50, ~7 days)              |
-| Residential | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Account Age (0.50, ~7 days)              |
-| Datacenter  | OAuth disabled             | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Velocity (0.95, bot-like rate)            |
-| Datacenter  | OAuth enabled (unverified) | 0.69      | 0.49 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)  |
-| Datacenter  | Google verified            | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Velocity (0.95, bot-like rate)            |
-| Datacenter  | Google + GitHub verified   | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Velocity (0.95, bot-like rate)            |
-| VPN         | OAuth disabled             | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Velocity (0.95, bot-like rate)             |
-| VPN         | OAuth enabled (unverified) | 0.69      | 0.49 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)   |
-| VPN         | Google verified            | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Velocity (0.95, bot-like rate)             |
-| VPN         | Google + GitHub verified   | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Velocity (0.95, bot-like rate)             |
-| Tor         | OAuth disabled             | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Velocity (0.95, bot-like rate)            |
-| Tor         | OAuth enabled (unverified) | 0.69      | 0.49 ✗               | 0.24 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)  |
-| Tor         | Google verified            | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Velocity (0.95, bot-like rate)            |
-| Tor         | Google + GitHub verified   | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Velocity (0.95, bot-like rate)            |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                 |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | --------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Account Age (0.50, ~7 days)                 |
+| No IP check | OAuth enabled (unverified) | 0.60      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | Social Verification (1.00, not verified), Velocity (0.95, bot-like rate)    |
+| No IP check | Google verified            | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Karma Score (0.60, neutral)                 |
+| No IP check | Google + GitHub verified   | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Karma Score (0.60, neutral)                 |
+| Residential | OAuth disabled             | 0.39      | 0.27 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Account Age (0.50, ~7 days)                 |
+| Residential | OAuth enabled (unverified) | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Velocity (0.95, bot-like rate)    |
+| Residential | Google verified            | 0.39      | 0.27 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), Social Verification (0.40, Google verified) |
+| Residential | Google + GitHub verified   | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | Velocity (0.95, bot-like rate), IP Risk (0.20, residential IP)              |
+| Datacenter  | OAuth disabled             | 0.66      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Velocity (0.95, bot-like rate)               |
+| Datacenter  | OAuth enabled (unverified) | 0.72      | 0.50 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)     |
+| Datacenter  | Google verified            | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Velocity (0.95, bot-like rate)               |
+| Datacenter  | Google + GitHub verified   | 0.58      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Velocity (0.95, bot-like rate)               |
+| VPN         | OAuth disabled             | 0.66      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Velocity (0.95, bot-like rate)                |
+| VPN         | OAuth enabled (unverified) | 0.72      | 0.50 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)      |
+| VPN         | Google verified            | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Velocity (0.95, bot-like rate)                |
+| VPN         | Google + GitHub verified   | 0.58      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Velocity (0.95, bot-like rate)                |
+| Tor         | OAuth disabled             | 0.66      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Velocity (0.95, bot-like rate)               |
+| Tor         | OAuth enabled (unverified) | 0.72      | 0.50 ✗               | 0.25 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)     |
+| Tor         | Google verified            | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Velocity (0.95, bot-like rate)               |
+| Tor         | Google + GitHub verified   | 0.58      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Velocity (0.95, bot-like rate)               |
 
 ### Detailed Factor Breakdown
 
@@ -864,20 +864,20 @@ Configuration: **Vote** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 0.50  | ~7 days        | 25.9%    | 0.13         |
-| Karma Score         | 0.60  | neutral        | 22.2%    | 0.13         |
+| Account Age         | 0.50  | ~7 days        | 24.0%    | 0.12         |
+| Karma Score         | 0.60  | neutral        | 20.0%    | 0.12         |
 | Content/Title Risk  | -     | unique content | 0%       | (skipped)    |
 | URL/Link Risk       | -     | no URLs        | 0%       | (skipped)    |
-| Velocity            | 0.95  | bot-like rate  | 18.5%    | 0.18         |
+| Velocity            | 0.95  | bot-like rate  | 20.0%    | 0.19         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
-| Ban History         | 0.30  | no active bans | 18.5%    | 0.06         |
+| Ban History         | 0.30  | no active bans | 20.0%    | 0.06         |
 | ModQueue Rejection  | -     | no data        | 0%       | (skipped)    |
-| Removal Rate        | 0.10  | no data        | 14.8%    | 0.01         |
+| Removal Rate        | 0.10  | no data        | 16.0%    | 0.02         |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
 | **Total**           |       |                | **100%** | **0.51**     |
 
-**Outcome:** OAuth + more — Raw score 0.51. After CAPTCHA: 0.51 × 0.7 = 0.36 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.51. After CAPTCHA: 0.51 × 0.7 = 0.35 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -922,28 +922,28 @@ parentCid: "QmParentComment..."
 
 #### Replies
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | -------------------------------------------------------------------------- |
-| No IP check | OAuth disabled             | 0.22      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content)   |
-| No IP check | OAuth enabled (unverified) | 0.28      | 0.20 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (0.50, 365+ days)    |
-| No IP check | Google verified            | 0.23      | 0.16 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 365+ days), Social Verification (0.40, Google verified) |
-| No IP check | Google + GitHub verified   | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content)   |
-| Residential | OAuth disabled             | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 365+ days), IP Risk (0.20, residential IP)              |
-| Residential | OAuth enabled (unverified) | 0.28      | 0.19 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (0.50, 365+ days)    |
-| Residential | Google verified            | 0.23      | 0.16 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 365+ days), IP Risk (0.20, residential IP)              |
-| Residential | Google + GitHub verified   | 0.20      | 0.14 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 365+ days), IP Risk (0.20, residential IP)              |
-| Datacenter  | OAuth disabled             | 0.39      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)               |
-| Datacenter  | OAuth enabled (unverified) | 0.45      | 0.31 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)    |
-| Datacenter  | Google verified            | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)               |
-| Datacenter  | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)               |
-| VPN         | OAuth disabled             | 0.39      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)                |
-| VPN         | OAuth enabled (unverified) | 0.45      | 0.31 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)     |
-| VPN         | Google verified            | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)                |
-| VPN         | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)                |
-| Tor         | OAuth disabled             | 0.39      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)               |
-| Tor         | OAuth enabled (unverified) | 0.45      | 0.31 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)    |
-| Tor         | Google verified            | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)               |
-| Tor         | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)               |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                 |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | --------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.21      | 0.15 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content)    |
+| No IP check | OAuth enabled (unverified) | 0.31      | 0.22 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (0.50, 365+ days)     |
+| No IP check | Google verified            | 0.24      | 0.16 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 365+ days), Social Verification (0.40, Google verified)  |
+| No IP check | Google + GitHub verified   | 0.20      | 0.14 ✓               | —                           | CAPTCHA passes | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content)    |
+| Residential | OAuth disabled             | 0.20      | 0.14 ✓               | —                           | CAPTCHA passes | IP Risk (0.20, residential IP), Account Age (0.50, 365+ days)               |
+| Residential | OAuth enabled (unverified) | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), IP Risk (0.20, residential IP)    |
+| Residential | Google verified            | 0.23      | 0.16 ✓               | —                           | CAPTCHA passes | Social Verification (0.40, Google verified), IP Risk (0.20, residential IP) |
+| Residential | Google + GitHub verified   | 0.20      | —                    | —                           | Auto-accepted  | IP Risk (0.20, residential IP), Account Age (0.50, 365+ days)               |
+| Datacenter  | OAuth disabled             | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)                |
+| Datacenter  | OAuth enabled (unverified) | 0.47      | 0.33 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)     |
+| Datacenter  | Google verified            | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (0.40, Google verified)  |
+| Datacenter  | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)                |
+| VPN         | OAuth disabled             | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)                 |
+| VPN         | OAuth enabled (unverified) | 0.47      | 0.33 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)      |
+| VPN         | Google verified            | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (0.40, Google verified)   |
+| VPN         | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)                 |
+| Tor         | OAuth disabled             | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)                |
+| Tor         | OAuth enabled (unverified) | 0.47      | 0.33 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)     |
+| Tor         | Google verified            | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (0.40, Google verified)  |
+| Tor         | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)                |
 
 ### Detailed Factor Breakdown
 
@@ -951,20 +951,20 @@ Configuration: **Reply** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 0.50  | 365+ days      | 16.3%    | 0.08         |
-| Karma Score         | 0.20  | positive (+3)  | 14.0%    | 0.03         |
-| Content/Title Risk  | 0.20  | unique content | 16.3%    | 0.03         |
-| URL/Link Risk       | 0.20  | no URLs        | 14.0%    | 0.03         |
-| Velocity            | 0.10  | normal rate    | 11.6%    | 0.01         |
+| Account Age         | 0.50  | 365+ days      | 14.6%    | 0.07         |
+| Karma Score         | 0.20  | positive (+3)  | 12.2%    | 0.02         |
+| Content/Title Risk  | 0.20  | unique content | 17.1%    | 0.03         |
+| URL/Link Risk       | 0.20  | no URLs        | 14.6%    | 0.03         |
+| Velocity            | 0.10  | normal rate    | 12.2%    | 0.01         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
-| Ban History         | 0.17  | no active bans | 11.6%    | 0.02         |
-| ModQueue Rejection  | 0.10  | 0% rejected    | 7.0%     | 0.01         |
-| Removal Rate        | 0.10  | 0% removed     | 9.3%     | 0.01         |
+| Ban History         | 0.17  | no active bans | 12.2%    | 0.02         |
+| ModQueue Rejection  | 0.10  | 0% rejected    | 7.3%     | 0.01         |
+| Removal Rate        | 0.10  | 0% removed     | 9.8%     | 0.01         |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.22**     |
+| **Total**           |       |                | **100%** | **0.21**     |
 
-**Outcome:** OAuth sufficient — Raw score 0.22. After CAPTCHA: 0.22 × 0.7 = 0.15 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.21. After CAPTCHA: 0.21 × 0.7 = 0.15 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1009,28 +1009,28 @@ content: "Half of my submissions keep getting rejected, not sure why..."
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                             |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ----------------------------------------------------------------------- |
-| No IP check | OAuth disabled             | 0.31      | 0.22 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Account Age (0.50, ~30 days)               |
-| No IP check | OAuth enabled (unverified) | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Karma Score (0.60, neutral)   |
-| No IP check | Google verified            | 0.32      | 0.22 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Account Age (0.50, ~30 days)               |
-| No IP check | Google + GitHub verified   | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Account Age (0.50, ~30 days)               |
-| Residential | OAuth disabled             | 0.27      | 0.19 ✓               | —                           | CAPTCHA passes | Account Age (0.50, ~30 days), Karma Score (0.60, neutral)               |
-| Residential | OAuth enabled (unverified) | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (0.50, ~30 days)  |
-| Residential | Google verified            | 0.28      | 0.20 ✓               | —                           | CAPTCHA passes | Account Age (0.50, ~30 days), Karma Score (0.60, neutral)               |
-| Residential | Google + GitHub verified   | 0.26      | 0.18 ✓               | —                           | CAPTCHA passes | Account Age (0.50, ~30 days), Karma Score (0.60, neutral)               |
-| Datacenter  | OAuth disabled             | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, ~30 days)             |
-| Datacenter  | OAuth enabled (unverified) | 0.50      | 0.35 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified) |
-| Datacenter  | Google verified            | 0.45      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, ~30 days)             |
-| Datacenter  | Google + GitHub verified   | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, ~30 days)             |
-| VPN         | OAuth disabled             | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, ~30 days)              |
-| VPN         | OAuth enabled (unverified) | 0.50      | 0.35 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)  |
-| VPN         | Google verified            | 0.45      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, ~30 days)              |
-| VPN         | Google + GitHub verified   | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, ~30 days)              |
-| Tor         | OAuth disabled             | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, ~30 days)             |
-| Tor         | OAuth enabled (unverified) | 0.50      | 0.35 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified) |
-| Tor         | Google verified            | 0.45      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, ~30 days)             |
-| Tor         | Google + GitHub verified   | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, ~30 days)             |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                 |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | --------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Account Age (0.50, ~30 days)                   |
+| No IP check | OAuth enabled (unverified) | 0.39      | 0.27 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Karma Score (0.60, neutral)       |
+| No IP check | Google verified            | 0.31      | 0.22 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Account Age (0.50, ~30 days)                   |
+| No IP check | Google + GitHub verified   | 0.28      | 0.20 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Account Age (0.50, ~30 days)                   |
+| Residential | OAuth disabled             | 0.26      | 0.18 ✓               | —                           | CAPTCHA passes | IP Risk (0.20, residential IP), Account Age (0.50, ~30 days)                |
+| Residential | OAuth enabled (unverified) | 0.35      | 0.25 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), IP Risk (0.20, residential IP)    |
+| Residential | Google verified            | 0.28      | 0.19 ✓               | —                           | CAPTCHA passes | Social Verification (0.40, Google verified), IP Risk (0.20, residential IP) |
+| Residential | Google + GitHub verified   | 0.24      | 0.17 ✓               | —                           | CAPTCHA passes | IP Risk (0.20, residential IP), Account Age (0.50, ~30 days)                |
+| Datacenter  | OAuth disabled             | 0.45      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, ~30 days)                 |
+| Datacenter  | OAuth enabled (unverified) | 0.52      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)     |
+| Datacenter  | Google verified            | 0.45      | 0.31 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (0.40, Google verified)  |
+| Datacenter  | Google + GitHub verified   | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, ~30 days)                 |
+| VPN         | OAuth disabled             | 0.45      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, ~30 days)                  |
+| VPN         | OAuth enabled (unverified) | 0.52      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)      |
+| VPN         | Google verified            | 0.45      | 0.31 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (0.40, Google verified)   |
+| VPN         | Google + GitHub verified   | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, ~30 days)                  |
+| Tor         | OAuth disabled             | 0.45      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, ~30 days)                 |
+| Tor         | OAuth enabled (unverified) | 0.52      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)     |
+| Tor         | Google verified            | 0.45      | 0.31 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (0.40, Google verified)  |
+| Tor         | Google + GitHub verified   | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, ~30 days)                 |
 
 ### Detailed Factor Breakdown
 
@@ -1038,20 +1038,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 0.50  | ~30 days       | 16.3%    | 0.08         |
-| Karma Score         | 0.60  | neutral        | 14.0%    | 0.08         |
-| Content/Title Risk  | 0.20  | unique content | 16.3%    | 0.03         |
-| URL/Link Risk       | 0.20  | no URLs        | 14.0%    | 0.03         |
-| Velocity            | 0.10  | normal rate    | 11.6%    | 0.01         |
+| Account Age         | 0.50  | ~30 days       | 14.6%    | 0.07         |
+| Karma Score         | 0.60  | neutral        | 12.2%    | 0.07         |
+| Content/Title Risk  | 0.20  | unique content | 17.1%    | 0.03         |
+| URL/Link Risk       | 0.20  | no URLs        | 14.6%    | 0.03         |
+| Velocity            | 0.10  | normal rate    | 12.2%    | 0.01         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
-| Ban History         | 0.24  | no active bans | 11.6%    | 0.03         |
-| ModQueue Rejection  | 0.50  | 50% rejected   | 7.0%     | 0.03         |
-| Removal Rate        | 0.10  | 0% removed     | 9.3%     | 0.01         |
+| Ban History         | 0.24  | no active bans | 12.2%    | 0.03         |
+| ModQueue Rejection  | 0.50  | 50% rejected   | 7.3%     | 0.04         |
+| Removal Rate        | 0.10  | 0% removed     | 9.8%     | 0.01         |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.31**     |
+| **Total**           |       |                | **100%** | **0.30**     |
 
-**Outcome:** OAuth sufficient — Raw score 0.31. After CAPTCHA: 0.31 × 0.7 = 0.22 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.30. After CAPTCHA: 0.30 × 0.7 = 0.21 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1096,28 +1096,28 @@ content: "Mods keep removing my content but I'm not sure what rules I'm breaking
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | -------------------------------------------------------------------------- |
-| No IP check | OAuth disabled             | 0.38      | 0.26 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), Karma Score (0.60, neutral)              |
-| No IP check | OAuth enabled (unverified) | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Karma Score (0.60, neutral)      |
-| No IP check | Google verified            | 0.38      | 0.26 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Removal Rate (0.90, 60% removed)              |
-| No IP check | Google + GitHub verified   | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Removal Rate (0.90, 60% removed)              |
-| Residential | OAuth disabled             | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), Account Age (0.50, 90+ days)             |
-| Residential | OAuth enabled (unverified) | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Removal Rate (0.90, 60% removed) |
-| Residential | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), Account Age (0.50, 90+ days)             |
-| Residential | Google + GitHub verified   | 0.32      | 0.23 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), Account Age (0.50, 90+ days)             |
-| Datacenter  | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Removal Rate (0.90, 60% removed)            |
-| Datacenter  | OAuth enabled (unverified) | 0.57      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)    |
-| Datacenter  | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Removal Rate (0.90, 60% removed)            |
-| Datacenter  | Google + GitHub verified   | 0.50      | 0.35 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Removal Rate (0.90, 60% removed)            |
-| VPN         | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Removal Rate (0.90, 60% removed)             |
-| VPN         | OAuth enabled (unverified) | 0.57      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)     |
-| VPN         | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Removal Rate (0.90, 60% removed)             |
-| VPN         | Google + GitHub verified   | 0.50      | 0.35 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Removal Rate (0.90, 60% removed)             |
-| Tor         | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Removal Rate (0.90, 60% removed)            |
-| Tor         | OAuth enabled (unverified) | 0.57      | 0.40 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)    |
-| Tor         | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Removal Rate (0.90, 60% removed)            |
-| Tor         | Google + GitHub verified   | 0.50      | 0.35 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Removal Rate (0.90, 60% removed)            |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                   |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ----------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), Account Age (0.50, 90+ days)                |
+| No IP check | OAuth enabled (unverified) | 0.45      | 0.32 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Removal Rate (0.90, 60% removed)    |
+| No IP check | Google verified            | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), Account Age (0.50, 90+ days)                |
+| No IP check | Google + GitHub verified   | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), Account Age (0.50, 90+ days)                |
+| Residential | OAuth disabled             | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), IP Risk (0.20, residential IP)              |
+| Residential | OAuth enabled (unverified) | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Removal Rate (0.90, 60% removed)    |
+| Residential | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), Social Verification (0.40, Google verified) |
+| Residential | Google + GitHub verified   | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Removal Rate (0.90, 60% removed), IP Risk (0.20, residential IP)              |
+| Datacenter  | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Removal Rate (0.90, 60% removed)               |
+| Datacenter  | OAuth enabled (unverified) | 0.59      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)       |
+| Datacenter  | Google verified            | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Removal Rate (0.90, 60% removed)               |
+| Datacenter  | Google + GitHub verified   | 0.48      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Removal Rate (0.90, 60% removed)               |
+| VPN         | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Removal Rate (0.90, 60% removed)                |
+| VPN         | OAuth enabled (unverified) | 0.59      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)        |
+| VPN         | Google verified            | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Removal Rate (0.90, 60% removed)                |
+| VPN         | Google + GitHub verified   | 0.48      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Removal Rate (0.90, 60% removed)                |
+| Tor         | OAuth disabled             | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Removal Rate (0.90, 60% removed)               |
+| Tor         | OAuth enabled (unverified) | 0.59      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)       |
+| Tor         | Google verified            | 0.51      | 0.36 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Removal Rate (0.90, 60% removed)               |
+| Tor         | Google + GitHub verified   | 0.48      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Removal Rate (0.90, 60% removed)               |
 
 ### Detailed Factor Breakdown
 
@@ -1125,20 +1125,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 0.50  | 90+ days       | 17.5%    | 0.09         |
-| Karma Score         | 0.60  | neutral        | 15.0%    | 0.09         |
-| Content/Title Risk  | 0.20  | unique content | 17.5%    | 0.04         |
-| URL/Link Risk       | 0.20  | no URLs        | 15.0%    | 0.03         |
-| Velocity            | 0.10  | normal rate    | 12.5%    | 0.01         |
+| Account Age         | 0.50  | 90+ days       | 15.8%    | 0.08         |
+| Karma Score         | 0.60  | neutral        | 13.2%    | 0.08         |
+| Content/Title Risk  | 0.20  | unique content | 18.4%    | 0.04         |
+| URL/Link Risk       | 0.20  | no URLs        | 15.8%    | 0.03         |
+| Velocity            | 0.10  | normal rate    | 13.2%    | 0.01         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
-| Ban History         | 0.24  | no active bans | 12.5%    | 0.03         |
+| Ban History         | 0.24  | no active bans | 13.2%    | 0.03         |
 | ModQueue Rejection  | -     | no data        | 0%       | (skipped)    |
-| Removal Rate        | 0.90  | 60% removed    | 10.0%    | 0.09         |
+| Removal Rate        | 0.90  | 60% removed    | 10.5%    | 0.09         |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.38**     |
+| **Total**           |       |                | **100%** | **0.37**     |
 
-**Outcome:** OAuth sufficient — Raw score 0.38. After CAPTCHA: 0.38 × 0.7 = 0.26 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.37. After CAPTCHA: 0.37 × 0.7 = 0.26 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1186,26 +1186,26 @@ content: "Decided not to link my social accounts, is that okay?"
 
 | IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                              |
 | ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------ |
-| No IP check | OAuth disabled             | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, skipped)      |
-| No IP check | OAuth enabled (unverified) | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| No IP check | Google verified            | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| No IP check | Google + GitHub verified   | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| Residential | OAuth disabled             | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, skipped)      |
-| Residential | OAuth enabled (unverified) | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| Residential | Google verified            | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| Residential | Google + GitHub verified   | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| Datacenter  | OAuth disabled             | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | Google verified            | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | Google + GitHub verified   | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| VPN         | OAuth disabled             | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | Google verified            | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | Google + GitHub verified   | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| Tor         | OAuth disabled             | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | OAuth enabled (unverified) | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | Google verified            | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | Google + GitHub verified   | 0.64      | 0.45 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
+| No IP check | OAuth disabled             | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, skipped)      |
+| No IP check | OAuth enabled (unverified) | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
+| No IP check | Google verified            | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
+| No IP check | Google + GitHub verified   | 0.52      | 0.36 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
+| Residential | OAuth disabled             | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, skipped), Account Age (1.00, no history)      |
+| Residential | OAuth enabled (unverified) | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (1.00, no history) |
+| Residential | Google verified            | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (1.00, no history) |
+| Residential | Google + GitHub verified   | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (1.00, no history) |
+| Datacenter  | OAuth disabled             | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, skipped)       |
+| Datacenter  | OAuth enabled (unverified) | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)  |
+| Datacenter  | Google verified            | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)  |
+| Datacenter  | Google + GitHub verified   | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)  |
+| VPN         | OAuth disabled             | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, skipped)        |
+| VPN         | OAuth enabled (unverified) | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)   |
+| VPN         | Google verified            | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)   |
+| VPN         | Google + GitHub verified   | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)   |
+| Tor         | OAuth disabled             | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, skipped)       |
+| Tor         | OAuth enabled (unverified) | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)  |
+| Tor         | Google verified            | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)  |
+| Tor         | Google + GitHub verified   | 0.65      | 0.46 ✗               | 0.23 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)  |
 
 ### Detailed Factor Breakdown
 
@@ -1213,8 +1213,8 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 1.00  | no history     | 20.0%    | 0.20         |
-| Karma Score         | 0.60  | no data        | 17.1%    | 0.10         |
+| Account Age         | 1.00  | no history     | 17.1%    | 0.17         |
+| Karma Score         | 0.60  | no data        | 14.3%    | 0.09         |
 | Content/Title Risk  | 0.20  | unique content | 20.0%    | 0.04         |
 | URL/Link Risk       | 0.20  | no URLs        | 17.1%    | 0.03         |
 | Velocity            | 0.10  | normal rate    | 14.3%    | 0.01         |
@@ -1222,11 +1222,11 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 | Ban History         | -     | no active bans | 0%       | (skipped)    |
 | ModQueue Rejection  | -     | no data        | 0%       | (skipped)    |
 | Removal Rate        | -     | no data        | 0%       | (skipped)    |
-| Social Verification | 1.00  | skipped        | 11.4%    | 0.11         |
+| Social Verification | 1.00  | skipped        | 17.1%    | 0.17         |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.51**     |
+| **Total**           |       |                | **100%** | **0.52**     |
 
-**Outcome:** OAuth + more — Raw score 0.51. After CAPTCHA: 0.51 × 0.7 = 0.35 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.52. After CAPTCHA: 0.52 × 0.7 = 0.36 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1271,28 +1271,28 @@ content: "This is duplicate spam content that appears multiple times."
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                             |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ----------------------------------------------------------------------- |
-| No IP check | OAuth disabled             | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Account Age (0.50, ~7 days)                |
-| No IP check | OAuth enabled (unverified) | 0.41      | 0.28 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Karma Score (0.60, neutral)   |
-| No IP check | Google verified            | 0.35      | 0.25 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Account Age (0.50, ~7 days)                |
-| No IP check | Google + GitHub verified   | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Karma Score (0.60, neutral), Account Age (0.50, ~7 days)                |
-| Residential | OAuth disabled             | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Account Age (0.50, ~7 days), Karma Score (0.60, neutral)                |
-| Residential | OAuth enabled (unverified) | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (0.50, ~7 days)   |
-| Residential | Google verified            | 0.31      | 0.21 ✓               | —                           | CAPTCHA passes | Account Age (0.50, ~7 days), Karma Score (0.60, neutral)                |
-| Residential | Google + GitHub verified   | 0.28      | 0.20 ✓               | —                           | CAPTCHA passes | Account Age (0.50, ~7 days), Karma Score (0.60, neutral)                |
-| Datacenter  | OAuth disabled             | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, ~7 days)              |
-| Datacenter  | OAuth enabled (unverified) | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified) |
-| Datacenter  | Google verified            | 0.48      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, ~7 days)              |
-| Datacenter  | Google + GitHub verified   | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, ~7 days)              |
-| VPN         | OAuth disabled             | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, ~7 days)               |
-| VPN         | OAuth enabled (unverified) | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)  |
-| VPN         | Google verified            | 0.48      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, ~7 days)               |
-| VPN         | Google + GitHub verified   | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, ~7 days)               |
-| Tor         | OAuth disabled             | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, ~7 days)              |
-| Tor         | OAuth enabled (unverified) | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified) |
-| Tor         | Google verified            | 0.48      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, ~7 days)              |
-| Tor         | Google + GitHub verified   | 0.46      | 0.32 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, ~7 days)              |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                          |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------------------ |
+| No IP check | OAuth disabled             | 0.34      | 0.23 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.45, 3 duplicates), Account Age (0.50, ~7 days)                 |
+| No IP check | OAuth enabled (unverified) | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Content/Title Risk (0.45, 3 duplicates)    |
+| No IP check | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.45, 3 duplicates), Account Age (0.50, ~7 days)                 |
+| No IP check | Google + GitHub verified   | 0.31      | 0.22 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.45, 3 duplicates), Account Age (0.50, ~7 days)                 |
+| Residential | OAuth disabled             | 0.28      | 0.20 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.45, 3 duplicates), IP Risk (0.20, residential IP)              |
+| Residential | OAuth enabled (unverified) | 0.38      | 0.27 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Content/Title Risk (0.45, 3 duplicates)    |
+| Residential | Google verified            | 0.30      | 0.21 ✓               | —                           | CAPTCHA passes | Social Verification (0.40, Google verified), Content/Title Risk (0.45, 3 duplicates) |
+| Residential | Google + GitHub verified   | 0.27      | 0.19 ✓               | —                           | CAPTCHA passes | Content/Title Risk (0.45, 3 duplicates), IP Risk (0.20, residential IP)              |
+| Datacenter  | OAuth disabled             | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Content/Title Risk (0.45, 3 duplicates)               |
+| Datacenter  | OAuth enabled (unverified) | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)              |
+| Datacenter  | Google verified            | 0.48      | 0.33 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Social Verification (0.40, Google verified)           |
+| Datacenter  | Google + GitHub verified   | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Content/Title Risk (0.45, 3 duplicates)               |
+| VPN         | OAuth disabled             | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Content/Title Risk (0.45, 3 duplicates)                |
+| VPN         | OAuth enabled (unverified) | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)               |
+| VPN         | Google verified            | 0.48      | 0.33 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Social Verification (0.40, Google verified)            |
+| VPN         | Google + GitHub verified   | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Content/Title Risk (0.45, 3 duplicates)                |
+| Tor         | OAuth disabled             | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Content/Title Risk (0.45, 3 duplicates)               |
+| Tor         | OAuth enabled (unverified) | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)              |
+| Tor         | Google verified            | 0.48      | 0.33 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Social Verification (0.40, Google verified)           |
+| Tor         | Google + GitHub verified   | 0.44      | 0.31 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Content/Title Risk (0.45, 3 duplicates)               |
 
 ### Detailed Factor Breakdown
 
@@ -1300,20 +1300,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description    | Weight   | Contribution |
 | ------------------- | ----- | -------------- | -------- | ------------ |
-| Account Age         | 0.50  | ~7 days        | 17.5%    | 0.09         |
-| Karma Score         | 0.60  | neutral        | 15.0%    | 0.09         |
-| Content/Title Risk  | 0.45  | 3 duplicates   | 17.5%    | 0.08         |
-| URL/Link Risk       | 0.20  | no URLs        | 15.0%    | 0.03         |
-| Velocity            | 0.10  | normal rate    | 12.5%    | 0.01         |
+| Account Age         | 0.50  | ~7 days        | 15.8%    | 0.08         |
+| Karma Score         | 0.60  | neutral        | 13.2%    | 0.08         |
+| Content/Title Risk  | 0.45  | 3 duplicates   | 18.4%    | 0.08         |
+| URL/Link Risk       | 0.20  | no URLs        | 15.8%    | 0.03         |
+| Velocity            | 0.10  | normal rate    | 13.2%    | 0.01         |
 | IP Risk             | -     | skipped        | 0%       | (skipped)    |
-| Ban History         | 0.30  | no active bans | 12.5%    | 0.04         |
+| Ban History         | 0.30  | no active bans | 13.2%    | 0.04         |
 | ModQueue Rejection  | -     | no data        | 0%       | (skipped)    |
-| Removal Rate        | 0.10  | no data        | 10.0%    | 0.01         |
+| Removal Rate        | 0.10  | no data        | 10.5%    | 0.01         |
 | Social Verification | -     | skipped        | 0%       | (skipped)    |
 | Wallet Activity     | -     | no wallet      | 0%       | (skipped)    |
-| **Total**           |       |                | **100%** | **0.35**     |
+| **Total**           |       |                | **100%** | **0.34**     |
 
-**Outcome:** OAuth sufficient — Raw score 0.35. After CAPTCHA: 0.35 × 0.7 = 0.24 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.34. After CAPTCHA: 0.34 × 0.7 = 0.23 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1363,25 +1363,25 @@ content: "After over a year on the platform, I've compiled everything I've learn
 | IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                              |
 | ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------ |
 | No IP check | OAuth disabled             | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content) |
-| No IP check | OAuth enabled (unverified) | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content) |
-| No IP check | Google verified            | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content) |
-| No IP check | Google + GitHub verified   | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content) |
-| Residential | OAuth disabled             | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), IP Risk (0.20, residential IP)            |
-| Residential | OAuth enabled (unverified) | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), IP Risk (0.20, residential IP)            |
-| Residential | Google verified            | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), IP Risk (0.20, residential IP)            |
-| Residential | Google + GitHub verified   | 0.19      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), IP Risk (0.20, residential IP)            |
-| Datacenter  | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)             |
-| Datacenter  | OAuth enabled (unverified) | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)             |
-| Datacenter  | Google verified            | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)             |
-| Datacenter  | Google + GitHub verified   | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)             |
-| VPN         | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)              |
-| VPN         | OAuth enabled (unverified) | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)              |
-| VPN         | Google verified            | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)              |
-| VPN         | Google + GitHub verified   | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)              |
-| Tor         | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)             |
-| Tor         | OAuth enabled (unverified) | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)             |
-| Tor         | Google verified            | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)             |
-| Tor         | Google + GitHub verified   | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)             |
+| No IP check | OAuth enabled (unverified) | 0.18      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content) |
+| No IP check | Google verified            | 0.18      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content) |
+| No IP check | Google + GitHub verified   | 0.18      | —                    | —                           | Auto-accepted  | Account Age (0.50, 365+ days), Content/Title Risk (0.20, unique content) |
+| Residential | OAuth disabled             | 0.18      | —                    | —                           | Auto-accepted  | IP Risk (0.20, residential IP), Account Age (0.50, 365+ days)            |
+| Residential | OAuth enabled (unverified) | 0.18      | —                    | —                           | Auto-accepted  | IP Risk (0.20, residential IP), Account Age (0.50, 365+ days)            |
+| Residential | Google verified            | 0.18      | —                    | —                           | Auto-accepted  | IP Risk (0.20, residential IP), Account Age (0.50, 365+ days)            |
+| Residential | Google + GitHub verified   | 0.18      | —                    | —                           | Auto-accepted  | IP Risk (0.20, residential IP), Account Age (0.50, 365+ days)            |
+| Datacenter  | OAuth disabled             | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)             |
+| Datacenter  | OAuth enabled (unverified) | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)             |
+| Datacenter  | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)             |
+| Datacenter  | Google + GitHub verified   | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (0.50, 365+ days)             |
+| VPN         | OAuth disabled             | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)              |
+| VPN         | OAuth enabled (unverified) | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)              |
+| VPN         | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)              |
+| VPN         | Google + GitHub verified   | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (0.50, 365+ days)              |
+| Tor         | OAuth disabled             | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)             |
+| Tor         | OAuth enabled (unverified) | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)             |
+| Tor         | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)             |
+| Tor         | Google + GitHub verified   | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (0.50, 365+ days)             |
 
 ### Detailed Factor Breakdown
 
@@ -1389,17 +1389,17 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description          | Weight   | Contribution |
 | ------------------- | ----- | -------------------- | -------- | ------------ |
-| Account Age         | 0.50  | 365+ days            | 15.2%    | 0.08         |
-| Karma Score         | 0.10  | positive (+5)        | 13.0%    | 0.01         |
-| Content/Title Risk  | 0.20  | unique content       | 15.2%    | 0.03         |
-| URL/Link Risk       | 0.20  | no URLs              | 13.0%    | 0.03         |
-| Velocity            | 0.10  | normal rate          | 10.9%    | 0.01         |
+| Account Age         | 0.50  | 365+ days            | 13.6%    | 0.07         |
+| Karma Score         | 0.10  | positive (+5)        | 11.4%    | 0.01         |
+| Content/Title Risk  | 0.20  | unique content       | 15.9%    | 0.03         |
+| URL/Link Risk       | 0.20  | no URLs              | 13.6%    | 0.03         |
+| Velocity            | 0.10  | normal rate          | 11.4%    | 0.01         |
 | IP Risk             | -     | skipped              | 0%       | (skipped)    |
-| Ban History         | 0.12  | no active bans       | 10.9%    | 0.01         |
-| ModQueue Rejection  | 0.10  | 0% rejected          | 6.5%     | 0.01         |
-| Removal Rate        | 0.10  | 0% removed           | 8.7%     | 0.01         |
+| Ban History         | 0.12  | no active bans       | 11.4%    | 0.01         |
+| ModQueue Rejection  | 0.10  | 0% rejected          | 6.8%     | 0.01         |
+| Removal Rate        | 0.10  | 0% removed           | 9.1%     | 0.01         |
 | Social Verification | -     | skipped              | 0%       | (skipped)    |
-| Wallet Activity     | 0.10  | 500 tx (very strong) | 6.5%     | 0.01         |
+| Wallet Activity     | 0.10  | 500 tx (very strong) | 6.8%     | 0.01         |
 | **Total**           |       |                      | **100%** | **0.19**     |
 
 **Outcome:** Auto-accepted — Score 0.19 falls in the auto-accept tier (< 0.2), allowing the publication without any challenge.
@@ -1448,28 +1448,28 @@ content: "Excited to finally have a decentralized alternative to Reddit..."
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                              |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------ |
-| No IP check | OAuth disabled             | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| No IP check | OAuth enabled (unverified) | 0.48      | 0.33 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| No IP check | Google verified            | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| No IP check | Google + GitHub verified   | 0.39      | 0.27 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Residential | OAuth disabled             | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Residential | OAuth enabled (unverified) | 0.41      | 0.28 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| Residential | Google verified            | 0.35      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Residential | Google + GitHub verified   | 0.32      | 0.23 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Datacenter  | OAuth disabled             | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | OAuth enabled (unverified) | 0.61      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | Google verified            | 0.55      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | Google + GitHub verified   | 0.52      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| VPN         | OAuth disabled             | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | OAuth enabled (unverified) | 0.61      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | Google verified            | 0.55      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | Google + GitHub verified   | 0.52      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| Tor         | OAuth disabled             | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | OAuth enabled (unverified) | 0.61      | 0.42 ✗               | 0.21 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | Google verified            | 0.55      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | Google + GitHub verified   | 0.52      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                 |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | --------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.39      | 0.27 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)                 |
+| No IP check | OAuth enabled (unverified) | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified)    |
+| No IP check | Google verified            | 0.39      | 0.28 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)                 |
+| No IP check | Google + GitHub verified   | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)                 |
+| Residential | OAuth disabled             | 0.31      | 0.22 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP)              |
+| Residential | OAuth enabled (unverified) | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (1.00, no history)    |
+| Residential | Google verified            | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (0.40, Google verified) |
+| Residential | Google + GitHub verified   | 0.29      | 0.20 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP)              |
+| Datacenter  | OAuth disabled             | 0.55      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)               |
+| Datacenter  | OAuth enabled (unverified) | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)     |
+| Datacenter  | Google verified            | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)               |
+| Datacenter  | Google + GitHub verified   | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)               |
+| VPN         | OAuth disabled             | 0.55      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)                |
+| VPN         | OAuth enabled (unverified) | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)      |
+| VPN         | Google verified            | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)                |
+| VPN         | Google + GitHub verified   | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)                |
+| Tor         | OAuth disabled             | 0.55      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)               |
+| Tor         | OAuth enabled (unverified) | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)     |
+| Tor         | Google verified            | 0.53      | 0.37 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)               |
+| Tor         | Google + GitHub verified   | 0.49      | 0.34 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)               |
 
 ### Detailed Factor Breakdown
 
@@ -1477,20 +1477,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description     | Weight   | Contribution |
 | ------------------- | ----- | --------------- | -------- | ------------ |
-| Account Age         | 1.00  | no history      | 20.6%    | 0.21         |
-| Karma Score         | 0.60  | no data         | 17.6%    | 0.11         |
-| Content/Title Risk  | 0.20  | unique content  | 20.6%    | 0.04         |
-| URL/Link Risk       | 0.20  | no URLs         | 17.6%    | 0.04         |
-| Velocity            | 0.10  | normal rate     | 14.7%    | 0.01         |
+| Account Age         | 1.00  | no history      | 18.8%    | 0.19         |
+| Karma Score         | 0.60  | no data         | 15.6%    | 0.09         |
+| Content/Title Risk  | 0.20  | unique content  | 21.9%    | 0.04         |
+| URL/Link Risk       | 0.20  | no URLs         | 18.8%    | 0.04         |
+| Velocity            | 0.10  | normal rate     | 15.6%    | 0.02         |
 | IP Risk             | -     | skipped         | 0%       | (skipped)    |
 | Ban History         | -     | no active bans  | 0%       | (skipped)    |
 | ModQueue Rejection  | -     | no data         | 0%       | (skipped)    |
 | Removal Rate        | -     | no data         | 0%       | (skipped)    |
 | Social Verification | -     | skipped         | 0%       | (skipped)    |
-| Wallet Activity     | 0.15  | 150 tx (strong) | 8.8%     | 0.01         |
-| **Total**           |       |                 | **100%** | **0.42**     |
+| Wallet Activity     | 0.15  | 150 tx (strong) | 9.4%     | 0.01         |
+| **Total**           |       |                 | **100%** | **0.39**     |
 
-**Outcome:** OAuth + more — Raw score 0.42. After CAPTCHA: 0.42 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth sufficient — Raw score 0.39. After CAPTCHA: 0.39 × 0.7 = 0.27 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1536,28 +1536,28 @@ content: "New to both but excited to learn..."
 
 #### Posts
 
-| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                              |
-| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | ------------------------------------------------------------------------ |
-| No IP check | OAuth disabled             | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| No IP check | OAuth enabled (unverified) | 0.49      | 0.35 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| No IP check | Google verified            | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| No IP check | Google + GitHub verified   | 0.40      | 0.28 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Residential | OAuth disabled             | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Residential | OAuth enabled (unverified) | 0.42      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified) |
-| Residential | Google verified            | 0.36      | 0.25 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Residential | Google + GitHub verified   | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)              |
-| Datacenter  | OAuth disabled             | 0.58      | 0.41 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | OAuth enabled (unverified) | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| Datacenter  | Google + GitHub verified   | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)            |
-| VPN         | OAuth disabled             | 0.58      | 0.41 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | OAuth enabled (unverified) | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| VPN         | Google + GitHub verified   | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)             |
-| Tor         | OAuth disabled             | 0.58      | 0.41 ✗               | 0.20 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | OAuth enabled (unverified) | 0.62      | 0.43 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | Google verified            | 0.56      | 0.39 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
-| Tor         | Google + GitHub verified   | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)            |
+| IP Type     | OAuth Config               | Raw Score | After CAPTCHA (×0.7) | After CAPTCHA+OAuth (×0.35) | Outcome        | Top Factors                                                                 |
+| ----------- | -------------------------- | --------- | -------------------- | --------------------------- | -------------- | --------------------------------------------------------------------------- |
+| No IP check | OAuth disabled             | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)                 |
+| No IP check | OAuth enabled (unverified) | 0.50      | 0.35 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (1.00, not verified)    |
+| No IP check | Google verified            | 0.41      | 0.29 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)                 |
+| No IP check | Google + GitHub verified   | 0.37      | 0.26 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Karma Score (0.60, no data)                 |
+| Residential | OAuth disabled             | 0.33      | 0.23 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP)              |
+| Residential | OAuth enabled (unverified) | 0.43      | 0.30 ✓               | —                           | CAPTCHA passes | Social Verification (1.00, not verified), Account Age (1.00, no history)    |
+| Residential | Google verified            | 0.34      | 0.24 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), Social Verification (0.40, Google verified) |
+| Residential | Google + GitHub verified   | 0.31      | 0.21 ✓               | —                           | CAPTCHA passes | Account Age (1.00, no history), IP Risk (0.20, residential IP)              |
+| Datacenter  | OAuth disabled             | 0.57      | 0.40 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)               |
+| Datacenter  | OAuth enabled (unverified) | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, datacenter IP), Social Verification (1.00, not verified)     |
+| Datacenter  | Google verified            | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)               |
+| Datacenter  | Google + GitHub verified   | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, datacenter IP), Account Age (1.00, no history)               |
+| VPN         | OAuth disabled             | 0.57      | 0.40 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)                |
+| VPN         | OAuth enabled (unverified) | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, VPN detected), Social Verification (1.00, not verified)      |
+| VPN         | Google verified            | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)                |
+| VPN         | Google + GitHub verified   | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, VPN detected), Account Age (1.00, no history)                |
+| Tor         | OAuth disabled             | 0.57      | 0.40 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)               |
+| Tor         | OAuth enabled (unverified) | 0.63      | 0.44 ✗               | 0.22 ✓                      | Needs OAuth    | IP Risk (1.00, Tor exit node), Social Verification (1.00, not verified)     |
+| Tor         | Google verified            | 0.54      | 0.38 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)               |
+| Tor         | Google + GitHub verified   | 0.51      | 0.35 ✓               | —                           | CAPTCHA passes | IP Risk (1.00, Tor exit node), Account Age (1.00, no history)               |
 
 ### Detailed Factor Breakdown
 
@@ -1565,20 +1565,20 @@ Configuration: **Post** / **No IP check** / **OAuth disabled**
 
 | Factor              | Score | Description          | Weight   | Contribution |
 | ------------------- | ----- | -------------------- | -------- | ------------ |
-| Account Age         | 1.00  | no history           | 20.6%    | 0.21         |
-| Karma Score         | 0.60  | no data              | 17.6%    | 0.11         |
-| Content/Title Risk  | 0.20  | unique content       | 20.6%    | 0.04         |
-| URL/Link Risk       | 0.20  | no URLs              | 17.6%    | 0.04         |
-| Velocity            | 0.10  | normal rate          | 14.7%    | 0.01         |
+| Account Age         | 1.00  | no history           | 18.8%    | 0.19         |
+| Karma Score         | 0.60  | no data              | 15.6%    | 0.09         |
+| Content/Title Risk  | 0.20  | unique content       | 21.9%    | 0.04         |
+| URL/Link Risk       | 0.20  | no URLs              | 18.8%    | 0.04         |
+| Velocity            | 0.10  | normal rate          | 15.6%    | 0.02         |
 | IP Risk             | -     | skipped              | 0%       | (skipped)    |
 | Ban History         | -     | no active bans       | 0%       | (skipped)    |
 | ModQueue Rejection  | -     | no data              | 0%       | (skipped)    |
 | Removal Rate        | -     | no data              | 0%       | (skipped)    |
 | Social Verification | -     | skipped              | 0%       | (skipped)    |
-| Wallet Activity     | 0.35  | 5 tx (some activity) | 8.8%     | 0.03         |
-| **Total**           |       |                      | **100%** | **0.43**     |
+| Wallet Activity     | 0.35  | 5 tx (some activity) | 9.4%     | 0.03         |
+| **Total**           |       |                      | **100%** | **0.41**     |
 
-**Outcome:** OAuth + more — Raw score 0.43. After CAPTCHA: 0.43 × 0.7 = 0.30 < 0.4 — **CAPTCHA alone passes**.
+**Outcome:** OAuth + more — Raw score 0.41. After CAPTCHA: 0.41 × 0.7 = 0.29 < 0.4 — **CAPTCHA alone passes**.
 
 ---
 
@@ -1588,23 +1588,23 @@ Overview of risk score ranges and challenge outcomes for each scenario:
 
 | #   | Scenario                      | Score Range | CAPTCHA Passes? | CAPTCHA+OAuth Passes? | Rate Limit × | Possible Outcomes             |
 | --- | ----------------------------- | ----------- | --------------- | --------------------- | ------------ | ----------------------------- |
-| 1   | Brand New User                | 0.34–0.64   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
-| 2   | Established Trusted User      | 0.19–0.37   | Always          | Always                | 1.88×        | Auto-accepted, CAPTCHA passes |
-| 3   | New User with Link            | 0.34–0.64   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
-| 4   | Repeat Link Spammer           | 0.47–0.70   | Sometimes       | Always                | 0.75×        | CAPTCHA passes, Needs OAuth   |
-| 5   | Content Duplicator            | 0.34–0.57   | Sometimes       | Always                | 1.50×        | CAPTCHA passes, Needs OAuth   |
-| 6   | Bot-like Velocity             | 0.43–0.74   | Sometimes       | Always                | 0.50×        | Needs OAuth, CAPTCHA passes   |
-| 7   | Serial Offender               | 0.47–0.69   | Sometimes       | Always                | 0.75×        | CAPTCHA passes, Needs OAuth   |
-| 8   | New User, Dual OAuth          | 0.34–0.60   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
-| 9   | Vote Spammer                  | 0.37–0.69   | Sometimes       | Always                | 1.50×        | CAPTCHA passes, Needs OAuth   |
-| 10  | Trusted Reply Author          | 0.20–0.45   | Always          | Always                | 1.88×        | CAPTCHA passes                |
-| 11  | Borderline Modqueue           | 0.26–0.50   | Always          | Always                | 1.88×        | CAPTCHA passes                |
-| 12  | High Removal Rate             | 0.32–0.57   | Sometimes       | Always                | 0.75×        | CAPTCHA passes, Needs OAuth   |
-| 13  | New, OAuth Unverified         | 0.43–0.64   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
-| 14  | Moderate Content Spam         | 0.28–0.54   | Always          | Always                | 1.50×        | CAPTCHA passes                |
-| 15  | Perfect User                  | 0.19–0.36   | Always          | Always                | 1.88×        | Auto-accepted, CAPTCHA passes |
-| 16  | New User, Active Wallet       | 0.32–0.61   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
-| 17  | New User, Low-Activity Wallet | 0.34–0.62   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 1   | Brand New User                | 0.30–0.65   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 2   | Established Trusted User      | 0.18–0.37   | Always          | Always                | 1.88×        | Auto-accepted, CAPTCHA passes |
+| 3   | New User with Link            | 0.30–0.65   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 4   | Repeat Link Spammer           | 0.46–0.71   | Sometimes       | Always                | 0.75×        | CAPTCHA passes, Needs OAuth   |
+| 5   | Content Duplicator            | 0.33–0.59   | Sometimes       | Always                | 1.50×        | CAPTCHA passes, Needs OAuth   |
+| 6   | Bot-like Velocity             | 0.39–0.75   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 7   | Serial Offender               | 0.45–0.70   | Sometimes       | Always                | 0.75×        | CAPTCHA passes, Needs OAuth   |
+| 8   | New User, Dual OAuth          | 0.30–0.59   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 9   | Vote Spammer                  | 0.35–0.72   | Sometimes       | Always                | 1.50×        | CAPTCHA passes, Needs OAuth   |
+| 10  | Trusted Reply Author          | 0.20–0.47   | Always          | Always                | 1.88×        | CAPTCHA passes, Auto-accepted |
+| 11  | Borderline Modqueue           | 0.24–0.52   | Always          | Always                | 1.88×        | CAPTCHA passes                |
+| 12  | High Removal Rate             | 0.30–0.59   | Sometimes       | Always                | 0.75×        | CAPTCHA passes, Needs OAuth   |
+| 13  | New, OAuth Unverified         | 0.44–0.65   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 14  | Moderate Content Spam         | 0.27–0.56   | Always          | Always                | 1.50×        | CAPTCHA passes                |
+| 15  | Perfect User                  | 0.18–0.37   | Always          | Always                | 1.88×        | Auto-accepted, CAPTCHA passes |
+| 16  | New User, Active Wallet       | 0.29–0.62   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
+| 17  | New User, Low-Activity Wallet | 0.31–0.63   | Sometimes       | Always                | 0.50×        | CAPTCHA passes, Needs OAuth   |
 
 ---
 

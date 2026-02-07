@@ -217,8 +217,8 @@ describe("calculateSocialVerification", () => {
         });
     });
 
-    describe("Multi-author reuse (diminishing returns)", () => {
-        it("should apply diminishing returns when same OAuth is used by 2 authors", () => {
+    describe("Multi-author reuse (1/n² with cap at 3)", () => {
+        it("should apply 1/n² reuse factor when same OAuth is used by 2 authors", () => {
             // Same Google account used by pk1 and pk2
             insertOAuthSession({ sessionId: "s1", oauthIdentity: "google:shared", authorPublicKey: "pk1" });
             insertOAuthSession({ sessionId: "s2", oauthIdentity: "google:shared", authorPublicKey: "pk2" });
@@ -227,13 +227,27 @@ describe("calculateSocialVerification", () => {
             const result = calculateSocialVerification(ctx, 0.08, ["google"]);
 
             // Google credibility = 1.0, but 2 authors share it
-            // Effective credibility = 1.0 * (1/sqrt(2)) = 0.707
-            // Score = 1 - 0.75*0.707 + 0.15*0.707^2 = 0.545
-            expect(result.score).toBeCloseTo(0.545, 2);
+            // Effective credibility = 1.0 * (1/2²) = 0.25
+            // Score = 1 - 0.75*0.25 + 0.15*0.25^2 = 1 - 0.1875 + 0.009375 = 0.8219
+            expect(result.score).toBeCloseTo(0.822, 2);
             expect(result.explanation).toContain("shared by 2 authors");
         });
 
-        it("should apply stronger diminishing returns when same OAuth is used by 4 authors", () => {
+        it("should apply 1/n² reuse factor when same OAuth is used by 3 authors", () => {
+            insertOAuthSession({ sessionId: "s1", oauthIdentity: "google:shared3", authorPublicKey: "pk1" });
+            insertOAuthSession({ sessionId: "s2", oauthIdentity: "google:shared3", authorPublicKey: "pk2" });
+            insertOAuthSession({ sessionId: "s3", oauthIdentity: "google:shared3", authorPublicKey: "pk3" });
+
+            const ctx = createContext("pk1");
+            const result = calculateSocialVerification(ctx, 0.08, ["google"]);
+
+            // Effective credibility = 1.0 * (1/3²) = 0.111
+            // Score = 1 - 0.75*0.111 + 0.15*0.111^2 ≈ 0.919
+            expect(result.score).toBeCloseTo(0.919, 2);
+            expect(result.explanation).toContain("shared by 3 authors");
+        });
+
+        it("should completely discard identity when same OAuth is used by 4+ authors", () => {
             // Same Google account used by pk1, pk2, pk3, pk4
             insertOAuthSession({ sessionId: "s1", oauthIdentity: "google:shared4", authorPublicKey: "pk1" });
             insertOAuthSession({ sessionId: "s2", oauthIdentity: "google:shared4", authorPublicKey: "pk2" });
@@ -243,10 +257,31 @@ describe("calculateSocialVerification", () => {
             const ctx = createContext("pk1");
             const result = calculateSocialVerification(ctx, 0.08, ["google"]);
 
-            // Effective credibility = 1.0 * (1/sqrt(4)) = 0.5
-            // Score = 1 - 0.75*0.5 + 0.15*0.25 = 0.6625
-            expect(result.score).toBeCloseTo(0.66, 2);
+            // Identity is discarded (reuseFactor = 0), effectiveCredibility = 0
+            // Combined credibility = 0, score = 1.0 (unverified equivalent)
+            expect(result.score).toBe(1.0);
             expect(result.explanation).toContain("shared by 4 authors");
+            expect(result.explanation).toContain("discarded");
+        });
+
+        it("should return score=1.0 when all identities are discarded due to 4+ authors", () => {
+            // Two identities, both shared by 4+ authors
+            insertOAuthSession({ sessionId: "s1", oauthIdentity: "google:over", authorPublicKey: "pk1" });
+            insertOAuthSession({ sessionId: "s2", oauthIdentity: "google:over", authorPublicKey: "pk2" });
+            insertOAuthSession({ sessionId: "s3", oauthIdentity: "google:over", authorPublicKey: "pk3" });
+            insertOAuthSession({ sessionId: "s4", oauthIdentity: "google:over", authorPublicKey: "pk4" });
+            insertOAuthSession({ sessionId: "s5", oauthIdentity: "google:over", authorPublicKey: "pk5" });
+
+            insertOAuthSession({ sessionId: "s6", oauthIdentity: "github:over", authorPublicKey: "pk1" });
+            insertOAuthSession({ sessionId: "s7", oauthIdentity: "github:over", authorPublicKey: "pk6" });
+            insertOAuthSession({ sessionId: "s8", oauthIdentity: "github:over", authorPublicKey: "pk7" });
+            insertOAuthSession({ sessionId: "s9", oauthIdentity: "github:over", authorPublicKey: "pk8" });
+
+            const ctx = createContext("pk1");
+            const result = calculateSocialVerification(ctx, 0.08, ["google", "github"]);
+
+            // Both identities discarded → score = 1.0
+            expect(result.score).toBe(1.0);
         });
 
         it("should not affect score for unique OAuth identity", () => {
@@ -258,6 +293,171 @@ describe("calculateSocialVerification", () => {
             // 1 author, no diminishing returns
             expect(result.score).toBeCloseTo(0.4, 2);
             expect(result.explanation).not.toContain("shared");
+        });
+    });
+
+    describe("OAuth account age multiplier", () => {
+        function insertOAuthSessionWithAge(params: {
+            sessionId: string;
+            oauthIdentity: string;
+            authorPublicKey: string;
+            accountCreatedAt: number | null;
+        }) {
+            const { sessionId, oauthIdentity, authorPublicKey, accountCreatedAt } = params;
+
+            db.insertChallengeSession({
+                sessionId,
+                subplebbitPublicKey: "subpk",
+                expiresAt: Date.now() + 3600000
+            });
+
+            db.updateChallengeSessionStatus(sessionId, "completed", Date.now(), oauthIdentity);
+
+            if (accountCreatedAt !== null) {
+                db.updateChallengeSessionOAuthAccountCreatedAt(sessionId, accountCreatedAt);
+            }
+
+            db.insertComment({
+                sessionId,
+                publication: {
+                    author: createMockAuthor(),
+                    subplebbitAddress: "test-sub.eth",
+                    timestamp: baseTimestamp,
+                    protocolVersion: "1",
+                    signature: createMockSignature(authorPublicKey),
+                    content: "Test content"
+                }
+            });
+        }
+
+        it("should apply 0.3 multiplier for accounts < 7 days old", () => {
+            const threeDaysAgo = baseTimestamp - 3 * 86400;
+            insertOAuthSessionWithAge({
+                sessionId: "s1",
+                oauthIdentity: "github:newaccount",
+                authorPublicKey: "pk1",
+                accountCreatedAt: threeDaysAgo
+            });
+
+            const ctx = createContext("pk1");
+            const result = calculateSocialVerification(ctx, 0.08, ["github"]);
+
+            // GitHub credibility = 1.0 * reuseFactor(1) * ageMultiplier(0.3) = 0.3
+            // Score = 1 - 0.75*0.3 + 0.15*0.3^2 = 1 - 0.225 + 0.0135 = 0.7885
+            expect(result.score).toBeCloseTo(0.789, 2);
+            expect(result.explanation).toContain("age multiplier: 0.3");
+        });
+
+        it("should apply 0.5 multiplier for accounts 7-30 days old", () => {
+            const fifteenDaysAgo = baseTimestamp - 15 * 86400;
+            insertOAuthSessionWithAge({
+                sessionId: "s1",
+                oauthIdentity: "github:recent",
+                authorPublicKey: "pk1",
+                accountCreatedAt: fifteenDaysAgo
+            });
+
+            const ctx = createContext("pk1");
+            const result = calculateSocialVerification(ctx, 0.08, ["github"]);
+
+            // Effective credibility = 1.0 * 0.5 = 0.5
+            // Score = 1 - 0.75*0.5 + 0.15*0.25 = 0.6625
+            expect(result.score).toBeCloseTo(0.66, 2);
+        });
+
+        it("should apply 0.7 multiplier for accounts 30-90 days old", () => {
+            const sixtyDaysAgo = baseTimestamp - 60 * 86400;
+            insertOAuthSessionWithAge({
+                sessionId: "s1",
+                oauthIdentity: "github:mid",
+                authorPublicKey: "pk1",
+                accountCreatedAt: sixtyDaysAgo
+            });
+
+            const ctx = createContext("pk1");
+            const result = calculateSocialVerification(ctx, 0.08, ["github"]);
+
+            // Effective credibility = 1.0 * 0.7 = 0.7
+            // Score = 1 - 0.75*0.7 + 0.15*0.49 = 1 - 0.525 + 0.0735 = 0.5485
+            expect(result.score).toBeCloseTo(0.549, 2);
+        });
+
+        it("should apply 0.9 multiplier for accounts 90-365 days old", () => {
+            const sixMonthsAgo = baseTimestamp - 180 * 86400;
+            insertOAuthSessionWithAge({
+                sessionId: "s1",
+                oauthIdentity: "github:established",
+                authorPublicKey: "pk1",
+                accountCreatedAt: sixMonthsAgo
+            });
+
+            const ctx = createContext("pk1");
+            const result = calculateSocialVerification(ctx, 0.08, ["github"]);
+
+            // Effective credibility = 1.0 * 0.9 = 0.9
+            // Score = 1 - 0.75*0.9 + 0.15*0.81 = 1 - 0.675 + 0.1215 = 0.4465
+            expect(result.score).toBeCloseTo(0.447, 2);
+        });
+
+        it("should apply 1.0 multiplier for accounts > 365 days old", () => {
+            const twoYearsAgo = baseTimestamp - 730 * 86400;
+            insertOAuthSessionWithAge({
+                sessionId: "s1",
+                oauthIdentity: "github:old",
+                authorPublicKey: "pk1",
+                accountCreatedAt: twoYearsAgo
+            });
+
+            const ctx = createContext("pk1");
+            const result = calculateSocialVerification(ctx, 0.08, ["github"]);
+
+            // Effective credibility = 1.0 * 1.0 = 1.0
+            // Score = 0.40 (same as default single strong provider)
+            expect(result.score).toBeCloseTo(0.4, 2);
+        });
+
+        it("should apply 1.0 multiplier (no penalty) for unknown creation date (null)", () => {
+            insertOAuthSessionWithAge({
+                sessionId: "s1",
+                oauthIdentity: "google:nulcreated",
+                authorPublicKey: "pk1",
+                accountCreatedAt: null
+            });
+
+            const ctx = createContext("pk1");
+            const result = calculateSocialVerification(ctx, 0.08, ["google"]);
+
+            // Google credibility = 1.0, accountCreatedAt = null → multiplier = 1.0
+            // Score = 0.40 (no penalty)
+            expect(result.score).toBeCloseTo(0.4, 2);
+            expect(result.explanation).not.toContain("age multiplier");
+        });
+
+        it("should stack reuse penalty and account age penalty", () => {
+            // GitHub account shared by 2 authors AND only 3 days old
+            const threeDaysAgo = baseTimestamp - 3 * 86400;
+            insertOAuthSessionWithAge({
+                sessionId: "s1",
+                oauthIdentity: "github:sybil",
+                authorPublicKey: "pk1",
+                accountCreatedAt: threeDaysAgo
+            });
+            insertOAuthSessionWithAge({
+                sessionId: "s2",
+                oauthIdentity: "github:sybil",
+                authorPublicKey: "pk2",
+                accountCreatedAt: threeDaysAgo
+            });
+
+            const ctx = createContext("pk1");
+            const result = calculateSocialVerification(ctx, 0.08, ["github"]);
+
+            // GitHub credibility = 1.0
+            // reuseFactor = 1/2² = 0.25
+            // ageMultiplier = 0.3
+            // effectiveCredibility = 1.0 * 0.25 * 0.3 = 0.075
+            // Score = 1 - 0.75*0.075 + 0.15*0.075^2 ≈ 0.944
+            expect(result.score).toBeCloseTo(0.944, 2);
         });
     });
 
@@ -336,6 +536,59 @@ describe("calculateSocialVerification", () => {
             // Still counts because we're checking DB, not restricting by enabled providers
             // The enabled providers list is for determining if factor is skipped, not filtering identities
             expect(result.score).toBeCloseTo(0.4, 2);
+        });
+    });
+
+    describe("Database query methods — OAuth account age", () => {
+        it("updateChallengeSessionOAuthAccountCreatedAt stores and getOAuthAccountCreatedAt retrieves", () => {
+            const sessionId = "age-session";
+            db.insertChallengeSession({
+                sessionId,
+                subplebbitPublicKey: "subpk",
+                expiresAt: Date.now() + 3600000
+            });
+            db.updateChallengeSessionStatus(sessionId, "completed", Date.now(), "github:age123");
+
+            const createdAt = 1609459200; // 2021-01-01
+            db.updateChallengeSessionOAuthAccountCreatedAt(sessionId, createdAt);
+
+            const result = db.getOAuthAccountCreatedAt("github:age123");
+            expect(result).toBe(createdAt);
+        });
+
+        it("getOAuthAccountCreatedAt returns null when no data stored", () => {
+            const sessionId = "no-age-session";
+            db.insertChallengeSession({
+                sessionId,
+                subplebbitPublicKey: "subpk",
+                expiresAt: Date.now() + 3600000
+            });
+            db.updateChallengeSessionStatus(sessionId, "completed", Date.now(), "google:noage");
+
+            const result = db.getOAuthAccountCreatedAt("google:noage");
+            expect(result).toBeNull();
+        });
+
+        it("getOAuthAccountCreatedAt returns null for non-existent identity", () => {
+            const result = db.getOAuthAccountCreatedAt("nonexistent:id");
+            expect(result).toBeNull();
+        });
+
+        it("getOAuthAccountCreatedAt returns most recent session data", () => {
+            // First session
+            const sessionId1 = "age-session-old";
+            db.insertChallengeSession({ sessionId: sessionId1, subplebbitPublicKey: "subpk", expiresAt: Date.now() + 3600000 });
+            db.updateChallengeSessionStatus(sessionId1, "completed", Date.now() - 1000, "github:multi");
+            db.updateChallengeSessionOAuthAccountCreatedAt(sessionId1, 1609459200);
+
+            // Second session (newer)
+            const sessionId2 = "age-session-new";
+            db.insertChallengeSession({ sessionId: sessionId2, subplebbitPublicKey: "subpk", expiresAt: Date.now() + 3600000 });
+            db.updateChallengeSessionStatus(sessionId2, "completed", Date.now(), "github:multi");
+            db.updateChallengeSessionOAuthAccountCreatedAt(sessionId2, 1640995200); // 2022-01-01
+
+            const result = db.getOAuthAccountCreatedAt("github:multi");
+            expect(result).toBe(1640995200); // Should return the more recent session's data
         });
     });
 

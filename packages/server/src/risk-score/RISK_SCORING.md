@@ -520,7 +520,7 @@ removalRate = weightedRemovedCount / totalIndexedComments
 
 **Rationale**: Authors whose content is frequently removed or purged are likely posting inappropriate content. Purge is weighted highest because it represents an irreversible decision by the subplebbit owner — a stronger signal than a reversible removal.
 
-### 10. Social Verification (Weight: 8% with/without IP)
+### 10. Social Verification (Weight: 12% with/without IP)
 
 Evaluates whether the author has verified via OAuth sign-in. This factor provides a **trust signal** - verified users receive lower risk scores.
 
@@ -528,7 +528,7 @@ Evaluates whether the author has verified via OAuth sign-in. This factor provide
 
 - **OAuth disabled** (no enabled providers): Factor is **skipped** (weight redistributed)
 - **OAuth enabled, no verification**: Score = **1.0** (high risk)
-- **OAuth enabled, verified**: Score based on provider credibility (0.03 - 0.66)
+- **OAuth enabled, verified**: Score based on provider credibility, reuse factor, and account age
 
 **Provider Credibility Weights:**
 
@@ -545,16 +545,37 @@ Different providers have different credibility based on their verification stren
 | yandex    | 0.5         | Less strict verification                   |
 | (unknown) | 0.5         | Default for new/unrecognized providers     |
 
-**Diminishing Returns - Multi-Author Reuse:**
+**Multi-Author Reuse (1/n² with hard cap at 3):**
 
-When the same OAuth account is linked to multiple authors (identity sharing), each subsequent author receives reduced benefit:
+When the same OAuth account is linked to multiple authors (identity sharing), each subsequent author receives steeply reduced benefit, with a hard cap at 3 authors beyond which the identity is completely discarded:
 
-| Author # | Benefit Factor | Description                   |
-| -------- | -------------- | ----------------------------- |
-| 1st      | 100% (1/√1)    | Full credibility              |
-| 2nd      | 71% (1/√2)     | Reduced - identity shared     |
-| 3rd      | 58% (1/√3)     | Further reduced               |
-| 4th      | 50% (1/√4)     | Continues diminishing with √n |
+| Authors Sharing | Reuse Factor | Description                        |
+| --------------- | ------------ | ---------------------------------- |
+| 1               | 1.0 (1/1²)   | Full credibility                   |
+| 2               | 0.25 (1/2²)  | Severely reduced — identity shared |
+| 3               | 0.11 (1/3²)  | Near-zero benefit                  |
+| 4+              | 0.0          | **Completely discarded**           |
+
+**OAuth Account Age Multiplier:**
+
+For providers that expose account creation dates (GitHub, Discord), freshly created accounts receive reduced credibility. This penalizes Sybil attacks using disposable OAuth accounts. Providers that don't expose creation dates (Google, Yandex, TikTok, etc.) get no penalty (multiplier 1.0).
+
+| OAuth Account Age | Multiplier | Rationale                            |
+| ----------------- | ---------- | ------------------------------------ |
+| < 7 days          | 0.3        | Brand new account, likely bot        |
+| 7–30 days         | 0.5        | Very recent                          |
+| 30–90 days        | 0.7        | Somewhat established                 |
+| 90–365 days       | 0.9        | Established                          |
+| > 365 days        | 1.0        | Fully trusted                        |
+| Unknown (null)    | 1.0        | Provider doesn't expose — no penalty |
+
+The account creation date is cached in the `challengeSessions.oauthAccountCreatedAt` column when the OAuth callback stores it, so the OAuth provider API is only called once during the authentication flow.
+
+**Effective credibility per identity:**
+
+```
+effectiveCredibility = baseProviderCredibility × reuseFactor × accountAgeMultiplier
+```
 
 **Multiple Service Decay:**
 
@@ -583,7 +604,7 @@ Quadratic formula: `score = max(0, 1 - 0.75c + 0.15c²)` where `c` = combined cr
 | Three strong providers     | 2.19        | 0.07      |
 | Maximum credibility        | 2.5         | 0.03      |
 
-**Rationale**: OAuth verification provides a trust signal. Users who have verified with reputable providers are less likely to be spam bots or bad actors. The diminishing returns prevent gaming via identity sharing or mass verification.
+**Rationale**: OAuth verification provides a trust signal. Users who have verified with reputable providers are less likely to be spam bots or bad actors. The steep 1/n² reuse decay with hard cap at 3 authors makes identity sharing nearly worthless — an attacker gains almost nothing from sharing OAuth accounts across sybil identities. The account age multiplier further penalizes freshly created throw-away accounts used in sybil attacks.
 
 ### 11. Wallet Activity (Weight: 6% with/without IP)
 
@@ -639,13 +660,13 @@ Weights are redistributed based on whether IP information is available:
 | Comment Content/Title Risk | 14%        | 10%      |
 | Comment URL/Link Risk      | 12%        | 10%      |
 | Velocity Risk              | 10%        | 8%       |
-| Account Age                | 14%        | 10%      |
-| Karma Score                | 12%        | 8%       |
+| Account Age                | 12%        | 8%       |
+| Karma Score                | 10%        | 6%       |
 | IP Risk                    | 0%         | 20%      |
 | Network Ban History        | 10%        | 8%       |
 | ModQueue Rejection Rate    | 6%         | 4%       |
 | Network Removal Rate       | 8%         | 8%       |
-| Social Verification        | 8%         | 8%       |
+| Social Verification        | 12%        | 12%      |
 | Wallet Activity            | 6%         | 6%       |
 | **Total**                  | **100%**   | **100%** |
 
@@ -687,16 +708,16 @@ For vote publications, Content Risk and URL Risk are skipped. Wallet Activity is
 | Content Risk        | 14%             | **0% (skipped)** |
 | URL Risk            | 12%             | **0% (skipped)** |
 | Velocity            | 10%             | 14.7%            |
-| Account Age         | 14%             | 20.6%            |
-| Karma               | 12%             | 17.6%            |
+| Account Age         | 12%             | 17.6%            |
+| Karma               | 10%             | 14.7%            |
 | Ban History         | 10%             | 14.7%            |
 | ModQueue Rejection  | 6%              | 8.8%             |
 | Removal Rate        | 8%              | 11.8%            |
-| Social Verification | 8%              | 11.8%            |
+| Social Verification | 12%             | 17.6%            |
 | Wallet Activity     | 6%              | **0% (skipped)** |
 | **Total**           | 100%            | **100%**         |
 
-Active total: 10% + 14% + 12% + 10% + 6% + 8% + 8% = 68%
+Active total: 10% + 12% + 10% + 10% + 6% + 8% + 12% = 68%
 
 Calculation: `0.10 / 0.68 ≈ 0.147` for Velocity (10% original / 68% active total)
 

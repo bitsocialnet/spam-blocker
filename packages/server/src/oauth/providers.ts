@@ -187,6 +187,8 @@ export interface OAuthUserIdentity {
     provider: OAuthProvider;
     /** Unique user ID from the provider */
     userId: string;
+    /** Account creation date as Unix timestamp in seconds, null if provider doesn't expose it */
+    accountCreatedAt: number | null;
 }
 
 /**
@@ -234,7 +236,7 @@ export async function validateAuthorizationCode(
             const tokens = await (provider as arctic.TikTok).validateAuthorizationCode(code, codeVerifier);
             // TikTok returns open_id in token response, not via separate API call
             const openId = (tokens as unknown as { openId: () => string }).openId();
-            return { provider: providerName, userId: openId };
+            return { provider: providerName, userId: openId, accountCreatedAt: null };
         }
         case "discord": {
             if (!codeVerifier) throw new Error("Discord requires code verifier");
@@ -251,15 +253,18 @@ export async function validateAuthorizationCode(
             throw new Error(`Unknown provider: ${providerName}`);
     }
 
-    // Fetch user ID from the provider's API
-    const userId = await fetchUserId(providerName, accessToken);
-    return { provider: providerName, userId };
+    // Fetch user identity from the provider's API
+    const userIdentity = await fetchUserIdentity(providerName, accessToken);
+    return { provider: providerName, userId: userIdentity.userId, accountCreatedAt: userIdentity.accountCreatedAt };
 }
 
 /**
- * Fetch user ID from OAuth provider's API.
+ * Fetch user identity (ID and account creation date) from OAuth provider's API.
  */
-async function fetchUserId(provider: OAuthProvider, accessToken: string): Promise<string> {
+async function fetchUserIdentity(
+    provider: OAuthProvider,
+    accessToken: string
+): Promise<{ userId: string; accountCreatedAt: number | null }> {
     switch (provider) {
         case "github": {
             const response = await fetch("https://api.github.com/user", {
@@ -270,8 +275,9 @@ async function fetchUserId(provider: OAuthProvider, accessToken: string): Promis
                 }
             });
             if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
-            const data = (await response.json()) as { id: number };
-            return String(data.id);
+            const data = (await response.json()) as { id: number; created_at: string };
+            const accountCreatedAt = Math.floor(new Date(data.created_at).getTime() / 1000);
+            return { userId: String(data.id), accountCreatedAt };
         }
         case "google": {
             const response = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
@@ -281,7 +287,7 @@ async function fetchUserId(provider: OAuthProvider, accessToken: string): Promis
             });
             if (!response.ok) throw new Error(`Google API error: ${response.status}`);
             const data = (await response.json()) as { sub: string };
-            return data.sub;
+            return { userId: data.sub, accountCreatedAt: null };
         }
         case "twitter": {
             const response = await fetch("https://api.twitter.com/2/users/me", {
@@ -291,7 +297,7 @@ async function fetchUserId(provider: OAuthProvider, accessToken: string): Promis
             });
             if (!response.ok) throw new Error(`Twitter API error: ${response.status}`);
             const data = (await response.json()) as { data: { id: string } };
-            return data.data.id;
+            return { userId: data.data.id, accountCreatedAt: null };
         }
         case "yandex": {
             const response = await fetch("https://login.yandex.ru/info?format=json", {
@@ -301,7 +307,7 @@ async function fetchUserId(provider: OAuthProvider, accessToken: string): Promis
             });
             if (!response.ok) throw new Error(`Yandex API error: ${response.status}`);
             const data = (await response.json()) as { id: string };
-            return data.id;
+            return { userId: data.id, accountCreatedAt: null };
         }
         case "discord": {
             const response = await fetch("https://discord.com/api/v10/users/@me", {
@@ -311,7 +317,9 @@ async function fetchUserId(provider: OAuthProvider, accessToken: string): Promis
             });
             if (!response.ok) throw new Error(`Discord API error: ${response.status}`);
             const data = (await response.json()) as { id: string };
-            return data.id;
+            // Discord snowflake ID encodes creation timestamp
+            const accountCreatedAt = Number((BigInt(data.id) >> 22n) + 1420070400000n) / 1000;
+            return { userId: data.id, accountCreatedAt };
         }
         case "reddit": {
             const response = await fetch("https://oauth.reddit.com/api/v1/me", {
@@ -322,7 +330,7 @@ async function fetchUserId(provider: OAuthProvider, accessToken: string): Promis
             });
             if (!response.ok) throw new Error(`Reddit API error: ${response.status}`);
             const data = (await response.json()) as { id: string };
-            return data.id;
+            return { userId: data.id, accountCreatedAt: null };
         }
         // TikTok returns openId directly in token response, handled in validateAuthorizationCode
         default:

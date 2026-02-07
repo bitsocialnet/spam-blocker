@@ -73,36 +73,36 @@ export interface WeightConfig {
 
 /**
  * Default weights when IP info is NOT available.
- * Total: 0.94 (normalized to 1.0 when all factors active)
+ * Total: 1.00 (normalized to 1.0 when all factors active)
  */
 export const WEIGHTS_NO_IP: WeightConfig = {
     commentContentTitleRisk: 0.14,
     commentUrlRisk: 0.12,
     velocityRisk: 0.1,
-    accountAge: 0.14,
-    karmaScore: 0.12,
+    accountAge: 0.12,
+    karmaScore: 0.1,
     ipRisk: 0,
     networkBanHistory: 0.1,
     modqueueRejectionRate: 0.06,
     networkRemovalRate: 0.08,
-    socialVerification: 0.08,
+    socialVerification: 0.12,
     walletVerification: 0.06
 };
 
 /**
  * Weights when IP info IS available.
- * Total: 0.94 (normalized to 1.0 when all factors active)
+ * Total: 1.00 (normalized to 1.0 when all factors active)
  */
 export const WEIGHTS_WITH_IP: WeightConfig = {
     commentContentTitleRisk: 0.1,
     commentUrlRisk: 0.1,
     velocityRisk: 0.08,
-    accountAge: 0.1,
-    karmaScore: 0.08,
+    accountAge: 0.08,
+    karmaScore: 0.06,
     ipRisk: 0.2,
     networkBanHistory: 0.08,
     modqueueRejectionRate: 0.04,
     networkRemovalRate: 0.08,
-    socialVerification: 0.08,
+    socialVerification: 0.12,
     walletVerification: 0.06
 };
