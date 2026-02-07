@@ -479,24 +479,38 @@ The indexer tracks `subplebbit.modQueue.pendingApproval` entries and detects res
 
 ### 9. Network Removal Rate (Weight: 8% without IP, 8% with IP)
 
-Evaluates what percentage of the author's comments have been removed across all indexed subplebbits.
+Evaluates what percentage of the author's comments have been removed, purged, or disapproved across all indexed subplebbits, using a **weighted formula** that reflects the severity of each action.
 
-This includes:
+**Weighted removal count formula:**
 
-- `CommentUpdate.removed = true` (mod removal)
-- `CommentUpdate.approved = false` (disapproved)
-- `CommentUpdate` fetch failures (likely purged/banned)
+| Action Type | Weight | Description                                                     |
+| ----------- | ------ | --------------------------------------------------------------- |
+| Purged      | 1.5x   | Irreversible hard-delete — strongest signal of unwanted content |
+| Removed     | 1.0x   | Reversible soft-delete by moderator                             |
+| Disapproved | 1.0x   | Mod disapproval (`approved = false`)                            |
+| Unfetchable | 0.5x   | Pending verification — might be temporary                       |
 
-| Removal Rate | Risk Score | Description                           |
-| ------------ | ---------- | ------------------------------------- |
-| No data      | —          | Factor skipped (weight redistributed) |
-| 0-5%         | 0.10       | Rarely removed                        |
-| 5-15%        | 0.30       | Occasionally removed                  |
-| 15-30%       | 0.50       | Moderate removal rate                 |
-| 30-50%       | 0.70       | Frequently removed                    |
-| 50%+         | 0.90       | Mostly removed (high risk)            |
+```
+weightedRemovedCount = purgedCount × 1.5 + removalCount × 1.0 + disapprovalCount × 1.0 + unfetchableCount × 0.5
+removalRate = weightedRemovedCount / totalIndexedComments
+```
 
-**Rationale**: Authors whose content is frequently removed are likely posting inappropriate content.
+**Purge vs Removal distinction:**
+
+- **Purge** (irreversible): Comment is permanently deleted. For replies, the comment disappears from parent's reply pages. For posts, the comment disappears from subplebbit pages and cannot be fetched via IPFS after 3 verification attempts. Purge cascades to all descendants.
+- **Removal** (reversible): Comment has `removed: true` in its CommentUpdate. Removed replies stay in pages. Removed posts disappear from pages but can be fetched via IPFS with `removed: true`.
+- **Unfetchable** (pending): Comment has fetch failures but hasn't been verified as purged or removed yet. Gets lowest weight since it may be a temporary issue.
+
+| Weighted Removal Rate | Risk Score | Description                           |
+| --------------------- | ---------- | ------------------------------------- |
+| No data               | —          | Factor skipped (weight redistributed) |
+| 0-5%                  | 0.10       | Rarely removed                        |
+| 5-15%                 | 0.30       | Occasionally removed                  |
+| 15-30%                | 0.50       | Moderate removal rate                 |
+| 30-50%                | 0.70       | Frequently removed                    |
+| 50%+                  | 0.90       | Mostly removed (high risk)            |
+
+**Rationale**: Authors whose content is frequently removed or purged are likely posting inappropriate content. Purge is weighted highest because it represents an irreversible decision by the subplebbit owner — a stronger signal than a reversible removal.
 
 ### 10. Social Verification (Weight: 8% with/without IP)
 

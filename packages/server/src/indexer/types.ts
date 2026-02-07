@@ -72,6 +72,7 @@ export interface IndexedCommentUpdate {
     fetchedAt: number | null;
     lastFetchFailedAt: number | null;
     fetchFailureCount: number;
+    purged: number | null; // 1 or 0 (SQLite boolean) - confirmed purged (irreversible hard-delete)
     seenAtSubplebbitUpdatedAt: number | null;
 }
 
@@ -149,6 +150,7 @@ export type CommentUpdateInsertParams = Omit<
     | "fetchedAt"
     | "lastFetchFailedAt"
     | "fetchFailureCount"
+    | "purged"
     | "seenAtSubplebbitUpdatedAt"
 > & {
     author: unknown | null;
@@ -178,8 +180,10 @@ export interface AuthorNetworkStats {
     removalCount: number;
     /** Number of comments that have been disapproved */
     disapprovalCount: number;
-    /** Number of comments where CommentUpdate couldn't be fetched (likely purged) */
+    /** Number of comments where CommentUpdate couldn't be fetched (pending verification) */
     unfetchableCount: number;
+    /** Number of comments confirmed as purged (irreversible hard-delete) */
+    purgedCount: number;
     /** Number of modqueue submissions that were rejected */
     modqueueRejected: number;
     /** Number of modqueue submissions that were accepted */

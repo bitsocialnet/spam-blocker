@@ -20,8 +20,6 @@ import { IndexerQueries } from "../../indexer/db/queries.js";
  *
  * score = min(1.0, banSeverity + trustPenalty)
  */
-// TODO we need to rethink this more, getting a ban or purge is pretty severe, while removed is less so
-// also this risk factor should get higher weight I think
 export function calculateNetworkBanHistory(ctx: RiskContext, weight: number): RiskFactor {
     const authorPublicKey = getAuthorPublicKeyFromChallengeRequest(ctx.challengeRequest);
 
@@ -157,7 +155,11 @@ export function calculateNetworkRemovalRate(ctx: RiskContext, weight: number): R
     const stats = indexerQueries.getAuthorNetworkStats(authorPublicKey);
 
     const totalComments = stats.totalIndexedComments;
-    const removedCount = stats.removalCount + stats.disapprovalCount + stats.unfetchableCount;
+
+    // Weighted removal count: purge is most severe (irreversible), removal/disapproval moderate,
+    // unfetchable lowest (still pending verification)
+    const weightedRemovedCount =
+        stats.purgedCount * 1.5 + stats.removalCount * 1.0 + stats.disapprovalCount * 1.0 + stats.unfetchableCount * 0.5;
 
     let score: number;
     let explanation: string;
@@ -170,23 +172,34 @@ export function calculateNetworkRemovalRate(ctx: RiskContext, weight: number): R
             explanation: "No indexed comments for this author"
         };
     } else {
-        const removalRate = removedCount / totalComments;
+        const removalRate = weightedRemovedCount / totalComments;
+
+        const breakdown = [
+            stats.purgedCount > 0 ? `${stats.purgedCount} purged` : "",
+            stats.removalCount > 0 ? `${stats.removalCount} removed` : "",
+            stats.disapprovalCount > 0 ? `${stats.disapprovalCount} disapproved` : "",
+            stats.unfetchableCount > 0 ? `${stats.unfetchableCount} unfetchable` : ""
+        ]
+            .filter(Boolean)
+            .join(", ");
+
+        const breakdownStr = breakdown ? ` [${breakdown}]` : "";
 
         if (removalRate <= 0.05) {
             score = 0.1;
-            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% (${removedCount}/${totalComments} comments)`;
+            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% weighted (${totalComments} comments)${breakdownStr}`;
         } else if (removalRate <= 0.15) {
             score = 0.3;
-            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% (${removedCount}/${totalComments} comments)`;
+            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% weighted (${totalComments} comments)${breakdownStr}`;
         } else if (removalRate <= 0.3) {
             score = 0.5;
-            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% (${removedCount}/${totalComments} comments)`;
+            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% weighted (${totalComments} comments)${breakdownStr}`;
         } else if (removalRate <= 0.5) {
             score = 0.7;
-            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% - elevated risk (${removedCount}/${totalComments} comments)`;
+            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% weighted - elevated risk (${totalComments} comments)${breakdownStr}`;
         } else {
             score = 0.9;
-            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% - high risk (${removedCount}/${totalComments} comments)`;
+            explanation = `Network removal rate: ${Math.round(removalRate * 100)}% weighted - high risk (${totalComments} comments)${breakdownStr}`;
         }
     }
 

@@ -174,7 +174,7 @@ export async function fetchAndStoreSubplebbitComments(
         /** Called when a previousCommentCid is found that we haven't indexed yet */
         onNewPreviousCid?: (previousCid: string) => void;
     } = {}
-): Promise<{ postsCount: number; repliesCount: number; disappearedCount: number }> {
+): Promise<{ postsCount: number; repliesCount: number; disappearedCount: number; purgedCount: number; removedCount: number }> {
     const queries = new IndexerQueries(db);
     const subAddress = subplebbit.address;
     // Use subplebbit.updatedAt (seconds, from protocol) as the timestamp for when these pages were current
@@ -256,6 +256,17 @@ export async function fetchAndStoreSubplebbitComments(
                 }
             }
 
+            // Detect purged replies: compare old known reply CIDs with current reply CIDs
+            const oldReplyCids = queries.getDirectReplyCids(pageComment.cid);
+            if (oldReplyCids.length > 0) {
+                const newReplyCidSet = new Set(replies.map((r) => r.cid).filter(Boolean));
+                const disappeared = oldReplyCids.filter((cid) => !newReplyCidSet.has(cid));
+                if (disappeared.length > 0) {
+                    queries.markAsPurged(disappeared);
+                    console.log(`[CommentFetcher] Marked ${disappeared.length} purged replies (+ descendants) under ${pageComment.cid}`);
+                }
+            }
+
             for (const reply of replies) {
                 const result = await storeCommentWithReplies(reply, currentDepth + 1);
                 replyCount += result.comments + result.replies;
@@ -289,12 +300,82 @@ export async function fetchAndStoreSubplebbitComments(
         queries.recordCommentUpdateFetchFailure(cid);
     }
 
+    // Verify disappeared posts via IPFS fetch to distinguish removed vs purged
+    let purgedCount = 0;
+    let removedCount = 0;
+    const postsAwaitingVerification = queries.getPostsAwaitingVerification(subAddress);
+    for (const { cid } of postsAwaitingVerification) {
+        let comment: Awaited<ReturnType<PlebbitInstance["createComment"]>> | null = null;
+        try {
+            comment = await plebbit.createComment({ cid });
+            await comment.update();
+
+            const result = await Promise.race([
+                new Promise<"removed" | "accessible">((resolve) => {
+                    comment!.on("update", () => {
+                        if (comment!.raw?.commentUpdate?.updatedAt !== undefined) {
+                            const update = comment!.raw.commentUpdate as { removed?: boolean };
+                            resolve(update.removed ? "removed" : "accessible");
+                        }
+                    });
+                }),
+                new Promise<"timeout">((resolve) => setTimeout(() => resolve("timeout"), 30000))
+            ]);
+
+            if (result === "removed") {
+                queries.markAsRemoved(cid);
+                removedCount++;
+                console.log(`[CommentFetcher] Post ${cid} confirmed removed via IPFS`);
+            } else if (result === "accessible") {
+                // CommentUpdate exists and not removed — reset failure tracking
+                queries.upsertIndexedCommentUpdate({
+                    cid,
+                    author: comment!.raw?.commentUpdate?.author ?? null,
+                    upvoteCount: (comment!.raw?.commentUpdate as any)?.upvoteCount ?? null,
+                    downvoteCount: (comment!.raw?.commentUpdate as any)?.downvoteCount ?? null,
+                    replyCount: (comment!.raw?.commentUpdate as any)?.replyCount ?? null,
+                    removed: (comment!.raw?.commentUpdate as any)?.removed ?? null,
+                    deleted: (comment!.raw?.commentUpdate as any)?.deleted ?? null,
+                    locked: (comment!.raw?.commentUpdate as any)?.locked ?? null,
+                    pinned: (comment!.raw?.commentUpdate as any)?.pinned ?? null,
+                    approved: (comment!.raw?.commentUpdate as any)?.approved ?? null,
+                    updatedAt: (comment!.raw?.commentUpdate as any)?.updatedAt ?? null
+                });
+                console.log(`[CommentFetcher] Post ${cid} still accessible via IPFS, reset failure count`);
+            } else {
+                // Timeout — record another failure
+                queries.recordCommentUpdateFetchFailure(cid);
+                const updated = queries.getIndexedCommentUpdate(cid);
+                if (updated && updated.fetchFailureCount >= 3) {
+                    queries.markAsPurged([cid]);
+                    purgedCount++;
+                    console.log(`[CommentFetcher] Post ${cid} confirmed purged after 3 fetch failures`);
+                }
+            }
+        } catch {
+            // Fetch error — record failure
+            queries.recordCommentUpdateFetchFailure(cid);
+            const updated = queries.getIndexedCommentUpdate(cid);
+            if (updated && updated.fetchFailureCount >= 3) {
+                queries.markAsPurged([cid]);
+                purgedCount++;
+                console.log(`[CommentFetcher] Post ${cid} confirmed purged after 3 fetch failures`);
+            }
+        } finally {
+            if (comment) {
+                await comment.stop();
+            }
+        }
+    }
+
     console.log(
         `[CommentFetcher] Indexed ${postsCount} posts and ${repliesCount} replies from ${subAddress}` +
-            (disappearedCids.length > 0 ? `, ${disappearedCids.length} disappeared` : "")
+            (disappearedCids.length > 0 ? `, ${disappearedCids.length} disappeared` : "") +
+            (purgedCount > 0 ? `, ${purgedCount} purged` : "") +
+            (removedCount > 0 ? `, ${removedCount} removed` : "")
     );
 
-    return { postsCount, repliesCount, disappearedCount: disappearedCids.length };
+    return { postsCount, repliesCount, disappearedCount: disappearedCids.length, purgedCount, removedCount };
 }
 
 /**

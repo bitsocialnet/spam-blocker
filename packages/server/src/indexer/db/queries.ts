@@ -199,7 +199,9 @@ export class IndexerQueries {
                     updatedAt = @updatedAt,
                     lastRepliesPageCid = COALESCE(@lastRepliesPageCid, lastRepliesPageCid),
                     fetchedAt = @fetchedAt,
-                    fetchFailureCount = 0`
+                    fetchFailureCount = 0,
+                    purged = 0,
+                    lastFetchFailedAt = NULL`
             )
             .run({
                 cid: params.cid,
@@ -308,6 +310,64 @@ export class IndexerQueries {
             )
             .all({ subplebbitAddress, crawlTimestamp }) as Array<{ cid: string }>;
         return rows.map((r) => r.cid);
+    }
+
+    /**
+     * Get all known direct reply CIDs for a parent comment.
+     * Used for per-parent comparison to detect purged replies.
+     */
+    getDirectReplyCids(parentCid: string): string[] {
+        const rows = this.db.prepare(`SELECT cid FROM indexed_comments_ipfs WHERE parentCid = ?`).all(parentCid) as Array<{ cid: string }>;
+        return rows.map((r) => r.cid);
+    }
+
+    /**
+     * Mark CIDs as purged, recursively cascading to all known descendants.
+     * Handles plebbit's recursive purge behavior — when a reply is purged,
+     * all its sub-replies are also gone.
+     */
+    markAsPurged(cids: string[]): void {
+        if (cids.length === 0) return;
+
+        const placeholders = cids.map(() => "?").join(", ");
+
+        this.db
+            .prepare(
+                `WITH RECURSIVE descendants AS (
+                    SELECT cid FROM indexed_comments_ipfs WHERE parentCid IN (${placeholders})
+                    UNION ALL
+                    SELECT i.cid FROM indexed_comments_ipfs i JOIN descendants d ON i.parentCid = d.cid
+                )
+                UPDATE indexed_comments_update SET purged = 1
+                WHERE cid IN (SELECT cid FROM descendants) OR cid IN (${placeholders})`
+            )
+            .run(...cids, ...cids);
+    }
+
+    /**
+     * Get posts awaiting IPFS verification (disappeared but not yet confirmed purged/removed).
+     * Returns posts with 1-2 fetch failures that haven't been marked as purged or removed.
+     */
+    getPostsAwaitingVerification(subplebbitAddress: string): Array<{ cid: string }> {
+        return this.db
+            .prepare(
+                `SELECT u.cid FROM indexed_comments_update u
+                 JOIN indexed_comments_ipfs i ON u.cid = i.cid
+                 WHERE i.subplebbitAddress = @subplebbitAddress
+                   AND i.parentCid IS NULL
+                   AND u.fetchFailureCount > 0
+                   AND u.fetchFailureCount < 3
+                   AND (u.purged IS NULL OR u.purged = 0)
+                   AND (u.removed IS NULL OR u.removed = 0)`
+            )
+            .all({ subplebbitAddress }) as Array<{ cid: string }>;
+    }
+
+    /**
+     * Mark a post as removed (confirmed soft-delete via IPFS verification).
+     */
+    markAsRemoved(cid: string): void {
+        this.db.prepare(`UPDATE indexed_comments_update SET removed = 1, fetchFailureCount = 0 WHERE cid = ?`).run(cid);
     }
 
     // ============================================
@@ -449,7 +509,7 @@ export class IndexerQueries {
             )
             .get(authorPublicKey) as { disapprovalCount: number };
 
-        // Count unfetchable updates (likely purged)
+        // Count unfetchable updates (pending verification, excludes confirmed purged)
         const unfetchableResult = this.db
             .prepare(
                 `SELECT COUNT(*) as unfetchableCount
@@ -457,9 +517,21 @@ export class IndexerQueries {
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
                  WHERE json_extract(i.signature, '$.publicKey') = ?
                    AND u.fetchFailureCount > 0
-                   AND (u.fetchedAt IS NULL OR u.lastFetchFailedAt > u.fetchedAt)`
+                   AND (u.fetchedAt IS NULL OR u.lastFetchFailedAt > u.fetchedAt)
+                   AND (u.purged IS NULL OR u.purged = 0)`
             )
             .get(authorPublicKey) as { unfetchableCount: number };
+
+        // Count confirmed purged comments
+        const purgedResult = this.db
+            .prepare(
+                `SELECT COUNT(*) as purgedCount
+                 FROM indexed_comments_update u
+                 JOIN indexed_comments_ipfs i ON u.cid = i.cid
+                 WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND u.purged = 1`
+            )
+            .get(authorPublicKey) as { purgedCount: number };
 
         // ModQueue resolution stats
         const modqueueResult = this.db
@@ -497,6 +569,7 @@ export class IndexerQueries {
             removalCount: removalResult.removalCount,
             disapprovalCount: disapprovalResult.disapprovalCount,
             unfetchableCount: unfetchableResult.unfetchableCount,
+            purgedCount: purgedResult.purgedCount,
             modqueueRejected: modqueueResult.rejected,
             modqueueAccepted: modqueueResult.accepted,
             totalIndexedComments: totalResult.total,

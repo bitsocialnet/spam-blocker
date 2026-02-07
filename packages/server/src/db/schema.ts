@@ -201,12 +201,14 @@ CREATE TABLE IF NOT EXISTS indexed_comments_update (
     fetchedAt INTEGER,                     -- last successful fetch (milliseconds, NULL if never succeeded)
     lastFetchFailedAt INTEGER,
     fetchFailureCount INTEGER DEFAULT 0,   -- reset to 0 on success
+    purged INTEGER DEFAULT 0,              -- 1 = confirmed purged (irreversible hard-delete)
     seenAtSubplebbitUpdatedAt INTEGER,             -- subplebbit.updatedAt when this CID was last seen in pages (seconds, protocol time)
     FOREIGN KEY (cid) REFERENCES indexed_comments_ipfs(cid)
 );
 
 CREATE INDEX IF NOT EXISTS idx_comments_update_removed ON indexed_comments_update(removed) WHERE removed = 1;
 CREATE INDEX IF NOT EXISTS idx_comments_update_approved ON indexed_comments_update(approved) WHERE approved IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_comments_update_purged ON indexed_comments_update(purged) WHERE purged = 1;
 
 -- ModQueue CommentIpfs (from modQueue page comment.comment)
 -- Note: timestamp is from publication (seconds), firstSeenAt is internal (milliseconds)

@@ -16,11 +16,13 @@ function createMockPageComment(overrides: {
     content?: string;
     title?: string | null;
     replyCount?: number;
+    updatedAt?: number;
     replies?: { pageCids: Record<string, string>; pages: Record<string, any> };
 }) {
     const cid = overrides.cid;
     const depth = overrides.depth ?? 0;
     const parentCid = overrides.parentCid ?? null;
+    const updatedAt = overrides.updatedAt ?? 1000000 + depth;
     return {
         cid,
         subplebbitAddress: "test-sub-address",
@@ -36,7 +38,7 @@ function createMockPageComment(overrides: {
         shortCid: cid.slice(0, 6),
         shortSubplebbitAddress: "test",
         original: {},
-        updatedAt: 1000000 + depth,
+        updatedAt,
         upvoteCount: 0,
         downvoteCount: 0,
         replyCount: overrides.replyCount ?? 0,
@@ -56,13 +58,30 @@ function createMockPageComment(overrides: {
             },
             commentUpdate: {
                 cid,
-                updatedAt: 1000000 + depth,
+                updatedAt,
                 upvoteCount: 0,
                 downvoteCount: 0,
                 replyCount: overrides.replyCount ?? 0
             }
         }
     };
+}
+
+// Helper to create a mock subplebbit
+function createMockSubplebbit(posts: ReturnType<typeof createMockPageComment>[]) {
+    return {
+        address: "test-sub-address",
+        updatedAt: 2000000,
+        signature: { publicKey: "sub-pk" },
+        posts: {
+            pageCids: { new: "QmPostsPageCid" },
+            pages: {},
+            getPage: async () => ({
+                comments: posts,
+                nextCid: undefined
+            })
+        }
+    } as any;
 }
 
 describe("fetchAndStoreSubplebbitComments", () => {
@@ -82,7 +101,6 @@ describe("fetchAndStoreSubplebbitComments", () => {
     });
 
     it("should index replies that are preloaded in pages with empty pageCids", async () => {
-        // Create replies
         const reply1 = createMockPageComment({
             cid: "QmReply1",
             parentCid: "QmPost1",
@@ -96,14 +114,13 @@ describe("fetchAndStoreSubplebbitComments", () => {
             content: "second reply"
         });
 
-        // Create a post with replies ONLY in preloaded pages (empty pageCids)
         const postWithReplies = createMockPageComment({
             cid: "QmPost1",
             depth: 0,
             title: "Post with replies",
             replyCount: 2,
             replies: {
-                pageCids: {}, // empty! replies are preloaded in pages
+                pageCids: {},
                 pages: {
                     new: {
                         comments: [reply1, reply2],
@@ -113,21 +130,8 @@ describe("fetchAndStoreSubplebbitComments", () => {
             }
         });
 
-        // Mock subplebbit with the post in preloaded pages
-        const mockSubplebbit = {
-            address: "test-sub-address",
-            signature: { publicKey: "sub-pk" },
-            posts: {
-                pageCids: { new: "QmPostsPageCid" },
-                pages: {},
-                getPage: async () => ({
-                    comments: [postWithReplies],
-                    nextCid: undefined
-                })
-            }
-        } as any;
+        const mockSubplebbit = createMockSubplebbit([postWithReplies]);
 
-        // Mock plebbit - createComment shouldn't be needed for preloaded case
         const mockPlebbit = {
             createComment: async () => {
                 throw new Error("createComment should not be called for preloaded replies");
@@ -136,16 +140,13 @@ describe("fetchAndStoreSubplebbitComments", () => {
 
         const result = await fetchAndStoreSubplebbitComments(mockSubplebbit, mockPlebbit, db);
 
-        // Verify return counts
         expect(result.postsCount).toBe(1);
         expect(result.repliesCount).toBe(2);
 
-        // Verify database state
         expect(queries.hasIndexedCommentIpfs("QmPost1")).toBe(true);
         expect(queries.hasIndexedCommentIpfs("QmReply1")).toBe(true);
         expect(queries.hasIndexedCommentIpfs("QmReply2")).toBe(true);
 
-        // Verify reply data is correct
         const reply1Data = queries.getIndexedCommentIpfs("QmReply1");
         expect(reply1Data).toBeDefined();
         expect(reply1Data!.parentCid).toBe("QmPost1");
@@ -164,7 +165,6 @@ describe("fetchAndStoreSubplebbitComments", () => {
             content: "first reply"
         });
 
-        // Post has replies via pageCids (not preloaded)
         const postWithReplies = createMockPageComment({
             cid: "QmPost1",
             depth: 0,
@@ -176,21 +176,8 @@ describe("fetchAndStoreSubplebbitComments", () => {
             }
         });
 
-        const mockSubplebbit = {
-            address: "test-sub-address",
-            signature: { publicKey: "sub-pk" },
-            posts: {
-                pageCids: { new: "QmPostsPageCid" },
-                pages: {},
-                getPage: async () => ({
-                    comments: [postWithReplies],
-                    nextCid: undefined
-                })
-            }
-        } as any;
+        const mockSubplebbit = createMockSubplebbit([postWithReplies]);
 
-        // Mock plebbit.createComment to return a Comment-like object
-        // that has a replies.getPage method
         const mockPlebbit = {
             createComment: async (pageComment: any) => ({
                 ...pageComment,
@@ -223,18 +210,7 @@ describe("fetchAndStoreSubplebbitComments", () => {
             title: "Post without replies"
         });
 
-        const mockSubplebbit = {
-            address: "test-sub-address",
-            signature: { publicKey: "sub-pk" },
-            posts: {
-                pageCids: { new: "QmPostsPageCid" },
-                pages: {},
-                getPage: async () => ({
-                    comments: [post],
-                    nextCid: undefined
-                })
-            }
-        } as any;
+        const mockSubplebbit = createMockSubplebbit([post]);
 
         const mockPlebbit = {
             createComment: async () => {
@@ -263,7 +239,6 @@ describe("fetchAndStoreSubplebbitComments", () => {
             content: "second reply (from nextCid page)"
         });
 
-        // Post has reply1 preloaded with a nextCid pointing to more replies
         const postWithReplies = createMockPageComment({
             cid: "QmPost1",
             depth: 0,
@@ -274,26 +249,14 @@ describe("fetchAndStoreSubplebbitComments", () => {
                 pages: {
                     new: {
                         comments: [reply1],
-                        nextCid: "QmRepliesPage2" // more replies on next page
+                        nextCid: "QmRepliesPage2"
                     }
                 }
             }
         });
 
-        const mockSubplebbit = {
-            address: "test-sub-address",
-            signature: { publicKey: "sub-pk" },
-            posts: {
-                pageCids: { new: "QmPostsPageCid" },
-                pages: {},
-                getPage: async () => ({
-                    comments: [postWithReplies],
-                    nextCid: undefined
-                })
-            }
-        } as any;
+        const mockSubplebbit = createMockSubplebbit([postWithReplies]);
 
-        // createComment is needed to follow nextCid
         const mockPlebbit = {
             createComment: async (pageComment: any) => ({
                 ...pageComment,
@@ -317,5 +280,110 @@ describe("fetchAndStoreSubplebbitComments", () => {
         expect(result.repliesCount).toBe(2);
         expect(queries.hasIndexedCommentIpfs("QmReply1")).toBe(true);
         expect(queries.hasIndexedCommentIpfs("QmReply2")).toBe(true);
+    });
+
+    it("should index deeply nested replies (depth 2, 3, 4)", async () => {
+        // Build a chain: post -> reply(d1) -> reply(d2) -> reply(d3) -> reply(d4)
+        // Each comment has its child as a preloaded reply
+
+        const depth4Reply = createMockPageComment({
+            cid: "QmDepth4",
+            parentCid: "QmDepth3",
+            depth: 4,
+            content: "depth 4 reply"
+        });
+
+        const depth3Reply = createMockPageComment({
+            cid: "QmDepth3",
+            parentCid: "QmDepth2",
+            depth: 3,
+            content: "depth 3 reply",
+            replyCount: 1,
+            replies: {
+                pageCids: {},
+                pages: {
+                    new: { comments: [depth4Reply], nextCid: undefined }
+                }
+            }
+        });
+
+        const depth2Reply = createMockPageComment({
+            cid: "QmDepth2",
+            parentCid: "QmDepth1",
+            depth: 2,
+            content: "depth 2 reply",
+            replyCount: 1,
+            replies: {
+                pageCids: {},
+                pages: {
+                    new: { comments: [depth3Reply], nextCid: undefined }
+                }
+            }
+        });
+
+        const depth1Reply = createMockPageComment({
+            cid: "QmDepth1",
+            parentCid: "QmPost1",
+            depth: 1,
+            content: "depth 1 reply",
+            replyCount: 1,
+            replies: {
+                pageCids: {},
+                pages: {
+                    new: { comments: [depth2Reply], nextCid: undefined }
+                }
+            }
+        });
+
+        const post = createMockPageComment({
+            cid: "QmPost1",
+            depth: 0,
+            title: "Post with deep thread",
+            replyCount: 1,
+            replies: {
+                pageCids: {},
+                pages: {
+                    new: { comments: [depth1Reply], nextCid: undefined }
+                }
+            }
+        });
+
+        const mockSubplebbit = createMockSubplebbit([post]);
+
+        const mockPlebbit = {
+            createComment: async () => {
+                throw new Error("createComment should not be called for preloaded replies");
+            }
+        } as any;
+
+        const result = await fetchAndStoreSubplebbitComments(mockSubplebbit, mockPlebbit, db);
+
+        // 1 post + 4 replies at depths 1-4
+        expect(result.postsCount).toBe(1);
+        expect(result.repliesCount).toBe(4);
+
+        // All comments should be in the database
+        expect(queries.hasIndexedCommentIpfs("QmPost1")).toBe(true);
+        expect(queries.hasIndexedCommentIpfs("QmDepth1")).toBe(true);
+        expect(queries.hasIndexedCommentIpfs("QmDepth2")).toBe(true);
+        expect(queries.hasIndexedCommentIpfs("QmDepth3")).toBe(true);
+        expect(queries.hasIndexedCommentIpfs("QmDepth4")).toBe(true);
+
+        // Verify parent-child relationships and depths
+        const d1 = queries.getIndexedCommentIpfs("QmDepth1")!;
+        expect(d1.parentCid).toBe("QmPost1");
+        expect(d1.depth).toBe(1);
+
+        const d2 = queries.getIndexedCommentIpfs("QmDepth2")!;
+        expect(d2.parentCid).toBe("QmDepth1");
+        expect(d2.depth).toBe(2);
+
+        const d3 = queries.getIndexedCommentIpfs("QmDepth3")!;
+        expect(d3.parentCid).toBe("QmDepth2");
+        expect(d3.depth).toBe(3);
+
+        const d4 = queries.getIndexedCommentIpfs("QmDepth4")!;
+        expect(d4.parentCid).toBe("QmDepth3");
+        expect(d4.depth).toBe(4);
     });
 });

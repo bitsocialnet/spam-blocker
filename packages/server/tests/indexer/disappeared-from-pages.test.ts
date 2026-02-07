@@ -161,6 +161,43 @@ describe("disappeared-from-pages detection", () => {
         });
     });
 
+    describe("integration with purgedCount", () => {
+        it("should count purged posts separately from unfetchable", () => {
+            seedComment(db, { cid: "QmPurged" });
+            seedComment(db, { cid: "QmUnfetchable" });
+
+            queries.markAsPurged(["QmPurged"]);
+            queries.recordCommentUpdateFetchFailure("QmUnfetchable");
+
+            const stats = queries.getAuthorNetworkStats(AUTHOR_PK);
+            expect(stats.purgedCount).toBe(1);
+            expect(stats.unfetchableCount).toBe(1);
+        });
+
+        it("should clear purged flag when post reappears via upsertIndexedCommentUpdate", () => {
+            seedComment(db, { cid: "QmPost" });
+            queries.markAsPurged(["QmPost"]);
+            expect(queries.getAuthorNetworkStats(AUTHOR_PK).purgedCount).toBe(1);
+
+            // Post reappears (un-removed)
+            queries.upsertIndexedCommentUpdate({
+                cid: "QmPost",
+                author: { address: "addr" },
+                upvoteCount: 1,
+                downvoteCount: 0,
+                replyCount: 0,
+                removed: false,
+                deleted: false,
+                locked: false,
+                pinned: false,
+                approved: null,
+                updatedAt: T2
+            });
+
+            expect(queries.getAuthorNetworkStats(AUTHOR_PK).purgedCount).toBe(0);
+        });
+    });
+
     describe("integration with unfetchableCount", () => {
         it("should increment unfetchableCount for disappeared comments via recordCommentUpdateFetchFailure", () => {
             seedComment(db, { cid: "QmDisappeared" });
