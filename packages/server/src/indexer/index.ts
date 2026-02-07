@@ -72,28 +72,32 @@ export class Indexer {
             // Get shared Plebbit instance
             const plebbit = await getPlebbit(this.plebbitOptions);
 
-            // Initialize previous CID crawler
-            this.previousCidCrawler = new PreviousCidCrawler(plebbit, this.db, {
-                crawlTimeout: this.config.previousCidCrawlTimeout,
-                maxDepth: this.config.maxPreviousCidDepth,
-                onNewSubplebbit: (address) => {
-                    // Subscribe to newly discovered subplebbit
-                    this.subplebbitIndexer?.addSubplebbit(address, "previous_comment_cid");
-                }
-            });
+            // Initialize previous CID crawler (only if enabled)
+            if (this.config.enablePreviousCidCrawler) {
+                this.previousCidCrawler = new PreviousCidCrawler(plebbit, this.db, {
+                    crawlTimeout: this.config.previousCidCrawlTimeout,
+                    maxDepth: this.config.maxPreviousCidDepth,
+                    onNewSubplebbit: (address) => {
+                        // Subscribe to newly discovered subplebbit
+                        this.subplebbitIndexer?.addSubplebbit(address, "previous_comment_cid");
+                    }
+                });
+            }
 
             // Initialize modQueue tracker
             this.modQueueTracker = new ModQueueTracker(plebbit, this.db);
 
             // Initialize subplebbit indexer
             this.subplebbitIndexer = new SubplebbitIndexer(plebbit, this.db, {
-                onNewPreviousCid: (previousCid) => {
-                    this.previousCidCrawler?.queueCrawl(previousCid);
-                }
+                onNewPreviousCid: this.config.enablePreviousCidCrawler
+                    ? (previousCid) => {
+                          this.previousCidCrawler?.queueCrawl(previousCid);
+                      }
+                    : undefined
             });
 
             // Start workers
-            this.previousCidCrawler.start();
+            this.previousCidCrawler?.start();
             await this.subplebbitIndexer.start();
 
             this.isRunning = true;

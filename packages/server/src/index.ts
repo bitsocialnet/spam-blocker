@@ -29,6 +29,8 @@ export interface ServerConfig {
     logging?: boolean;
     /** Enable indexer. Default: true */
     enableIndexer?: boolean;
+    /** Enable the previousCommentCid crawler. Default: false */
+    enablePreviousCidCrawler?: boolean;
     /** Plebbit options passed to the Plebbit constructor. If plebbitRpcUrl is also provided, it will be merged. */
     plebbitOptions?: Parameters<typeof Plebbit>[0];
     /** Plebbit RPC WebSocket URL. Default: "ws://localhost:9138/". Convenience option merged into plebbitOptions. */
@@ -75,6 +77,7 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         ipapiKey,
         logging = true,
         enableIndexer = true,
+        enablePreviousCidCrawler = false,
         plebbitOptions: userPlebbitOptions,
         plebbitRpcUrl = DEFAULT_PLEBBIT_RPC_URL,
         oauth,
@@ -154,7 +157,7 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
     // Initialize and start indexer immediately if enabled
     let indexer: Indexer | null = null;
     if (enableIndexer) {
-        indexer = new Indexer(db.getDb(), { plebbitOptions });
+        indexer = new Indexer(db.getDb(), { config: { enablePreviousCidCrawler }, plebbitOptions });
         indexer.start().catch((err) => {
             console.error("Failed to start indexer:", err);
         });
@@ -352,6 +355,7 @@ if (isMainModule) {
         ipapiKey: process.env.IPAPI_KEY,
         logging: process.env.LOG_LEVEL !== "silent",
         enableIndexer: process.env.ENABLE_INDEXER !== "false",
+        enablePreviousCidCrawler: process.env.ENABLE_PREVIOUS_CID_CRAWLER === "true",
         plebbitRpcUrl: process.env.PLEBBIT_RPC_URL,
         oauth: Object.keys(oauth).length > 0 ? oauth : undefined,
         autoAcceptThreshold,

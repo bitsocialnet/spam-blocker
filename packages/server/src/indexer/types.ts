@@ -71,7 +71,7 @@ export interface IndexedCommentUpdate {
     fetchedAt: number | null;
     lastFetchFailedAt: number | null;
     fetchFailureCount: number;
-    lastSeenInPagesAt: number | null;
+    seenAtSubplebbitUpdatedAt: number | null;
 }
 
 /**
@@ -148,6 +148,7 @@ export type CommentUpdateInsertParams = Omit<
     | "fetchedAt"
     | "lastFetchFailedAt"
     | "fetchFailureCount"
+    | "seenAtSubplebbitUpdatedAt"
 > & {
     author: unknown | null;
     removed: boolean | null;

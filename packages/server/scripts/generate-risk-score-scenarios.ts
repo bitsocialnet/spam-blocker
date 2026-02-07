@@ -1423,22 +1423,25 @@ function generateAuthorProfileTable(scenario: ScenarioConfig, sampleResult?: Sce
     lines.push(`| Velocity | ${scenario.velocity} | ${velocityRisk} |`);
 
     // Content Duplicates
-    const contentRisk =
-        scenario.contentDuplicates === "none"
-            ? "Low risk (unique)"
-            : scenario.contentDuplicates === "3"
-              ? "Moderate risk"
-              : "High risk (spam pattern)";
-    lines.push(`| Content Duplicates | ${scenario.contentDuplicates} | ${contentRisk} |`);
+    const contentRisk = isFactorSkipped("commentContentTitleRisk")
+        ? "N/A (skipped)"
+        : scenario.contentDuplicates === "none"
+          ? "Low risk (unique)"
+          : scenario.contentDuplicates === "3"
+            ? "Moderate risk"
+            : "High risk (spam pattern)";
+    const contentDisplay = isFactorSkipped("commentContentTitleRisk") ? "—" : scenario.contentDuplicates;
+    lines.push(`| Content Duplicates | ${contentDisplay} | ${contentRisk} |`);
 
     // URL Spam
-    const urlDisplay = scenario.urlSpam.replace(/_/g, " ");
-    const urlRisk =
-        scenario.urlSpam === "no_urls"
-            ? "Low risk"
-            : scenario.urlSpam === "1_unique"
-              ? "Low risk (single URL)"
-              : "High risk (repeated URL)";
+    const urlRisk = isFactorSkipped("commentUrlRisk")
+        ? "N/A (skipped)"
+        : scenario.urlSpam === "no_urls"
+          ? "Low risk"
+          : scenario.urlSpam === "1_unique"
+            ? "Low risk (single URL)"
+            : "High risk (repeated URL)";
+    const urlDisplay = isFactorSkipped("commentUrlRisk") ? "—" : scenario.urlSpam.replace(/_/g, " ");
     lines.push(`| URL Spam | ${urlDisplay} | ${urlRisk} |`);
 
     // Modqueue Rejection

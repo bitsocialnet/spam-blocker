@@ -257,13 +257,13 @@ export class IndexerQueries {
     }
 
     /**
-     * Bulk-update lastSeenInPagesAt for a batch of CIDs.
+     * Bulk-update seenAtSubplebbitUpdatedAt for a batch of CIDs.
      * Sets the timestamp for all specified CIDs in a single transaction.
      */
     updateLastSeenInPagesAtBatch({ cids, timestamp }: { cids: string[]; timestamp: number }): void {
         if (cids.length === 0) return;
 
-        const stmt = this.db.prepare(`UPDATE indexed_comments_update SET lastSeenInPagesAt = @timestamp WHERE cid = @cid`);
+        const stmt = this.db.prepare(`UPDATE indexed_comments_update SET seenAtSubplebbitUpdatedAt = @timestamp WHERE cid = @cid`);
         const runBatch = this.db.transaction((cids: string[]) => {
             for (const cid of cids) {
                 stmt.run({ cid, timestamp });
@@ -274,7 +274,7 @@ export class IndexerQueries {
 
     /**
      * Find CIDs that have disappeared from subplebbit pages.
-     * Returns posts (parentCid IS NULL) where lastSeenInPagesAt < crawlTimestamp,
+     * Returns posts (parentCid IS NULL) where seenAtSubplebbitUpdatedAt < crawlTimestamp,
      * meaning they were previously seen but not present in the latest crawl.
      * Replies are excluded because reply pages are truncated and skipped when unchanged.
      */
@@ -285,8 +285,8 @@ export class IndexerQueries {
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
                  WHERE i.subplebbitAddress = @subplebbitAddress
                    AND i.parentCid IS NULL
-                   AND u.lastSeenInPagesAt IS NOT NULL
-                   AND u.lastSeenInPagesAt < @crawlTimestamp`
+                   AND u.seenAtSubplebbitUpdatedAt IS NOT NULL
+                   AND u.seenAtSubplebbitUpdatedAt < @crawlTimestamp`
             )
             .all({ subplebbitAddress, crawlTimestamp }) as Array<{ cid: string }>;
         return rows.map((r) => r.cid);

@@ -670,8 +670,8 @@ commentCid: "QmTargetComment123..."
 | Karma              | 0        | Neutral                   |
 | Active Bans        | 0        | Low risk (clean record)   |
 | Velocity           | bot_like | Very high risk (bot-like) |
-| Content Duplicates | none     | Low risk (unique)         |
-| URL Spam           | no urls  | Low risk                  |
+| Content Duplicates | —        | N/A (skipped)             |
+| URL Spam           | —        | N/A (skipped)             |
 | ModQueue Rejection | No data  | Unknown (neutral)         |
 | Removal Rate       | No data  | Unknown (neutral)         |
 

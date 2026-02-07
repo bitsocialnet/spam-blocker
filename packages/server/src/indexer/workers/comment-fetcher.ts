@@ -174,12 +174,15 @@ export async function fetchAndStoreSubplebbitComments(
         /** Called when a previousCommentCid is found that we haven't indexed yet */
         onNewPreviousCid?: (previousCid: string) => void;
     } = {}
-): Promise<{ postsCount: number; repliesCount: number }> {
+): Promise<{ postsCount: number; repliesCount: number; disappearedCount: number }> {
     const queries = new IndexerQueries(db);
     const subAddress = subplebbit.address;
+    // Use subplebbit.updatedAt (seconds, from protocol) as the timestamp for when these pages were current
+    const crawlTimestamp = subplebbit.updatedAt ?? Math.floor(Date.now() / 1000);
 
     let postsCount = 0;
     let repliesCount = 0;
+    const seenCids: string[] = [];
 
     // Load all posts
     const posts = await loadAllPostsFromSubplebbit(subplebbit);
@@ -259,14 +262,31 @@ export async function fetchAndStoreSubplebbitComments(
     };
 
     for (const post of posts) {
+        if (post.cid) {
+            seenCids.push(post.cid);
+        }
         const result = await storeCommentWithReplies(post, 0);
         postsCount += result.comments;
         repliesCount += result.replies;
     }
 
-    console.log(`[CommentFetcher] Indexed ${postsCount} posts and ${repliesCount} replies from ${subAddress}`);
+    // Batch-update seenAtSubplebbitUpdatedAt for all posts seen in this crawl
+    if (seenCids.length > 0) {
+        queries.updateLastSeenInPagesAtBatch({ cids: seenCids, timestamp: crawlTimestamp });
+    }
 
-    return { postsCount, repliesCount };
+    // Detect posts that disappeared from pages since last crawl
+    const disappearedCids = queries.getDisappearedFromPagesCids({ subplebbitAddress: subAddress, crawlTimestamp });
+    for (const cid of disappearedCids) {
+        queries.recordCommentUpdateFetchFailure(cid);
+    }
+
+    console.log(
+        `[CommentFetcher] Indexed ${postsCount} posts and ${repliesCount} replies from ${subAddress}` +
+            (disappearedCids.length > 0 ? `, ${disappearedCids.length} disappeared` : "")
+    );
+
+    return { postsCount, repliesCount, disappearedCount: disappearedCids.length };
 }
 
 /**

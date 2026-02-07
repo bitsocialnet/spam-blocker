@@ -195,7 +195,10 @@ export class SubplebbitIndexer {
             subscription.lastPostsPageCidNew = currentPageCidNew;
             subscription.lastSubplebbitUpdatedAt = currentUpdatedAt ?? null;
 
-            console.log(`[SubplebbitIndexer] Indexed ${result.postsCount} posts from ${address}`);
+            console.log(
+                `[SubplebbitIndexer] Indexed ${result.postsCount} posts from ${address}` +
+                    (result.disappearedCount > 0 ? `, ${result.disappearedCount} disappeared` : "")
+            );
         } catch (error) {
             console.error(`[SubplebbitIndexer] Error fetching comments from ${address}:`, error);
             this.queries.recordSubplebbitError(address, String(error));
