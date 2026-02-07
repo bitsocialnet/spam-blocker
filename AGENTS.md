@@ -22,3 +22,4 @@
 - It's much more preferable when you write a function parameters to have them under a single arg within an object like {funcParam1, funcParam2} since it's more readable and can be easily updated
 - There's usually no need to include new tables or columns, especially if we already have the value we need in a JSON column. If there's still a need, ask me and I will answer you.
 - If you modify anything related to risk factor look into whether we need to change the script of `npm run generate-scenarios` to pick up the changes you did
+- In user-facing UI text (iframes, HTML pages), use "Bitsocial" instead of "plebbit" and "community" instead of "subplebbit"
