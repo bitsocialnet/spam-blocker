@@ -226,14 +226,21 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
     log("Calling /evaluate endpoint at %s", `${options.serverUrl}/evaluate`);
     const evaluateSignature = await createRequestSignature(evaluatePropsToSign, signer);
 
-    const evaluateResponse = parseWithSchema<EvaluateResponse>(
-        EvaluateResponseSchema,
-        await postCbor(`${options.serverUrl}/evaluate`, {
-            ...evaluatePropsToSign,
-            signature: evaluateSignature
-        }),
-        "evaluate"
-    );
+    let evaluateResponse: EvaluateResponse;
+    try {
+        evaluateResponse = parseWithSchema<EvaluateResponse>(
+            EvaluateResponseSchema,
+            await postCbor(`${options.serverUrl}/evaluate`, {
+                ...evaluatePropsToSign,
+                signature: evaluateSignature
+            }),
+            "evaluate"
+        );
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown error";
+        log.error("Failed to evaluate publication: %s", message);
+        return { success: false, error: message };
+    }
     const riskScore = evaluateResponse.riskScore;
     log(
         "Evaluate response: riskScore=%s, sessionId=%s, explanation=%s",
@@ -270,14 +277,21 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
         log("Calling /challenge/verify endpoint at %s", `${options.serverUrl}/challenge/verify`);
         const verifySignature = await createRequestSignature(verifyPropsToSign, signer);
 
-        const verifyResponse = parseWithSchema<VerifyResponse>(
-            VerifyResponseSchema,
-            await postCbor(`${options.serverUrl}/challenge/verify`, {
-                ...verifyPropsToSign,
-                signature: verifySignature
-            }),
-            "verify"
-        );
+        let verifyResponse: VerifyResponse;
+        try {
+            verifyResponse = parseWithSchema<VerifyResponse>(
+                VerifyResponseSchema,
+                await postCbor(`${options.serverUrl}/challenge/verify`, {
+                    ...verifyPropsToSign,
+                    signature: verifySignature
+                }),
+                "verify"
+            );
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Unknown error";
+            log.error("Failed to verify challenge: %s", message);
+            return { success: false, error: message };
+        }
         log(
             "Verify response: success=%s, error=%s, ipRisk=%s, ipAddressCountry=%s, ipTypeEstimation=%s",
             verifyResponse.success,

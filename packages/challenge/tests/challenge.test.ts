@@ -346,21 +346,22 @@ describe("BitsocialSpamBlocker challenge package", () => {
         expect(fetchMock).toHaveBeenCalledWith("https://example.com/api/evaluate", expect.any(Object));
     });
 
-    it("throws on invalid evaluate responses", async () => {
+    it("returns {success:false} on invalid evaluate responses", async () => {
         stubFetch(createResponse(createEvaluateResponse({ riskScore: 2 }) as unknown as EvaluateResponse));
         const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
 
-        await expect(
-            challengeFile.getChallenge({
-                challengeSettings: { options: {} } as SubplebbitChallengeSetting,
-                challengeRequestMessage: request,
-                challengeIndex: 0,
-                subplebbit
-            })
-        ).rejects.toThrow(/Invalid evaluate response/i);
+        const result = await challengeFile.getChallenge({
+            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeRequestMessage: request,
+            challengeIndex: 0,
+            subplebbit
+        });
+
+        expect(result).toHaveProperty("success", false);
+        expect((result as any).error).toMatch(/Invalid evaluate response/i);
     });
 
-    it("throws on invalid verify responses", async () => {
+    it("returns {success:false} on invalid verify responses", async () => {
         stubFetch(createResponse(createEvaluateResponse({ riskScore: 0.5 })), createResponse({}));
         const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
 
@@ -375,35 +376,39 @@ describe("BitsocialSpamBlocker challenge package", () => {
             throw new Error("Expected a challenge response");
         }
 
-        await expect(result.verify("token")).rejects.toThrow(/Invalid verify response/i);
+        const verifyResult = await result.verify("token");
+        expect(verifyResult).toHaveProperty("success", false);
+        expect((verifyResult as any).error).toMatch(/Invalid verify response/i);
     });
 
-    it("throws on server errors with JSON details", async () => {
+    it("returns {success:false} on server errors with JSON details", async () => {
         stubFetch(createResponse({ error: "boom" }, { ok: false, status: 500 }));
         const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
 
-        await expect(
-            challengeFile.getChallenge({
-                challengeSettings: { options: {} } as SubplebbitChallengeSetting,
-                challengeRequestMessage: request,
-                challengeIndex: 0,
-                subplebbit
-            })
-        ).rejects.toThrow(/BitsocialSpamBlocker server error \(500\).*boom/i);
+        const result = await challengeFile.getChallenge({
+            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeRequestMessage: request,
+            challengeIndex: 0,
+            subplebbit
+        });
+
+        expect(result).toHaveProperty("success", false);
+        expect((result as any).error).toMatch(/BitsocialSpamBlocker server error \(500\).*boom/i);
     });
 
-    it("throws when the server returns invalid JSON", async () => {
+    it("returns {success:false} when the server returns invalid JSON", async () => {
         stubFetch(createResponse(undefined, { ok: true, jsonThrows: true }));
         const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
 
-        await expect(
-            challengeFile.getChallenge({
-                challengeSettings: { options: {} } as SubplebbitChallengeSetting,
-                challengeRequestMessage: request,
-                challengeIndex: 0,
-                subplebbit
-            })
-        ).rejects.toThrow(/Invalid JSON response/i);
+        const result = await challengeFile.getChallenge({
+            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeRequestMessage: request,
+            challengeIndex: 0,
+            subplebbit
+        });
+
+        expect(result).toHaveProperty("success", false);
+        expect((result as any).error).toMatch(/Invalid JSON response/i);
     });
 
     it("does not expose serverUrl or options in the public subplebbit challenge record", async () => {

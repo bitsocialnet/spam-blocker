@@ -125,10 +125,10 @@ export class IndexerQueries {
             .prepare(
                 `INSERT INTO indexed_comments_ipfs (
                     cid, subplebbitAddress, author, signature, parentCid, content, title, link,
-                    timestamp, depth, protocolVersion, fetchedAt
+                    timestamp, depth, protocolVersion, pseudonymityMode, fetchedAt
                  ) VALUES (
                     @cid, @subplebbitAddress, @author, @signature, @parentCid, @content, @title, @link,
-                    @timestamp, @depth, @protocolVersion, @fetchedAt
+                    @timestamp, @depth, @protocolVersion, @pseudonymityMode, @fetchedAt
                  ) ON CONFLICT(cid) DO NOTHING`
             )
             .run({
@@ -143,6 +143,7 @@ export class IndexerQueries {
                 timestamp: params.timestamp,
                 depth: params.depth,
                 protocolVersion: params.protocolVersion,
+                pseudonymityMode: params.pseudonymityMode,
                 fetchedAt: now
             });
     }
@@ -386,10 +387,10 @@ export class IndexerQueries {
             .prepare(
                 `INSERT INTO modqueue_comments_ipfs (
                     cid, subplebbitAddress, author, signature, parentCid, content, title, link,
-                    timestamp, depth, protocolVersion, firstSeenAt
+                    timestamp, depth, protocolVersion, pseudonymityMode, firstSeenAt
                  ) VALUES (
                     @cid, @subplebbitAddress, @author, @signature, @parentCid, @content, @title, @link,
-                    @timestamp, @depth, @protocolVersion, @firstSeenAt
+                    @timestamp, @depth, @protocolVersion, @pseudonymityMode, @firstSeenAt
                  ) ON CONFLICT(cid) DO NOTHING`
             )
             .run({
@@ -404,6 +405,7 @@ export class IndexerQueries {
                 timestamp: params.timestamp,
                 depth: params.depth,
                 protocolVersion: params.protocolVersion,
+                pseudonymityMode: params.pseudonymityMode,
                 firstSeenAt: now
             });
     }
@@ -485,6 +487,7 @@ export class IndexerQueries {
                  FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
                  WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL
                    AND json_extract(u.author, '$.subplebbit.banExpiresAt') IS NOT NULL
                    AND json_extract(u.author, '$.subplebbit.banExpiresAt') >= ?`
             )
@@ -497,6 +500,7 @@ export class IndexerQueries {
                  FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
                  WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL
                    AND u.removed = 1`
             )
             .get(authorPublicKey) as { removalCount: number };
@@ -508,6 +512,7 @@ export class IndexerQueries {
                  FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
                  WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL
                    AND u.approved = 0`
             )
             .get(authorPublicKey) as { disapprovalCount: number };

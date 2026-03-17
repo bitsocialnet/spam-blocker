@@ -123,7 +123,8 @@ export class ModQueueTracker {
             link: comment.link ?? null,
             timestamp: comment.timestamp,
             depth: comment.depth ?? null,
-            protocolVersion: comment.protocolVersion ?? null
+            protocolVersion: comment.protocolVersion ?? null,
+            pseudonymityMode: comment.pseudonymityMode ?? null
         });
 
         // Store CommentUpdate data (only subplebbit portion of author)

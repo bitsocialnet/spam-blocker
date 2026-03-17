@@ -31,7 +31,7 @@
     "dependencies": {
         "@bitsocial/spam-blocker-shared": "0.0.0",
         "@noble/ed25519": "1.7.5",
-        "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js#179ff836fa4d22365406092315a7a1ab014ee0b4",
+        "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js#10ed04e3866dd986a7f802bc9efd027f0e7d465b",
         "arctic": "3.7.0",
         "better-sqlite3": "12.4.1",
         "cborg": "4.3.2",

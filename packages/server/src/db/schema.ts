@@ -133,6 +133,7 @@ CREATE TABLE IF NOT EXISTS indexed_comments_ipfs (
     timestamp INTEGER NOT NULL,
     depth INTEGER,                         -- 0 = post, >0 = reply
     protocolVersion TEXT,
+    pseudonymityMode TEXT,
     fetchedAt INTEGER NOT NULL,
     FOREIGN KEY (subplebbitAddress) REFERENCES indexed_subplebbits(address)
 );
@@ -185,6 +186,7 @@ CREATE TABLE IF NOT EXISTS modqueue_comments_ipfs (
     timestamp INTEGER NOT NULL,
     depth INTEGER,
     protocolVersion TEXT,
+    pseudonymityMode TEXT,
     firstSeenAt INTEGER NOT NULL,
     FOREIGN KEY (subplebbitAddress) REFERENCES indexed_subplebbits(address)
 );

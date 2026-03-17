@@ -50,6 +50,7 @@ export interface IndexedCommentIpfs {
     timestamp: CommentIpfsType["timestamp"];
     depth: CommentIpfsType["depth"] | null;
     protocolVersion: CommentIpfsType["protocolVersion"] | null;
+    pseudonymityMode: CommentIpfsType["pseudonymityMode"] | null;
     fetchedAt: number;
 }
 
@@ -93,6 +94,7 @@ export interface ModQueueCommentIpfs {
     timestamp: CommentIpfsType["timestamp"];
     depth: CommentIpfsType["depth"] | null;
     protocolVersion: CommentIpfsType["protocolVersion"] | null;
+    pseudonymityMode: CommentIpfsType["pseudonymityMode"] | null;
     firstSeenAt: number;
 }
 

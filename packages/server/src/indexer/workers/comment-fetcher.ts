@@ -127,7 +127,8 @@ export function storeCommentFromPage(
         link: pageComment.link ?? null,
         timestamp: pageComment.timestamp,
         depth: pageComment.depth ?? 0,
-        protocolVersion: pageComment.protocolVersion ?? null
+        protocolVersion: pageComment.protocolVersion ?? null,
+        pseudonymityMode: pageComment.pseudonymityMode ?? null
     };
 
     queries.insertIndexedCommentIpfsIfNotExists(commentIpfs);
@@ -409,7 +410,8 @@ export function storeRawComment(comment: Comment, queries: IndexerQueries): { ha
         link: commentIpfs.link ?? null,
         timestamp: commentIpfs.timestamp,
         depth: commentIpfs.depth ?? 0,
-        protocolVersion: commentIpfs.protocolVersion ?? null
+        protocolVersion: commentIpfs.protocolVersion ?? null,
+        pseudonymityMode: commentIpfs.pseudonymityMode ?? null
     });
 
     // Store CommentUpdate if available
