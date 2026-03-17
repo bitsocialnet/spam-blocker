@@ -61,6 +61,9 @@ interface ScenarioConfig {
     /** Wallet address to use when walletNonce is set */
     walletAddress?: string;
     exampleContent?: ExampleContent;
+    /** When set, seeds indexed comments with this pseudonymityMode (simulates pseudonymous sub).
+     *  Those comments are excluded from author-keyed queries, degrading indexer-based signals. */
+    pseudonymityMode?: "per-post" | "per-reply" | "per-author";
 }
 
 interface ScenarioResult {
@@ -642,6 +645,50 @@ const SCENARIOS: ScenarioConfig[] = [
             title: "Just getting started with crypto and plebbit",
             content: "New to both but excited to learn..."
         }
+    },
+    {
+        name: "Established User, Pseudonymous Sub",
+        description:
+            "Same profile as Established Trusted User (90+ days, +5 karma, Google verified, 250 tx wallet) but all indexed history is from a pseudonymous sub. Indexer data excluded from author-keyed queries — user appears to have no cross-sub history.",
+        publicationType: "post",
+        accountAge: "90_days",
+        karma: "+5",
+        velocity: "normal",
+        banCount: 0,
+        modqueueRejection: "0%",
+        removalRate: "0%",
+        purgeRate: "0%",
+        contentDuplicates: "none",
+        urlSpam: "no_urls",
+        hasOAuthVerification: ["google"],
+        walletNonce: 250,
+        pseudonymityMode: "per-post",
+        exampleContent: {
+            title: "Question about plebbit development",
+            content: "Has anyone figured out how to run a subplebbit on a VPS? I've been here a while and still learning..."
+        }
+    },
+    {
+        name: "Serial Offender, Pseudonymous Sub",
+        description:
+            "Same profile as Serial Offender (3 bans, -5 karma, 80% modqueue rejection, 60% removal rate) but indexed history is pseudonymous. Ban/removal history from indexer is invisible — offender appears cleaner than they are.",
+        publicationType: "post",
+        accountAge: "90_days",
+        karma: "-5",
+        velocity: "elevated",
+        banCount: 3,
+        distinctSubs: 5,
+        modqueueRejection: "80%",
+        removalRate: "60%",
+        purgeRate: "no_data",
+        contentDuplicates: "3",
+        urlSpam: "1_unique",
+        pseudonymityMode: "per-post",
+        exampleContent: {
+            link: "https://192.168.1.100/download.exe",
+            title: "FREE SOFTWARE DOWNLOAD NOW",
+            content: "CLICK HERE NOW!!! DON'T MISS OUT!!!"
+        }
     }
 ];
 
@@ -773,8 +820,8 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion)
-                VALUES (?, ?, ?, ?, ?, ?, '1')
+                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
                 .run(
@@ -783,7 +830,8 @@ function seedDatabase(
                     JSON.stringify({ address: "seed-author" }),
                     JSON.stringify({ publicKey: authorPublicKey, signature: "dummy", type: "ed25519" }),
                     now - 86400 * 30,
-                    nowMs - 86400000 * 30
+                    nowMs - 86400000 * 30,
+                    scenario.pseudonymityMode ?? null
                 );
 
             // Insert indexed comment update with karma
@@ -876,8 +924,8 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion)
-                VALUES (?, ?, ?, ?, ?, ?, '1')
+                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
                 .run(
@@ -886,7 +934,8 @@ function seedDatabase(
                     JSON.stringify({ address: "seed-author" }),
                     JSON.stringify({ publicKey: authorPublicKey, signature: "dummy", type: "ed25519" }),
                     now - 86400 * 30,
-                    nowMs - 86400000 * 30
+                    nowMs - 86400000 * 30,
+                    scenario.pseudonymityMode ?? null
                 );
 
             db_raw
@@ -927,8 +976,8 @@ function seedDatabase(
 
             db_raw
                 .prepare(
-                    `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion)
-                     VALUES (?, ?, ?, ?, ?, ?, '1')`
+                    `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                     VALUES (?, ?, ?, ?, ?, ?, '1', ?)`
                 )
                 .run(
                     cid,
@@ -936,7 +985,8 @@ function seedDatabase(
                     JSON.stringify({ address: "seed-author" }),
                     JSON.stringify({ publicKey: authorPublicKey, signature: "dummy", type: "ed25519" }),
                     now - 86400 * 30,
-                    nowMs - 86400000 * 30
+                    nowMs - 86400000 * 30,
+                    scenario.pseudonymityMode ?? null
                 );
 
             db_raw
@@ -982,8 +1032,8 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO modqueue_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, firstSeenAt, protocolVersion)
-                VALUES (?, ?, ?, ?, ?, ?, '1')
+                INSERT INTO modqueue_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, firstSeenAt, protocolVersion, pseudonymityMode)
+                VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
                 .run(
@@ -992,7 +1042,8 @@ function seedDatabase(
                     JSON.stringify({ address: "seed-author" }),
                     JSON.stringify({ publicKey: authorPublicKey, signature: "dummy", type: "ed25519" }),
                     now - 86400 * 10,
-                    nowMs - 86400000 * 10
+                    nowMs - 86400000 * 10,
+                    scenario.pseudonymityMode ?? null
                 );
 
             db_raw
@@ -1040,8 +1091,8 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion)
-                VALUES (?, ?, ?, ?, ?, ?, '1')
+                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
                 .run(
@@ -1050,7 +1101,8 @@ function seedDatabase(
                     JSON.stringify({ address: "seed-author" }),
                     JSON.stringify({ publicKey: authorPublicKey, signature: "dummy", type: "ed25519" }),
                     now - 86400 * 10,
-                    nowMs - 86400000 * 10
+                    nowMs - 86400000 * 10,
+                    scenario.pseudonymityMode ?? null
                 );
 
             db_raw
@@ -1098,8 +1150,8 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion)
-                VALUES (?, ?, ?, ?, ?, ?, '1')
+                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
                 .run(
@@ -1108,7 +1160,8 @@ function seedDatabase(
                     JSON.stringify({ address: "seed-author" }),
                     JSON.stringify({ publicKey: authorPublicKey, signature: "dummy", type: "ed25519" }),
                     now - 86400 * 10,
-                    nowMs - 86400000 * 10
+                    nowMs - 86400000 * 10,
+                    scenario.pseudonymityMode ?? null
                 );
 
             db_raw
