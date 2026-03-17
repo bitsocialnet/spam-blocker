@@ -1,7 +1,7 @@
 {
-    "name": "@easy-community-spam-blocker/shared",
+    "name": "@bitsocial/spam-blocker-shared",
     "version": "0.0.0",
-    "description": "Shared types for EasyCommunitySpamBlocker",
+    "description": "Shared types for BitsocialSpamBlocker",
     "type": "module",
     "engines": {
         "node": ">=22"

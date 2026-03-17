@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-import type { EvaluateResponse } from "@easy-community-spam-blocker/shared";
+import type { EvaluateResponse } from "@bitsocial/spam-blocker-shared";
 import type { SpamDetectionDatabase, ChallengeTierDb } from "../db/index.js";
 import { EvaluateRequestSchema, type EvaluateRequest } from "./schemas.js";
 import { derivePublicationFromChallengeRequest } from "../plebbit-js-internals.js";

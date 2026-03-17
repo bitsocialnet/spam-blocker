@@ -1,6 +1,6 @@
 # Risk Scoring System
 
-This document explains how EasyCommunitySpamBlocker calculates risk scores for publications.
+This document explains how BitsocialSpamBlocker calculates risk scores for publications.
 
 ## Overview
 

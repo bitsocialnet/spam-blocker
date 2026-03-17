@@ -1,4 +1,4 @@
-import { IsoCountryCodeSchema } from "@easy-community-spam-blocker/shared";
+import { IsoCountryCodeSchema } from "@bitsocial/spam-blocker-shared";
 import { z } from "zod";
 
 export type ParsedOptions = {

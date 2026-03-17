@@ -1,21 +1,21 @@
-# EasyCommunitySpamBlocker
+# BitsocialSpamBlocker
 
 ## Overview
 
-A centralized spam detection service that evaluates publications and provides risk scores to help subplebbits filter spam. Consists of:
+A centralized spam detection service that evaluates publications and provides risk scores to help communitys filter spam. Consists of:
 
-1. **HTTP Server** (`@easy-community-spam-blocker/server`) - Risk assessment and challenge server
-2. **Challenge Package** (`@easy-community-spam-blocker/challenge`) - npm package for subplebbit integration
+1. **HTTP Server** (`@bitsocial/spam-blocker-server`) - Risk assessment and challenge server
+2. **Challenge Package** (`@bitsocial/spam-blocker-challenge`) - npm package for community integration
 
 **Important:**
 
-- The HTTP server must import and use schemas from `plebbit-js` to validate incoming challenge requests. This ensures type compatibility with `DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor`.
+- The HTTP server must import and use schemas from `pkc-js` to validate incoming challenge requests. This ensures type compatibility with `DecryptedChallengeRequestMessageTypeWithcommunityAuthor`.
 - The HTTP server must verify that the publication in the ChallengeRequest is correctly signed by the author.
 
 ## Repository Structure
 
 ```
-easy-community-spam-blocker/
+bitsocial-spam-blocker/
 ├── package.json                    # Root workspace config
 ├── tsconfig.base.json
 ├── packages/
@@ -32,7 +32,7 @@ easy-community-spam-blocker/
 │   │   │   ├── db/                 # better-sqlite3 (no ORM)
 │   │   │   └── indexer/            # Background network indexer
 │   │   └── scripts/                # Scenario generation, etc.
-│   ├── challenge/                  # npm package for subplebbits
+│   ├── challenge/                  # npm package for communitys
 │   │   └── src/
 │   │       └── index.ts            # ChallengeFileFactory
 │   └── shared/                     # Shared types
@@ -45,7 +45,7 @@ easy-community-spam-blocker/
 
 Evaluate publication risk. The server tracks author history internally, so no completion tokens are needed.
 
-Requests are signed by the subplebbit signer to prevent abuse (e.g., someone unrelated to the sub querying the engine to doxx users). The server validates the request signature and ensures the signer matches the subplebbit (for domain addresses, the server resolves the subplebbit via `plebbit.getSubplebbit` and compares `subplebbit.signature.publicKey`). Resolved subplebbit public keys are cached in-memory for 12 hours to reduce repeated lookups. The HTTP server initializes a single shared Plebbit instance and only destroys it when the server shuts down.
+Requests are signed by the community signer to prevent abuse (e.g., someone unrelated to the community querying the engine to doxx users). The server validates the request signature and ensures the signer matches the community (for domain addresses, the server resolves the community via `bitsocial.getCommunity` and compares `community.signature.publicKey`). Resolved community public keys are cached in-memory for 12 hours to reduce repeated lookups. The HTTP server initializes a single shared bitsocial instance and only destroys it when the server shuts down.
 
 **Request Format:** `Content-Type: application/cbor`
 
@@ -54,11 +54,11 @@ The request body is CBOR-encoded (not JSON). This preserves `Uint8Array` types d
 **Request:**
 
 ```typescript
-// The request wraps the DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor from plebbit-js
-// subplebbitAddress is required; author.subplebbit is optional (undefined for first-time publishers)
+// The request wraps the DecryptedChallengeRequestMessageTypeWithcommunityAuthor from bitsocial-js
+// communityAddress is required; author.community is optional (undefined for first-time publishers)
 // The signature is created by CBOR-encoding the signed properties, then signing with Ed25519
 {
-    challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    challengeRequest: DecryptedChallengeRequestMessageTypeWithcommunityAuthor;
     timestamp: number; // Unix timestamp (seconds)
     signature: {
         signature: Uint8Array; // Ed25519 signature of CBOR-encoded signed properties
@@ -76,20 +76,20 @@ The request body is CBOR-encoded (not JSON). This preserves `Uint8Array` types d
   riskScore: number; // 0.0 to 1.0
   explanation?: string; // Human-readable reasoning for the score
 
-  // Pre-generated challenge URL - sub can use this if it decides to challenge
+  // Pre-generated challenge URL - community can use this if it decides to challenge
   sessionId: string;
-  challengeUrl: string; // Full URL: https://easycommunityspamblocker.com/api/v1/iframe/{sessionId}
+  challengeUrl: string; // Full URL: https://spamblocker.bitsocial.net/api/v1/iframe/{sessionId}
   challengeExpiresAt?: number; // Unix timestamp, 1 hour from creation
 }
 ```
 
-The response always includes a pre-generated `challengeUrl`. If the sub decides to challenge based on `riskScore`, it can immediately send the URL to the user without making a second request. If the challenge is not used, the session auto-purges after 1 hour.
+The response always includes a pre-generated `challengeUrl`. If the community decides to challenge based on `riskScore`, it can immediately send the URL to the user without making a second request. If the challenge is not used, the session auto-purges after 1 hour.
 
 ### POST /api/v1/challenge/verify
 
-Called by the subplebbit's challenge code to verify that the user completed the iframe challenge. The server tracks challenge completion state internally - no token is passed from the user.
+Called by the community's challenge code to verify that the user completed the iframe challenge. The server tracks challenge completion state internally - no token is passed from the user.
 
-**Request must be signed by the subplebbit** (same signing mechanism as /evaluate), using the same signing key that was used for the evaluate request.
+**Request must be signed by the community** (same signing mechanism as /evaluate), using the same signing key that was used for the evaluate request.
 
 **Request Format:** `Content-Type: application/cbor`
 
@@ -131,7 +131,7 @@ Serves the iframe challenge page. The iframe uses an **OAuth-first** flow where 
 - **OAuth providers** (primary): GitHub, Google, Twitter, Yandex, TikTok, Discord, Reddit
 - **CAPTCHA provider** (fallback): Cloudflare Turnstile
 
-> **Privacy note**: For OAuth providers, the server only verifies successful authentication - it does NOT share account identifiers (username, email) with the subplebbit. For IP-based intelligence, only the country code is shared, never the raw IP address.
+> **Privacy note**: For OAuth providers, the server only verifies successful authentication - it does NOT share account identifiers (username, email) with the community. For IP-based intelligence, only the country code is shared, never the raw IP address.
 
 **Iframe logic (OAuth-first):**
 
@@ -149,9 +149,9 @@ When no OAuth is configured, a turnstile-only CAPTCHA iframe is served.
 2. Server applies score adjustment and determines if session passes
 3. If more verification needed, iframe transitions to "need more" view
 4. Once passed, iframe shows "Verification complete!"
-5. The user clicks "done" in their plebbit client (the client provides this button outside the iframe)
-6. The client sends a `ChallengeAnswer` with an empty string to the subplebbit
-7. The subplebbit's challenge code calls `/api/v1/challenge/verify` to check if the session is completed
+5. The user clicks "done" in their bitsocial client (the client provides this button outside the iframe)
+6. The client sends a `ChallengeAnswer` with an empty string to the community
+7. The community's challenge code calls `/api/v1/challenge/verify` to check if the session is completed
 
 ### POST /api/v1/challenge/complete
 
@@ -194,7 +194,7 @@ Called by the iframe after the user solves the CAPTCHA (as a fallback in the OAu
 
 ## Challenge Flow (Detailed)
 
-The challenge flow uses **server-side state tracking** - no tokens are passed from the iframe to the user's client. This matches the standard plebbit iframe challenge pattern (used by mintpass and others).
+The challenge flow uses **server-side state tracking** - no tokens are passed from the iframe to the user's client. This matches the standard bitsocial iframe challenge pattern (used by mintpass and others).
 
 **OAuth is the primary challenge.** The iframe shows OAuth sign-in buttons first. CAPTCHA is available as a fallback for users without social accounts. After the user completes verification, the server adjusts the risk score. If the adjusted score is below the pass threshold, the session completes. For high-risk users, additional verification (second OAuth from a different provider, or CAPTCHA) may be required.
 
@@ -235,15 +235,15 @@ The challenge flow uses **server-side state tracking** - no tokens are passed fr
 
 ```
 ┌─────────────────┐       ┌──────────────────┐       ┌────────────────┐
-│   Plebbit       │       │ EasySpamBlocker  │       │   OAuth /      │
+│   Bitsocial       │     │ Spam Blocker     │       │   OAuth /      │
 │   Client        │       │     Server       │       │   Turnstile    │
 └────────┬────────┘       └────────┬─────────┘       └───────┬────────┘
          │                         │                          │
          │  1. ChallengeRequest    │                          │
-         │  (to subplebbit)        │                          │
+         │  (to community)        │                          │
          │─────────────────────────>                          │
          │                         │                          │
-         │  2. Sub calls /evaluate │                          │
+         │  2. community calls /evaluate │                          │
          │                         │                          │
          │  3. riskScore +         │                          │
          │     sessionId +         │                          │
@@ -251,7 +251,7 @@ The challenge flow uses **server-side state tracking** - no tokens are passed fr
          │<─────────────────────────                          │
          │                         │                          │
          │  4. If challenge needed,│                          │
-         │     sub sends           │                          │
+         │     community sends           │                          │
          │     challengeUrl to     │                          │
          │     client              │                          │
          │                         │                          │
@@ -296,7 +296,7 @@ The challenge flow uses **server-side state tracking** - no tokens are passed fr
          │      with empty string  │                          │
          │─────────────────────────>                          │
          │                         │                          │
-         │  14. Sub's verify("")   │                          │
+         │  14. community's verify("")   │                          │
          │      calls /verify      │                          │
          │      with sessionId     │                          │
          │                         │                          │
@@ -304,7 +304,7 @@ The challenge flow uses **server-side state tracking** - no tokens are passed fr
          │      IP intelligence    │                          │
          │<─────────────────────────                          │
          │                         │                          │
-         │  16. Sub applies        │                          │
+         │  16. community applies        │                          │
          │      post-challenge     │                          │
          │      filters            │                          │
          │                         │                          │
@@ -312,8 +312,6 @@ The challenge flow uses **server-side state tracking** - no tokens are passed fr
          │      accepted/rejected  │                          │
          └─────────────────────────┘                          │
 ```
-
-**Key design point:** Plebbit clients (seedit, 5chan, etc.) display a "done" button outside the iframe for all `url/iframe` type challenges. The iframe content has no control over when this button appears or is clicked. The user must manually click "done" after completing the challenge, which triggers the client to send a `ChallengeAnswer` with an empty string. The subplebbit's `verify()` function then checks the server-side session status.
 
 ## Risk Score
 
@@ -325,10 +323,10 @@ For detailed documentation on how risk scoring works, including all factors, wei
 
 ## Indexer
 
-The server includes a background indexer that crawls the plebbit network to build author reputation data. It:
+The server includes a background indexer that crawls the Bitsocial network to build author reputation data. It:
 
-- Indexes subplebbits and their comments/posts
-- Follows `author.previousCommentCid` chains to discover new subs
+- Indexes communitys and their comments/posts
+- Follows `author.previousCommentCid` chains to discover new communitys
 - Tracks modQueue to see which authors get accepted/rejected
 - Detects bans/removals by monitoring CommentUpdate availability
 - Provides network-wide author reputation data for risk scoring
@@ -337,7 +335,7 @@ For detailed documentation on the indexer architecture and implementation, see:
 
 **[Indexer Documentation](packages/server/src/indexer/README.md)**
 
-**Tier Thresholds (configurable per sub via challenge options):**
+**Tier Thresholds (configurable per community via challenge options):**
 
 - `riskScore < autoAcceptThreshold` → Auto-accept (no challenge)
 - `autoAcceptThreshold <= riskScore < oauthSufficientThreshold` → One OAuth is sufficient (`oauth_sufficient`)
@@ -388,7 +386,7 @@ An opt-in pre-check that hard-rejects publications (HTTP 429) when an author exc
 | vote          | 10     | 200     |
 | **aggregate** | **40** | **250** |
 
-Check order: per-type hourly → per-type daily → aggregate hourly → aggregate daily. Only user-generated content (posts, replies, votes) is rate-limited. Subplebbit-level actions (commentEdit, commentModeration, subplebbitEdit) are rejected by the evaluate endpoint since they don't require spam detection.
+Check order: per-type hourly → per-type daily → aggregate hourly → aggregate daily. Only user-generated content (posts, replies, votes) is rate-limited. community-level actions (commentEdit, commentModeration, communityEdit) are rejected by the evaluate endpoint since they don't require spam detection.
 
 ## Challenge Verification
 
@@ -402,9 +400,9 @@ When a user completes the iframe challenge:
 4. If not → `oauthCompleted` is set, iframe shows "need more" view with remaining providers and optional CAPTCHA
 5. User completes second OAuth (different provider) or CAPTCHA → combined multiplier applied → session marked `completed`
 6. Alternatively, user can use CAPTCHA fallback from the start ("I don't have a social account")
-7. The user clicks "done" in their plebbit client
-8. The client sends a `ChallengeAnswer` with an empty string to the subplebbit
-9. The sub's challenge code calls `/api/v1/challenge/verify` with the `sessionId`
+7. The user clicks "done" in their bitsocial client
+8. The client sends a `ChallengeAnswer` with an empty string to the community
+9. The community's challenge code calls `/api/v1/challenge/verify` with the `sessionId`
 10. The server checks `session.status === "completed"` and returns success + IP intelligence
 
 **Session expiry:** 1 hour from creation
@@ -413,7 +411,7 @@ When a user completes the iframe challenge:
 
 **Tables:**
 
-Author columns store the full `author` object from each publication (for example, `DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor.comment.author`).
+Author columns store the full `author` object from each publication (for example, `DecryptedChallengeRequestMessageTypeWithcommunityAuthor.comment.author`).
 
 ### `comments`
 
@@ -498,12 +496,12 @@ Ephemeral table for CSRF protection during OAuth flow. Internal timestamps (crea
 Implements plebbit-js `ChallengeFileFactory`:
 
 ```typescript
-// Usage in subplebbit settings
+// Usage in community settings
 {
   "challenges": [{
-    "name": "@easy-community-spam-blocker/challenge",
+    "name": "@bitsocial/spam-blocker-challenge",
     "options": {
-      "serverUrl": "https://easycommunityspamblocker.com/api/v1",
+      "serverUrl": "https://spamblocker.bitsocial.net/api/v1",
       "autoAcceptThreshold": "0.2",
       "autoRejectThreshold": "0.8",
       "countryBlacklist": "RU,CN,KP",
@@ -520,28 +518,28 @@ Implements plebbit-js `ChallengeFileFactory`:
 
 When calling `/api/v1/evaluate`, the `author.subplebbit` field in the publication
 (e.g., `challengeRequest.comment.author.subplebbit`) may be `undefined` for first-time
-publishers who have never posted in the subplebbit before. The subplebbit populates this
+publishers who have never posted in the community before. The community populates this
 field from its internal database of author history, so new authors won't have it set.
 
 ### Configuration Options (Challenge Package)
 
-| Option                | Default                                       | Description                                                                    |
-| --------------------- | --------------------------------------------- | ------------------------------------------------------------------------------ |
-| `serverUrl`           | `https://easycommunityspamblocker.com/api/v1` | URL of the EasyCommunitySpamBlocker server (must be http/https)                |
-| `autoAcceptThreshold` | `0.2`                                         | Auto-accept publications below this risk score                                 |
-| `autoRejectThreshold` | `0.8`                                         | Auto-reject publications above this risk score                                 |
-| `countryBlacklist`    | `""`                                          | Comma-separated ISO 3166-1 alpha-2 country codes to block (e.g., `"RU,CN,KP"`) |
-| `maxIpRisk`           | `1.0`                                         | Reject if ipRisk from /verify exceeds this threshold                           |
-| `blockVpn`            | `false`                                       | Reject publications from VPN IPs (`true`/`false` only)                         |
-| `blockProxy`          | `false`                                       | Reject publications from proxy IPs (`true`/`false` only)                       |
-| `blockTor`            | `false`                                       | Reject publications from Tor exit nodes (`true`/`false` only)                  |
-| `blockDatacenter`     | `false`                                       | Reject publications from datacenter IPs (`true`/`false` only)                  |
+| Option                | Default                                    | Description                                                                    |
+| --------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
+| `serverUrl`           | `https://spamblocker.bitsocial.net/api/v1` | URL of the BitsocialSpamBlocker server (must be http/https)                    |
+| `autoAcceptThreshold` | `0.2`                                      | Auto-accept publications below this risk score                                 |
+| `autoRejectThreshold` | `0.8`                                      | Auto-reject publications above this risk score                                 |
+| `countryBlacklist`    | `""`                                       | Comma-separated ISO 3166-1 alpha-2 country codes to block (e.g., `"RU,CN,KP"`) |
+| `maxIpRisk`           | `1.0`                                      | Reject if ipRisk from /verify exceeds this threshold                           |
+| `blockVpn`            | `false`                                    | Reject publications from VPN IPs (`true`/`false` only)                         |
+| `blockProxy`          | `false`                                    | Reject publications from proxy IPs (`true`/`false` only)                       |
+| `blockTor`            | `false`                                    | Reject publications from Tor exit nodes (`true`/`false` only)                  |
+| `blockDatacenter`     | `false`                                    | Reject publications from datacenter IPs (`true`/`false` only)                  |
 
 **Post-challenge filtering:** After a user completes a challenge, the `/verify` response includes IP intelligence data. The challenge code uses the above options to reject publications even after successful challenge completion (e.g., if the user is from a blacklisted country or using a VPN).
 
-**Error Handling:** If the server is unreachable, the challenge code throws an error (does not silently accept or reject). This ensures the sub owner is notified of issues.
+**Error Handling:** If the server is unreachable, the challenge code throws an error (does not silently accept or reject). This ensures the community owner is notified of issues.
 
-**Privacy of options:** The `options` object (including `serverUrl` and all threshold/filtering settings) is **not** exposed in the public `subplebbit.challenges` IPFS record. Plebbit-js strips `options` when computing the public `SubplebbitChallenge` from `SubplebbitChallengeSetting`, so only `type`, `description`, and `exclude` are published. This means the server URL, thresholds, and filtering rules remain private to the subplebbit operator.
+**Privacy of options:** The `options` object (including `serverUrl` and all threshold/filtering settings) is **not** exposed in the public `community.challenges` IPFS record. bitsocial-js strips `options` when computing the public `communityChallenge` from `communityChallengeSetting`, so only `type`, `description`, and `exclude` are published. This means the server URL, thresholds, and filtering rules remain private to the community operator.
 
 ### Server Configuration (separate from challenge)
 
@@ -555,7 +553,7 @@ These settings are configured on the HTTP server, not in the challenge package:
 
 - `TURNSTILE_SITE_KEY`: Cloudflare Turnstile site key
 - `TURNSTILE_SECRET_KEY`: Cloudflare Turnstile secret key
-- `BASE_URL`: Base URL for OAuth callbacks (e.g., `https://easycommunityspamblocker.com`)
+- `BASE_URL`: Base URL for OAuth callbacks (e.g., `https://spamblocker.bitsocial.net`)
 
 **IP Intelligence:**
 
@@ -609,7 +607,7 @@ These settings are configured on the HTTP server, not in the challenge package:
 - Raw IPs are stored for spam detection purposes
 - Content analysis is performed on the server
 - IP intelligence lookups are sent to ipapi.is when enabled
-- OAuth identity (provider:userId) is stored server-side but never shared with subplebbits
+- OAuth identity (provider:userId) is stored server-side but never shared with communities
 - All data is visible to the server operator
 - Open source for auditability
 - Explanation field shows reasoning for scores
@@ -639,22 +637,22 @@ These settings are configured on the HTTP server, not in the challenge package:
 4. **Build challenge package**:
     - ChallengeFileFactory implementation
     - HTTP client for server communication
-5. **Testing**: Unit tests, integration tests with plebbit-js
+5. **Testing**: Unit tests, integration tests with bitsocial-js
 6. **Documentation**: README, API docs, risk score scenarios
 
 ## Verification Plan
 
 1. Run server locally: `DATABASE_PATH=spam_detection.db npm run dev`
-2. Test /evaluate endpoint with `{ challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor }`
+2. Test /evaluate endpoint with `{ challengeRequest: DecryptedChallengeRequestMessageTypeWithcommunityAuthor }`
 3. Test iframe flow using challengeUrl from /evaluate response
 4. Test /challenge/verify with valid and invalid tokens
 5. Test post-challenge filtering (country blacklist, VPN blocking, etc.)
-6. Integrate challenge package with local plebbit-js subplebbit
+6. Integrate challenge package with local plebbit-js community
 7. Verify full end-to-end flow
 
 ## Reference Files
 
-- plebbit-js challenge example: `plebbit-js/src/runtime/node/subplebbit/challenges/plebbit-js-challenges/captcha-canvas-v3/index.ts`
-- plebbit-js schemas: `plebbit-js/src/subplebbit/schema.ts`
-- plebbit-js challenge orchestration: `plebbit-js/src/runtime/node/subplebbit/challenges/index.ts`
-- MintPass iframe challenge: https://github.com/plebbitlabs/mintpass/tree/master/challenge
+- bitsocial-js challenge example: `plebbit-js/src/runtime/node/community/challenges/bitsocial-js-challenges/captcha-canvas-v3/index.ts`
+- bitsocial-js schemas: `plebbit-js/src/community/schema.ts`
+- bitsocial-js challenge orchestration: `plebbit-js/src/runtime/node/community/challenges/index.ts`
+- MintPass iframe challenge: https://github.com/bitsociallabs/mintpass/tree/master/challenge

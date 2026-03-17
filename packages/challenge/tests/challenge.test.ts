@@ -4,7 +4,7 @@ import type { LocalSubplebbit } from "@plebbit/plebbit-js/dist/node/runtime/node
 import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { getPublicKeyFromPrivateKey } from "../src/plebbit-js-signer.js";
-import type { EvaluateResponse, VerifyResponse } from "@easy-community-spam-blocker/shared";
+import type { EvaluateResponse, VerifyResponse } from "@bitsocial/spam-blocker-shared";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import ChallengeFileFactory from "../src/index.js";
 import * as cborg from "cborg";
@@ -38,7 +38,7 @@ const createEvaluateResponse = (overrides: Partial<EvaluateResponse> = {}): Eval
     riskScore: 0.5,
     explanation: "OK",
     sessionId: "challenge-123",
-    challengeUrl: "https://easycommunityspamblocker.com/api/v1/iframe/challenge-123",
+    challengeUrl: "https://spamblocker.bitsocial.net/api/v1/iframe/challenge-123",
     challengeExpiresAt: 1710000000,
     ...overrides
 });
@@ -68,12 +68,12 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
-describe("EasyCommunitySpamBlocker challenge package", () => {
+describe("BitsocialSpamBlocker challenge package", () => {
     it("exposes metadata and option inputs", () => {
         const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
 
         expect(challengeFile.type).toBe("url/iframe");
-        expect(challengeFile.description).toMatch(/EasyCommunitySpamBlocker/i);
+        expect(challengeFile.description).toMatch(/BitsocialSpamBlocker/i);
         expect(challengeFile.optionInputs.some((input) => input.option === "serverUrl")).toBe(true);
     });
 
@@ -91,7 +91,7 @@ describe("EasyCommunitySpamBlocker challenge package", () => {
         expect(result).toEqual({ success: true });
         expect(fetchMock).toHaveBeenCalledTimes(1);
         expect(fetchMock).toHaveBeenCalledWith(
-            "https://easycommunityspamblocker.com/api/v1/evaluate",
+            "https://spamblocker.bitsocial.net/api/v1/evaluate",
             expect.objectContaining({ method: "POST" })
         );
     });
@@ -139,7 +139,7 @@ describe("EasyCommunitySpamBlocker challenge package", () => {
         expect(fetchMock).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
             success: false,
-            error: "Rejected by EasyCommunitySpamBlocker (riskScore 0.80). Too risky"
+            error: "Rejected by BitsocialSpamBlocker (riskScore 0.80). Too risky"
         });
     });
 
@@ -389,7 +389,7 @@ describe("EasyCommunitySpamBlocker challenge package", () => {
                 challengeIndex: 0,
                 subplebbit
             })
-        ).rejects.toThrow(/EasyCommunitySpamBlocker server error \(500\).*boom/i);
+        ).rejects.toThrow(/BitsocialSpamBlocker server error \(500\).*boom/i);
     });
 
     it("throws when the server returns invalid JSON", async () => {
@@ -427,7 +427,7 @@ describe("EasyCommunitySpamBlocker challenge package", () => {
 
         // The public challenge should only contain these fields
         expect(publicChallenge.type).toBe("url/iframe");
-        expect(publicChallenge.description).toMatch(/EasyCommunitySpamBlocker/i);
+        expect(publicChallenge.description).toMatch(/BitsocialSpamBlocker/i);
 
         // options and serverUrl must NOT be in the public record
         const serialized = JSON.stringify(publicChallenge);

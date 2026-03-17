@@ -1,5 +1,5 @@
 /**
- * Database schema for EasyCommunitySpamBlocker.
+ * Database schema for BitsocialSpamBlocker.
  * Uses better-sqlite3 with SQLite.
  */
 

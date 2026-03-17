@@ -5,24 +5,24 @@ import type {
     GetChallengeArgs
 } from "@plebbit/plebbit-js/dist/node/subplebbit/types.js";
 import { signBufferEd25519 } from "./plebbit-js-signer.js";
-import type { EvaluateResponse, VerifyResponse } from "@easy-community-spam-blocker/shared";
-import { EvaluateResponseSchema, VerifyResponseSchema } from "@easy-community-spam-blocker/shared";
+import type { EvaluateResponse, VerifyResponse } from "@bitsocial/spam-blocker-shared";
+import { EvaluateResponseSchema, VerifyResponseSchema } from "@bitsocial/spam-blocker-shared";
 import { createOptionsSchema, type ParsedOptions } from "./schema.js";
 import * as cborg from "cborg";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import Logger from "@plebbit/plebbit-logger";
 
-const log = Logger("plebbit-js:subplebbit:challenge:easy-community-spam-blocker");
+const log = Logger("plebbit-js:subplebbit:challenge:bitsocial-spam-blocker");
 
-const DEFAULT_SERVER_URL = "https://easycommunityspamblocker.com/api/v1";
+const DEFAULT_SERVER_URL = "https://spamblocker.bitsocial.net/api/v1";
 
 const optionInputs = [
     {
         option: "serverUrl",
         label: "Server URL",
         default: DEFAULT_SERVER_URL,
-        description: "URL of the EasyCommunitySpamBlocker server",
-        placeholder: "https://easycommunityspamblocker.com/api/v1"
+        description: "URL of the BitsocialSpamBlocker server",
+        placeholder: "https://spamblocker.bitsocial.net/api/v1"
     },
     {
         option: "autoAcceptThreshold",
@@ -86,7 +86,7 @@ const OptionsSchema = createOptionsSchema(optionInputs);
 
 const type: ChallengeInput["type"] = "url/iframe";
 
-const description: ChallengeFileInput["description"] = "Validate publications using EasyCommunitySpamBlocker.";
+const description: ChallengeFileInput["description"] = "Validate publications using BitsocialSpamBlocker.";
 
 const parseOptions = (settings: GetChallengeArgs["challengeSettings"]): ParsedOptions => {
     const parsed = OptionsSchema.safeParse(settings?.options);
@@ -140,12 +140,12 @@ const postCbor = async (url: string, body: unknown): Promise<unknown> => {
     if (!response.ok) {
         const details = responseBody !== undefined ? `: ${JSON.stringify(responseBody)}` : "";
         log.error(`POST ${url} failed with status ${response.status}${details}`);
-        throw new Error(`EasyCommunitySpamBlocker server error (${response.status})${details}`);
+        throw new Error(`BitsocialSpamBlocker server error (${response.status})${details}`);
     }
 
     if (responseBody === undefined) {
         log.error(`POST ${url} returned invalid JSON`);
-        throw new Error("Invalid JSON response from EasyCommunitySpamBlocker server");
+        throw new Error("Invalid JSON response from BitsocialSpamBlocker server");
     }
 
     return responseBody;
@@ -157,7 +157,7 @@ const parseWithSchema = <T>(schema: { parse: (data: unknown) => T }, data: unkno
     } catch (error) {
         const message = error instanceof Error ? error.message : "";
         const suffix = message ? `: ${message}` : "";
-        throw new Error(`Invalid ${context} response from EasyCommunitySpamBlocker server${suffix}`);
+        throw new Error(`Invalid ${context} response from BitsocialSpamBlocker server${suffix}`);
     }
 };
 
@@ -214,7 +214,7 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
 
     if (!signer) {
         log.error("Subplebbit signer is missing");
-        throw new Error("Subplebbit signer is required to call EasyCommunitySpamBlocker");
+        throw new Error("Subplebbit signer is required to call BitsocialSpamBlocker");
     }
     log.trace("Signer publicKey: %s", signer.publicKey);
 
@@ -253,7 +253,7 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
         return {
             success: false,
             // TODO find a better error message
-            error: `Rejected by EasyCommunitySpamBlocker (riskScore ${formatRiskScore(riskScore)}).${explanation}`
+            error: `Rejected by BitsocialSpamBlocker (riskScore ${formatRiskScore(riskScore)}).${explanation}`
         };
     }
 

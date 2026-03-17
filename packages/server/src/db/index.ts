@@ -67,7 +67,7 @@ export interface DatabaseConfig {
 }
 
 /**
- * Database wrapper for EasyCommunitySpamBlocker.
+ * Database wrapper for BitsocialSpamBlocker.
  * Provides methods for managing challenge sessions and IP records.
  */
 export class SpamDetectionDatabase {

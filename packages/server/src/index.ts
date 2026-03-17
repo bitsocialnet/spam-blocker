@@ -64,7 +64,7 @@ export interface SpamDetectionServer {
 }
 
 /**
- * Create a new EasyCommunitySpamBlocker server instance.
+ * Create a new BitsocialSpamBlocker server instance.
  */
 export async function createServer(config: ServerConfig): Promise<SpamDetectionServer> {
     const {
@@ -381,7 +381,7 @@ if (isMainModule) {
             return server.start();
         })
         .then((address) => {
-            console.log(`EasyCommunitySpamBlocker server listening at ${address}`);
+            console.log(`BitsocialSpamBlocker server listening at ${address}`);
         })
         .catch((err) => {
             console.error("Failed to start server:", err);

@@ -1,5 +1,5 @@
 {
-    "name": "easy-community-spam-blocker",
+    "name": "bitsocial-spam-blocker",
     "private": true,
     "type": "module",
     "engines": {
@@ -9,14 +9,14 @@
         "packages/*"
     ],
     "scripts": {
-        "build": "npm run -w @easy-community-spam-blocker/shared build && npm run -w @easy-community-spam-blocker/server build && npm run -w @easy-community-spam-blocker/challenge build",
+        "build": "npm run -w @bitsocial/spam-blocker-shared build && npm run -w @bitsocial/spam-blocker-server build && npm run -w @bitsocial/spam-blocker-challenge build",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "prepare": "husky"
     },
     "devDependencies": {
-        "husky": "^9.1.7",
-        "prettier": "^3.8.0",
+        "husky": "9.1.7",
+        "prettier": "3.8.1",
         "typescript": "5.9.3"
     },
     "dependencies": {

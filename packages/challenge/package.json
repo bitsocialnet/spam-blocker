@@ -1,7 +1,7 @@
 {
-    "name": "@easy-community-spam-blocker/challenge",
+    "name": "@bitsocial/spam-blocker-challenge",
     "version": "0.0.0",
-    "description": "EasyCommunitySpamBlocker challenge implementation for Plebbit",
+    "description": "BitsocialSpamBlocker challenge implementation for Plebbit",
     "type": "module",
     "engines": {
         "node": ">=22"
@@ -38,8 +38,8 @@
         "zod": "4.3.5"
     },
     "devDependencies": {
-        "@easy-community-spam-blocker/shared": "file:../shared",
-        "esbuild": "^0.27.2",
+        "@bitsocial/spam-blocker-shared": "file:../shared",
+        "esbuild": "0.27.2",
         "typescript": "5.9.3",
         "vitest": "4.0.16"
     }

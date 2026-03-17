@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import type { VerifyResponse } from "@easy-community-spam-blocker/shared";
+import type { VerifyResponse } from "@bitsocial/spam-blocker-shared";
 import type { SpamDetectionDatabase } from "../db/index.js";
 import { VerifyRequestSchema, type VerifyRequest } from "./schemas.js";
 import { verifySignedRequest } from "../security/request-signature.js";
