@@ -524,6 +524,7 @@ export class IndexerQueries {
                  FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
                  WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL
                    AND u.fetchFailureCount > 0
                    AND (u.fetchedAt IS NULL OR u.lastFetchFailedAt > u.fetchedAt)
                    AND (u.purged IS NULL OR u.purged = 0)`
@@ -537,6 +538,7 @@ export class IndexerQueries {
                  FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
                  WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL
                    AND u.purged = 1`
             )
             .get(authorPublicKey) as { purgedCount: number };
@@ -550,6 +552,7 @@ export class IndexerQueries {
                  FROM modqueue_comments_update u
                  JOIN modqueue_comments_ipfs i ON u.cid = i.cid
                  WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL
                    AND u.resolved = 1`
             )
             .get(authorPublicKey) as { rejected: number; accepted: number };
@@ -559,7 +562,8 @@ export class IndexerQueries {
             .prepare(
                 `SELECT COUNT(*) as total
                  FROM indexed_comments_ipfs
-                 WHERE json_extract(signature, '$.publicKey') = ?`
+                 WHERE json_extract(signature, '$.publicKey') = ?
+                   AND pseudonymityMode IS NULL`
             )
             .get(authorPublicKey) as { total: number };
 
@@ -568,7 +572,8 @@ export class IndexerQueries {
             .prepare(
                 `SELECT COUNT(DISTINCT subplebbitAddress) as distinctSubs
                  FROM indexed_comments_ipfs
-                 WHERE json_extract(signature, '$.publicKey') = ?`
+                 WHERE json_extract(signature, '$.publicKey') = ?
+                   AND pseudonymityMode IS NULL`
             )
             .get(authorPublicKey) as { distinctSubs: number };
 
@@ -597,7 +602,8 @@ export class IndexerQueries {
             .prepare(
                 `SELECT MIN(fetchedAt) as minTime
                  FROM indexed_comments_ipfs
-                 WHERE json_extract(signature, '$.publicKey') = ?`
+                 WHERE json_extract(signature, '$.publicKey') = ?
+                   AND pseudonymityMode IS NULL`
             )
             .get(authorPublicKey) as { minTime: number | null };
 
@@ -617,7 +623,8 @@ export class IndexerQueries {
                     COALESCE(SUM(u.downvoteCount), 0) as downvotes
                  FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
-                 WHERE json_extract(i.signature, '$.publicKey') = ?`
+                 WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL`
             )
             .get(authorPublicKey) as { upvotes: number; downvotes: number };
 
@@ -651,6 +658,7 @@ export class IndexerQueries {
                  FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
                  WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL
                    AND u.author IS NOT NULL
                  ORDER BY COALESCE(u.updatedAt, u.fetchedAt) DESC`
             )
@@ -693,6 +701,7 @@ export class IndexerQueries {
                 `SELECT COUNT(*) as count
                  FROM indexed_comments_ipfs i
                  WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL
                    AND ${depthCondition}
                    AND i.timestamp >= ?`
             )
@@ -703,6 +712,7 @@ export class IndexerQueries {
                 `SELECT COUNT(*) as count
                  FROM indexed_comments_ipfs i
                  WHERE json_extract(i.signature, '$.publicKey') = ?
+                   AND i.pseudonymityMode IS NULL
                    AND ${depthCondition}
                    AND i.timestamp >= ?`
             )
