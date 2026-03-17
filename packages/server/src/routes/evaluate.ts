@@ -13,6 +13,7 @@ import { calculateRiskScore } from "../risk-score/index.js";
 import { getAuthorFromChallengeRequest, getAuthorPublicKeyFromChallengeRequest, getPublicationType } from "../risk-score/utils.js";
 import { checkRateLimit, type RateLimitConfig } from "../rate-limit/index.js";
 import { fetchWalletTransactionCounts } from "../security/author-field-signature.js";
+import type { RiskFactorName } from "../risk-score/types.js";
 import { determineChallengeTier, type ChallengeTierConfig } from "../risk-score/challenge-tier.js";
 import { IndexerQueries } from "../indexer/db/queries.js";
 import type { Indexer } from "../indexer/index.js";
@@ -35,6 +36,8 @@ export interface EvaluateRouteOptions {
     allowNonDomainSubplebbits?: boolean;
     /** Rate limit configuration. Undefined = feature disabled. Pass {} to enable with defaults. */
     rateLimitConfig?: RateLimitConfig;
+    /** List of risk factor names to disable (their weight is zeroed out and redistributed) */
+    disabledRiskFactors?: RiskFactorName[];
 }
 
 /**
@@ -49,7 +52,8 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
         enabledOAuthProviders = [],
         hasTurnstile = false,
         allowNonDomainSubplebbits = false,
-        rateLimitConfig
+        rateLimitConfig,
+        disabledRiskFactors
     } = options;
 
     const hasOAuthProviders = enabledOAuthProviders.length > 0;
@@ -173,13 +177,17 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             }
 
             // Fetch wallet transaction counts (nonces) for risk scoring
+            // Skip RPC calls when walletVerification is disabled
             const author = getAuthorFromChallengeRequest(typedChallengeRequest);
-            const walletTransactionCounts = await fetchWalletTransactionCounts({
-                wallets: author.wallets as
-                    | Record<string, { address: string; timestamp: number; signature: { signature: string; type: string } }>
-                    | undefined,
-                plebbit
-            });
+            const walletVerificationDisabled = disabledRiskFactors?.includes("walletVerification") ?? false;
+            const walletTransactionCounts = walletVerificationDisabled
+                ? undefined
+                : await fetchWalletTransactionCounts({
+                      wallets: author.wallets as
+                          | Record<string, { address: string; timestamp: number; signature: { signature: string; type: string } }>
+                          | undefined,
+                      plebbit
+                  });
 
             // Check for duplicate publication (replay attack prevention)
             const signatureValue = (publication.signature as { signature: string }).signature;
@@ -224,7 +232,8 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
                 challengeRequest: challengeRequest as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor,
                 db,
                 walletTransactionCounts,
-                enabledOAuthProviders
+                enabledOAuthProviders,
+                disabledRiskFactors
             });
 
             // Determine challenge tier based on risk score

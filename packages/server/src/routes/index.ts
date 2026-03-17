@@ -10,6 +10,7 @@ import { registerCompleteRoute } from "./complete.js";
 import { registerOAuthRoutes } from "./oauth.js";
 import type { ChallengeTierConfig } from "../risk-score/challenge-tier.js";
 import type { RateLimitConfig } from "../rate-limit/index.js";
+import type { RiskFactorName } from "../risk-score/types.js";
 
 export interface RouteOptions {
     db: SpamDetectionDatabase;
@@ -34,6 +35,8 @@ export interface RouteOptions {
     secondOauthScoreMultiplier?: number;
     /** Adjusted score must be below this to pass. Default: 0.4 */
     challengePassThreshold?: number;
+    /** List of risk factor names to disable (their weight is zeroed out and redistributed) */
+    disabledRiskFactors?: RiskFactorName[];
 }
 
 /**
@@ -54,7 +57,8 @@ export function registerRoutes(fastify: FastifyInstance, options: RouteOptions):
         captchaScoreMultiplier,
         oauthScoreMultiplier,
         secondOauthScoreMultiplier,
-        challengePassThreshold
+        challengePassThreshold,
+        disabledRiskFactors
     } = options;
 
     // Determine available challenge providers
@@ -71,7 +75,8 @@ export function registerRoutes(fastify: FastifyInstance, options: RouteOptions):
         enabledOAuthProviders,
         hasTurnstile,
         allowNonDomainSubplebbits,
-        rateLimitConfig
+        rateLimitConfig,
+        disabledRiskFactors
     });
     registerVerifyRoute(fastify, { db });
     registerIframeRoute(fastify, {

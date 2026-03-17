@@ -72,6 +72,12 @@ export interface WeightConfig {
 }
 
 /**
+ * Union of all risk factor names (keys of WeightConfig).
+ * Used to validate disabledRiskFactors config.
+ */
+export type RiskFactorName = keyof WeightConfig;
+
+/**
  * Default weights when IP info is NOT available.
  * Total: 1.00 (normalized to 1.0 when all factors active)
  */

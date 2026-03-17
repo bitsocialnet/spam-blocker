@@ -6,6 +6,8 @@ import { destroyPlebbitInstance, getPlebbitInstance, initPlebbitInstance, setPle
 import { Indexer, stopIndexer } from "./indexer/index.js";
 import { createOAuthProviders, type OAuthConfig } from "./oauth/providers.js";
 import { validateChallengeTierConfig, DEFAULT_CHALLENGE_TIER_CONFIG } from "./risk-score/challenge-tier.js";
+import type { RiskFactorName } from "./risk-score/types.js";
+import { WEIGHTS_NO_IP } from "./risk-score/types.js";
 import type Plebbit from "@plebbit/plebbit-js";
 
 const DEFAULT_PLEBBIT_RPC_URL = "ws://localhost:9138/";
@@ -53,6 +55,8 @@ export interface ServerConfig {
     secondOauthScoreMultiplier?: number;
     /** Adjusted score must be below this to pass. Default: 0.4 */
     challengePassThreshold?: number;
+    /** List of risk factor names to disable (their weight is zeroed out and redistributed) */
+    disabledRiskFactors?: RiskFactorName[];
 }
 
 export interface SpamDetectionServer {
@@ -88,7 +92,8 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         captchaScoreMultiplier,
         oauthScoreMultiplier,
         secondOauthScoreMultiplier,
-        challengePassThreshold
+        challengePassThreshold,
+        disabledRiskFactors
     } = config;
 
     // Build challenge tier config from provided thresholds
@@ -177,7 +182,8 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         captchaScoreMultiplier,
         oauthScoreMultiplier,
         secondOauthScoreMultiplier,
-        challengePassThreshold
+        challengePassThreshold,
+        disabledRiskFactors
     });
 
     initPlebbitInstance();
@@ -300,6 +306,18 @@ if (isMainModule) {
         validateChallengeTierConfig(mergedConfig);
     }
 
+    // Parse DISABLED_RISK_FACTORS (comma-separated list of factor names)
+    const validRiskFactorNames = Object.keys(WEIGHTS_NO_IP) as RiskFactorName[];
+    let disabledRiskFactors: RiskFactorName[] | undefined;
+    if (process.env.DISABLED_RISK_FACTORS) {
+        disabledRiskFactors = process.env.DISABLED_RISK_FACTORS.split(",").map((s) => s.trim()) as RiskFactorName[];
+        for (const name of disabledRiskFactors) {
+            if (!validRiskFactorNames.includes(name)) {
+                throw new Error(`Invalid DISABLED_RISK_FACTORS value: '${name}'. Valid values: ${validRiskFactorNames.join(", ")}`);
+            }
+        }
+    }
+
     // Build OAuth config from environment variables
     const oauth: OAuthConfig = {};
     if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
@@ -365,7 +383,8 @@ if (isMainModule) {
         captchaScoreMultiplier,
         oauthScoreMultiplier,
         secondOauthScoreMultiplier,
-        challengePassThreshold
+        challengePassThreshold,
+        disabledRiskFactors
     })
         .then((server) => {
             // Graceful shutdown

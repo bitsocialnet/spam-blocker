@@ -582,6 +582,10 @@ These settings are configured on the HTTP server, not in the challenge package:
 - `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`
 - `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET`
 
+**Risk factor disabling:**
+
+- `DISABLED_RISK_FACTORS`: Comma-separated list of risk factor names to disable. Disabled factors get `weight=0` and their weight is redistributed to remaining factors. Valid values: `commentContentTitleRisk`, `commentUrlRisk`, `velocityRisk`, `accountAge`, `karmaScore`, `ipRisk`, `networkBanHistory`, `modqueueRejectionRate`, `networkRemovalRate`, `socialVerification`, `walletVerification`. Example: `DISABLED_RISK_FACTORS=walletVerification`
+
 **Other:**
 
 - `PORT`: Server port (default: 3000)

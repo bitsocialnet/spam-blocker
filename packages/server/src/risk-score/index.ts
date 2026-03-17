@@ -1,6 +1,6 @@
 import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
 import type { SpamDetectionDatabase } from "../db/index.js";
-import type { RiskContext, RiskFactor, RiskScoreResult, WeightConfig } from "./types.js";
+import type { RiskContext, RiskFactor, RiskFactorName, RiskScoreResult, WeightConfig } from "./types.js";
 import { WEIGHTS_NO_IP, WEIGHTS_WITH_IP } from "./types.js";
 import { CombinedDataService } from "./combined-data-service.js";
 import {
@@ -39,6 +39,8 @@ export interface CalculateRiskScoreOptions {
     enabledOAuthProviders?: string[];
     /** Pre-fetched wallet transaction counts (nonces) mapping wallet address (lowercased) to nonce */
     walletTransactionCounts?: Record<string, number>;
+    /** List of risk factor names to disable (their weight is zeroed out and redistributed) */
+    disabledRiskFactors?: RiskFactorName[];
 }
 
 /**
@@ -68,7 +70,14 @@ export function calculateRiskScore(options: CalculateRiskScoreOptions): RiskScor
     const enabledOAuthProviders = options.enabledOAuthProviders ?? [];
 
     // Select weight configuration based on IP availability
-    const weights = options.weights ?? (hasIpInfo ? WEIGHTS_WITH_IP : WEIGHTS_NO_IP);
+    const baseWeights = options.weights ?? (hasIpInfo ? WEIGHTS_WITH_IP : WEIGHTS_NO_IP);
+
+    // Zero out disabled factors and let the existing redistribution logic handle the rest
+    const disabledRiskFactors = options.disabledRiskFactors ?? [];
+    const weights: WeightConfig = { ...baseWeights };
+    for (const name of disabledRiskFactors) {
+        weights[name] = 0;
+    }
 
     // Create combined data service for querying both engine and indexer tables
     const combinedData = new CombinedDataService(db);

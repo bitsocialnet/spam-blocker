@@ -674,15 +674,16 @@ Weights are redistributed based on whether IP information is available:
 
 ## Weight Redistribution
 
-Some factors may be **skipped** (return `weight: 0`) when their required data is unavailable or when they don't apply to the publication type:
+Some factors may be **skipped** (return `weight: 0`) when their required data is unavailable, when they don't apply to the publication type, or when they are **explicitly disabled** via config:
 
-| Factor              | Conditions for Skipping                                            |
-| ------------------- | ------------------------------------------------------------------ |
-| IP Risk             | No IP intelligence data available (user hasn't accessed iframe)    |
-| Content/Title Risk  | Publication is not a comment (vote)                                |
-| URL/Link Risk       | Publication is not a comment (vote)                                |
-| Social Verification | OAuth is completely disabled (no enabled providers)                |
-| Wallet Activity     | No wallets, no transaction data, nonce=0, or all wallets discarded |
+| Factor              | Conditions for Skipping                                                  |
+| ------------------- | ------------------------------------------------------------------------ |
+| IP Risk             | No IP intelligence data available (user hasn't accessed iframe)          |
+| Content/Title Risk  | Publication is not a comment (vote)                                      |
+| URL/Link Risk       | Publication is not a comment (vote)                                      |
+| Social Verification | OAuth is completely disabled (no enabled providers)                      |
+| Wallet Activity     | No wallets, no transaction data, nonce=0, or all wallets discarded       |
+| Any factor          | Listed in `disabledRiskFactors` config / `DISABLED_RISK_FACTORS` env var |
 
 When a factor is skipped, its weight is **proportionally redistributed** to the remaining active factors. This ensures:
 
