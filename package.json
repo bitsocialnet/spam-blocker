@@ -12,12 +12,26 @@
         "build": "npm run -w @bitsocial/spam-blocker-shared build && npm run -w @bitsocial/spam-blocker-server build && npm run -w @bitsocial/spam-blocker-challenge build",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "prepare": "husky"
+        "prepare": "husky",
+        "commit": "cz",
+        "release:server": "cd packages/server && HUSKY=0 release-it --config .release-it.json",
+        "release:challenge": "cd packages/challenge && HUSKY=0 release-it --config .release-it.json"
     },
     "devDependencies": {
+        "@commitlint/cli": "20.2.0",
+        "@commitlint/config-conventional": "20.3.1",
+        "commitizen": "4.2.5",
+        "cz-conventional-changelog": "3.3.0",
         "husky": "9.1.7",
         "prettier": "3.8.1",
+        "release-it": "19.2.3",
+        "@release-it/conventional-changelog": "10.0.1",
         "typescript": "5.9.3"
+    },
+    "config": {
+        "commitizen": {
+            "path": "cz-conventional-changelog"
+        }
     },
     "dependencies": {
         "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js#179ff836fa4d22365406092315a7a1ab014ee0b4"

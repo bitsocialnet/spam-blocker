@@ -1,0 +1,35 @@
+{
+    "git": {
+        "requireCleanWorkingDir": false,
+        "requireCommits": true,
+        "commit": false,
+        "tagAnnotation": "server-v${version}",
+        "tagName": "server-v${version}",
+        "tagArgs": ["--force"]
+    },
+    "npm": { "publish": false },
+    "github": {
+        "release": true,
+        "releaseName": "server-v${version}"
+    },
+    "plugins": {
+        "@release-it/conventional-changelog": {
+            "preset": {
+                "name": "conventionalcommits",
+                "preMajor": true,
+                "types": [
+                    { "type": "feat", "section": "Features" },
+                    { "type": "fix", "section": "Bug Fixes" },
+                    { "type": "perf", "section": "Performance Improvements" },
+                    { "type": "revert", "section": "Reverts" },
+                    { "type": "build", "section": "Build System" }
+                ]
+            },
+            "infile": "CHANGELOG.md",
+            "path": "."
+        }
+    },
+    "hooks": {
+        "before:git:release": "cd ../.. && npm install --package-lock-only --ignore-scripts && cd packages/server && git add CHANGELOG.md package.json ../../package-lock.json && git commit -m 'chore(release): server v${version} [skip ci]'"
+    }
+}
