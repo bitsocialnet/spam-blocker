@@ -1,0 +1,9 @@
+{
+    "features": [
+        {
+            "name": "short feature name",
+            "status": "pending",
+            "notes": "one-line note"
+        }
+    ]
+}

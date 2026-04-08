@@ -1,0 +1,10 @@
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+sandbox_mode = "read-only"
+developer_instructions = """
+Verify only the route, flow, and acceptance criteria the parent agent assigns.
+Use playwright-cli against the already-running local app at http://localhost:3000 unless the parent agent provides a different URL.
+Never start, restart, or stop the server yourself.
+Default to a fresh isolated browser session. If the verification depends on auth, cookies, extensions, open tabs, or other existing browser state and the parent agent did not specify session mode, stop and ask which session to use.
+Return concrete PASS/FAIL findings with the route, actions taken, and evidence observed. Do not modify application code.
+"""

@@ -6,14 +6,14 @@ on:
         paths:
             - "packages/**"
             - "package.json"
-            - "package-lock.json"
+            - "yarn.lock"
             - ".github/**"
     push:
         branches: [master]
         paths:
             - "packages/**"
             - "package.json"
-            - "package-lock.json"
+            - "yarn.lock"
             - ".github/**"
 
 jobs:
@@ -25,14 +25,19 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: 22
-                  cache: npm
+                  cache: yarn
+                  cache-dependency-path: yarn.lock
 
-            - run: npm ci
+            - run: corepack enable
 
-            - run: npm run build
+            - run: corepack yarn install --immutable
 
-            - run: npm run -w @bitsocial/spam-blocker-server test
+            - run: corepack yarn build
 
-            - run: npm run -w @bitsocial/spam-blocker-challenge test
+            - run: corepack yarn type-check
 
-            - run: npm run format:check
+            - run: corepack yarn workspace @bitsocial/spam-blocker-server test
+
+            - run: corepack yarn workspace @bitsocial/spam-blocker-challenge test
+
+            - run: corepack yarn format:check

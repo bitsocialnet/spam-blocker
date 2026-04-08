@@ -25,7 +25,8 @@
     },
     "scripts": {
         "build": "tsc -p tsconfig.json",
-        "clean": "rm -rf dist"
+        "clean": "rm -rf dist",
+        "type-check": "tsc -p tsconfig.json --noEmit"
     },
     "dependencies": {
         "i18n-iso-countries": "7.14.0",

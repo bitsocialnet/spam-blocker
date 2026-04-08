@@ -8,6 +8,7 @@ const plebbitRoot = path.resolve(path.dirname(plebbitEntry), "..", "..");
 
 export default defineConfig({
     test: {
+        setupFiles: ["tests/setup.ts"],
         alias: {
             "@plebbit/plebbit-js/dist/node": path.join(plebbitRoot, "dist/node")
         }

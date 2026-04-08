@@ -2,10 +2,27 @@
 
 ## Overview
 
-A centralized spam detection service that evaluates publications and provides risk scores to help communitys filter spam. Consists of:
+A centralized spam detection service that evaluates publications and provides risk scores to help communities filter spam. Consists of:
 
 1. **HTTP Server** (`@bitsocial/spam-blocker-server`) - Risk assessment and challenge server
-2. **Challenge Package** (`@bitsocial/spam-blocker-challenge`) - npm package for community integration
+2. **Challenge Package** (`@bitsocial/spam-blocker-challenge`) - package for community integration
+
+## Development Workflow
+
+Repo-specific AI workflow guidance lives in:
+
+- [`AGENTS.md`](/Users/Tommaso/Desktop/bitsocial/spam-blocker/AGENTS.md)
+- [`CLAUDE.md`](/Users/Tommaso/Desktop/bitsocial/spam-blocker/CLAUDE.md)
+- [`docs/agent-playbooks/hooks-setup.md`](/Users/Tommaso/Desktop/bitsocial/spam-blocker/docs/agent-playbooks/hooks-setup.md)
+- [`docs/agent-playbooks/skills-and-tools.md`](/Users/Tommaso/Desktop/bitsocial/spam-blocker/docs/agent-playbooks/skills-and-tools.md)
+
+The repo is intended to be worked with Corepack-managed Yarn and repo-managed agent hooks. See the playbooks for the recommended setup and verification flow.
+
+Quick setup for a fresh machine:
+
+1. `corepack enable`
+2. `corepack yarn install`
+3. `./scripts/install-default-agent-skills.sh`
 
 **Important:**
 
@@ -18,6 +35,7 @@ A centralized spam detection service that evaluates publications and provides ri
 bitsocial-spam-blocker/
 ├── package.json                    # Root workspace config
 ├── tsconfig.base.json
+├── docs/                           # Agent playbooks and workflow notes
 ├── packages/
 │   ├── server/                     # HTTP server (Fastify + better-sqlite3)
 │   │   ├── src/
@@ -32,7 +50,7 @@ bitsocial-spam-blocker/
 │   │   │   ├── db/                 # better-sqlite3 (no ORM)
 │   │   │   └── indexer/            # Background network indexer
 │   │   └── scripts/                # Scenario generation, etc.
-│   ├── challenge/                  # npm package for communitys
+│   ├── challenge/                  # package for community owners
 │   │   └── src/
 │   │       └── index.ts            # ChallengeFileFactory
 │   └── shared/                     # Shared types
@@ -325,8 +343,8 @@ For detailed documentation on how risk scoring works, including all factors, wei
 
 The server includes a background indexer that crawls the Bitsocial network to build author reputation data. It:
 
-- Indexes communitys and their comments/posts
-- Follows `author.previousCommentCid` chains to discover new communitys
+- Indexes communities and their comments/posts
+- Follows `author.previousCommentCid` chains to discover new communities
 - Tracks modQueue to see which authors get accepted/rejected
 - Detects bans/removals by monitoring CommentUpdate availability
 - Provides network-wide author reputation data for risk scoring
@@ -491,7 +509,7 @@ Ephemeral table for CSRF protection during OAuth flow. Internal timestamps (crea
 - `createdAt` INTEGER NOT NULL
 - `expiresAt` INTEGER NOT NULL
 
-## Challenge Code (npm package)
+## Challenge Code
 
 Implements plebbit-js `ChallengeFileFactory`:
 
@@ -625,7 +643,7 @@ These settings are configured on the HTTP server, not in the challenge package:
 
 ## Implementation Steps
 
-1. **Setup monorepo** with npm workspaces, TypeScript, ESM
+1. **Setup monorepo** with Yarn workspaces, TypeScript, ESM
 2. **Implement shared types** package
 3. **Build server**:
     - Fastify setup with routes
@@ -642,11 +660,11 @@ These settings are configured on the HTTP server, not in the challenge package:
     - ChallengeFileFactory implementation
     - HTTP client for server communication
 5. **Testing**: Unit tests, integration tests with bitsocial-js
-6. **Documentation**: README, API docs, risk score scenarios
+6. **Documentation**: README, API docs, risk score scenarios, agent playbooks
 
 ## Verification Plan
 
-1. Run server locally: `DATABASE_PATH=spam_detection.db npm run dev`
+1. Run server locally: `cd packages/server && DATABASE_PATH=spam_detection.db corepack yarn dev`
 2. Test /evaluate endpoint with `{ challengeRequest: DecryptedChallengeRequestMessageTypeWithcommunityAuthor }`
 3. Test iframe flow using challengeUrl from /evaluate response
 4. Test /challenge/verify with valid and invalid tokens

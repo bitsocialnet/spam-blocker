@@ -1,0 +1,25 @@
+{
+    "version": 1,
+    "hooks": {
+        "afterFileEdit": [
+            {
+                "command": ".claude/hooks/format.sh",
+                "timeout": 10
+            },
+            {
+                "command": ".claude/hooks/yarn-install.sh",
+                "timeout": 120
+            }
+        ],
+        "stop": [
+            {
+                "command": ".claude/hooks/sync-git-branches.sh",
+                "timeout": 60
+            },
+            {
+                "command": ".claude/hooks/verify.sh",
+                "timeout": 60
+            }
+        ]
+    }
+}

@@ -29,7 +29,7 @@ export interface ServerConfig {
     ipapiKey?: string;
     /** Enable request logging. Default: true */
     logging?: boolean;
-    /** Enable indexer. Default: true */
+    /** Enable indexer. Default: true outside tests, false when NODE_ENV=test. */
     enableIndexer?: boolean;
     /** Enable the previousCommentCid crawler. Default: false */
     enablePreviousCidCrawler?: boolean;
@@ -80,7 +80,7 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         turnstileSecretKey,
         ipapiKey,
         logging = true,
-        enableIndexer = true,
+        enableIndexer = process.env.NODE_ENV !== "test",
         enablePreviousCidCrawler = false,
         plebbitOptions: userPlebbitOptions,
         plebbitRpcUrl = DEFAULT_PLEBBIT_RPC_URL,

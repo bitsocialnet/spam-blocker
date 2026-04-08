@@ -20,16 +20,17 @@
         "./package.json": "./package.json"
     },
     "scripts": {
-        "build": "tsc",
+        "build": "yarn workspace @bitsocial/spam-blocker-shared build && tsc",
         "clean": "rm -rf dist",
         "start": "node --env-file=.env --import tsx dist/index.js",
         "dev": "node --env-file=.env --import tsx src/index.ts",
         "test": "vitest run",
         "test:watch": "vitest",
+        "type-check": "yarn workspace @bitsocial/spam-blocker-shared build && tsc --noEmit",
         "generate-scenarios": "node --import tsx scripts/generate-risk-score-scenarios.ts"
     },
     "dependencies": {
-        "@bitsocial/spam-blocker-shared": "0.0.0",
+        "@bitsocial/spam-blocker-shared": "workspace:*",
         "@noble/ed25519": "1.7.5",
         "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js#10ed04e3866dd986a7f802bc9efd027f0e7d465b",
         "arctic": "3.7.0",

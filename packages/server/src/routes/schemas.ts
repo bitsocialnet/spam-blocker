@@ -18,6 +18,8 @@ export const CborSignatureSchema = z.object({
     signedPropertyNames: z.array(z.string())
 });
 
+export type CborSignature = z.infer<typeof CborSignatureSchema>;
+
 const ChallengeRequestWithSubplebbitAuthorSchema = DecryptedChallengeRequestSchema.superRefine((value: DecryptedChallengeRequest, ctx) => {
     let publication;
     try {
@@ -52,7 +54,13 @@ const ChallengeRequestWithSubplebbitAuthorSchema = DecryptedChallengeRequestSche
     }
 });
 
-export const EvaluateRequestSchema = z
+export interface EvaluateRequest {
+    challengeRequest: DecryptedChallengeRequest;
+    timestamp: number;
+    signature: CborSignature;
+}
+
+export const EvaluateRequestSchema: z.ZodType<EvaluateRequest> = z
     .object({
         challengeRequest: ChallengeRequestWithSubplebbitAuthorSchema,
         timestamp: PlebbitTimestampSchema,
@@ -61,24 +69,22 @@ export const EvaluateRequestSchema = z
     .strict();
 
 /**
- * Type for the evaluate request body.
- * Imported from plebbit-js.
- */
-export type EvaluateRequest = z.infer<typeof EvaluateRequestSchema>;
-
-/**
  * Schema for the verify request body.
  * Note: token field removed - challenge completion is tracked server-side.
  */
-export const VerifyRequestSchema = z
+export interface VerifyRequest {
+    sessionId: string;
+    timestamp: number;
+    signature: CborSignature;
+}
+
+export const VerifyRequestSchema: z.ZodType<VerifyRequest> = z
     .object({
         sessionId: z.string().min(1, "sessionId is required"),
         timestamp: PlebbitTimestampSchema,
         signature: CborSignatureSchema
     })
     .strict();
-
-export type VerifyRequest = z.infer<typeof VerifyRequestSchema>;
 
 /**
  * Schema for the iframe route params.

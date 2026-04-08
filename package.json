@@ -2,6 +2,7 @@
     "name": "bitsocial-spam-blocker",
     "private": true,
     "type": "module",
+    "packageManager": "yarn@4.13.0",
     "engines": {
         "node": ">=22"
     },
@@ -9,7 +10,9 @@
         "packages/*"
     ],
     "scripts": {
-        "build": "npm run -w @bitsocial/spam-blocker-shared build && npm run -w @bitsocial/spam-blocker-server build && npm run -w @bitsocial/spam-blocker-challenge build",
+        "build": "yarn workspace @bitsocial/spam-blocker-shared build && yarn workspace @bitsocial/spam-blocker-server build && yarn workspace @bitsocial/spam-blocker-challenge build",
+        "test": "yarn workspace @bitsocial/spam-blocker-server test && yarn workspace @bitsocial/spam-blocker-challenge test",
+        "type-check": "yarn workspace @bitsocial/spam-blocker-shared type-check && yarn workspace @bitsocial/spam-blocker-server type-check && yarn workspace @bitsocial/spam-blocker-challenge type-check",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "prepare": "husky",
@@ -20,12 +23,12 @@
     "devDependencies": {
         "@commitlint/cli": "20.2.0",
         "@commitlint/config-conventional": "20.3.1",
+        "@release-it/conventional-changelog": "10.0.1",
         "commitizen": "4.2.5",
         "cz-conventional-changelog": "3.3.0",
         "husky": "9.1.7",
         "prettier": "3.8.1",
         "release-it": "19.2.3",
-        "@release-it/conventional-changelog": "10.0.1",
         "typescript": "6.0.2"
     },
     "config": {

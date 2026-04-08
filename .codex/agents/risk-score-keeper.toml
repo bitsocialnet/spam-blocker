@@ -1,0 +1,8 @@
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+developer_instructions = """
+Handle only risk-score related work in packages/server/src/risk-score and its directly related tests and docs.
+When risk factors or scoring logic change, update the risk scoring documentation, check whether the scenario generator needs to change, and regenerate the scenarios.
+Prefer targeted server tests that prove the risk-score behavior changed as intended.
+Do not widen scope into unrelated server features.
+"""

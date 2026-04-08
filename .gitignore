@@ -1,5 +1,17 @@
-packages/server/.plebbit/storage.db
+packages/server/.plebbit/
 data/
+node_modules/
+coverage/
+packages/*/dist/
+.DS_Store
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+.pnp.*
 
 # Environment files (contain secrets)
 .env
@@ -8,3 +20,42 @@ data/
 
 # Apple private keys
 *.p8
+
+# Local tooling state
+.playwright-cli/
+.firecrawl/
+
+# Repo-managed AI tooling
+.cursor/*
+.cursor/.DS_Store
+!.cursor/agents/
+!.cursor/agents/**
+!.cursor/hooks/
+!.cursor/hooks/**
+!.cursor/hooks.json
+!.cursor/skills/
+!.cursor/skills/**
+.cursor/**/.DS_Store
+
+.codex/*
+.codex/.DS_Store
+!.codex/agents/
+!.codex/agents/**
+!.codex/config.toml
+!.codex/hooks/
+!.codex/hooks/**
+!.codex/hooks.json
+!.codex/skills/
+!.codex/skills/**
+.codex/**/.DS_Store
+
+.claude/*
+.claude/.DS_Store
+!.claude/agents/
+!.claude/agents/**
+!.claude/hooks/
+!.claude/hooks/**
+!.claude/hooks.json
+!.claude/skills/
+!.claude/skills/**
+.claude/**/.DS_Store
