@@ -1,11 +1,11 @@
 /**
  * Tests for comment-fetcher: verifies that replies are properly indexed
- * from subplebbit page data, including preloaded replies.
+ * from community page data, including preloaded replies.
  */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Database from "better-sqlite3";
 import { SCHEMA_SQL } from "../../src/db/schema.js";
-import { fetchAndStoreSubplebbitComments } from "../../src/indexer/workers/comment-fetcher.js";
+import { fetchAndStoreCommunityComments } from "../../src/indexer/workers/comment-fetcher.js";
 import { IndexerQueries } from "../../src/indexer/db/queries.js";
 
 // Helper to create a mock page comment (post or reply)
@@ -25,7 +25,7 @@ function createMockPageComment(overrides: {
     const updatedAt = overrides.updatedAt ?? 1000000 + depth;
     return {
         cid,
-        subplebbitAddress: "test-sub-address",
+        communityAddress: "test-sub-address",
         author: { address: `author-of-${cid}`, previousCommentCid: null },
         signature: { publicKey: `pk-${cid}`, type: "ed25519", signature: "sig" },
         parentCid,
@@ -36,7 +36,7 @@ function createMockPageComment(overrides: {
         depth,
         protocolVersion: "1.0.0",
         shortCid: cid.slice(0, 6),
-        shortSubplebbitAddress: "test",
+        shortCommunityAddress: "test",
         original: {},
         updatedAt,
         upvoteCount: 0,
@@ -45,7 +45,7 @@ function createMockPageComment(overrides: {
         replies: overrides.replies ?? { pageCids: {}, pages: {} },
         raw: {
             comment: {
-                subplebbitAddress: "test-sub-address",
+                communityAddress: "test-sub-address",
                 author: { address: `author-of-${cid}`, previousCommentCid: null },
                 signature: { publicKey: `pk-${cid}`, type: "ed25519", signature: "sig" },
                 parentCid,
@@ -67,8 +67,8 @@ function createMockPageComment(overrides: {
     };
 }
 
-// Helper to create a mock subplebbit
-function createMockSubplebbit(posts: ReturnType<typeof createMockPageComment>[]) {
+// Helper to create a mock community
+function createMockCommunity(posts: ReturnType<typeof createMockPageComment>[]) {
     return {
         address: "test-sub-address",
         updatedAt: 2000000,
@@ -84,7 +84,7 @@ function createMockSubplebbit(posts: ReturnType<typeof createMockPageComment>[])
     } as any;
 }
 
-describe("fetchAndStoreSubplebbitComments", () => {
+describe("fetchAndStoreCommunityComments", () => {
     let db: InstanceType<typeof Database>;
     let queries: IndexerQueries;
 
@@ -92,8 +92,8 @@ describe("fetchAndStoreSubplebbitComments", () => {
         db = new Database(":memory:");
         db.exec(SCHEMA_SQL);
         queries = new IndexerQueries(db);
-        // Insert the subplebbit so FK constraints don't cause issues
-        queries.upsertIndexedSubplebbit({ address: "test-sub-address", discoveredVia: "manual" });
+        // Insert the community so FK constraints don't cause issues
+        queries.upsertIndexedCommunity({ address: "test-sub-address", discoveredVia: "manual" });
     });
 
     afterEach(() => {
@@ -130,15 +130,15 @@ describe("fetchAndStoreSubplebbitComments", () => {
             }
         });
 
-        const mockSubplebbit = createMockSubplebbit([postWithReplies]);
+        const mockCommunity = createMockCommunity([postWithReplies]);
 
-        const mockPlebbit = {
+        const mockPKC = {
             createComment: async () => {
                 throw new Error("createComment should not be called for preloaded replies");
             }
         } as any;
 
-        const result = await fetchAndStoreSubplebbitComments(mockSubplebbit, mockPlebbit, db);
+        const result = await fetchAndStoreCommunityComments(mockCommunity, mockPKC, db);
 
         expect(result.postsCount).toBe(1);
         expect(result.repliesCount).toBe(2);
@@ -176,13 +176,13 @@ describe("fetchAndStoreSubplebbitComments", () => {
             }
         });
 
-        const mockSubplebbit = createMockSubplebbit([postWithReplies]);
+        const mockCommunity = createMockCommunity([postWithReplies]);
 
-        const mockPlebbit = {
+        const mockPKC = {
             createComment: async (pageComment: any) => ({
                 ...pageComment,
                 cid: pageComment.cid,
-                subplebbitAddress: pageComment.subplebbitAddress,
+                communityAddress: pageComment.communityAddress,
                 replies: {
                     pageCids: pageComment.raw?.commentUpdate?.replies?.pageCids ?? {},
                     pages: {},
@@ -190,12 +190,12 @@ describe("fetchAndStoreSubplebbitComments", () => {
                         comments: [reply1],
                         nextCid: undefined
                     }),
-                    _subplebbit: { address: "test-sub-address" }
+                    _community: { address: "test-sub-address" }
                 }
             })
         } as any;
 
-        const result = await fetchAndStoreSubplebbitComments(mockSubplebbit, mockPlebbit, db);
+        const result = await fetchAndStoreCommunityComments(mockCommunity, mockPKC, db);
 
         expect(result.postsCount).toBe(1);
         expect(result.repliesCount).toBe(1);
@@ -210,15 +210,15 @@ describe("fetchAndStoreSubplebbitComments", () => {
             title: "Post without replies"
         });
 
-        const mockSubplebbit = createMockSubplebbit([post]);
+        const mockCommunity = createMockCommunity([post]);
 
-        const mockPlebbit = {
+        const mockPKC = {
             createComment: async () => {
                 throw new Error("Should not be called");
             }
         } as any;
 
-        const result = await fetchAndStoreSubplebbitComments(mockSubplebbit, mockPlebbit, db);
+        const result = await fetchAndStoreCommunityComments(mockCommunity, mockPKC, db);
 
         expect(result.postsCount).toBe(1);
         expect(result.repliesCount).toBe(0);
@@ -255,13 +255,13 @@ describe("fetchAndStoreSubplebbitComments", () => {
             }
         });
 
-        const mockSubplebbit = createMockSubplebbit([postWithReplies]);
+        const mockCommunity = createMockCommunity([postWithReplies]);
 
-        const mockPlebbit = {
+        const mockPKC = {
             createComment: async (pageComment: any) => ({
                 ...pageComment,
                 cid: pageComment.cid,
-                subplebbitAddress: pageComment.subplebbitAddress,
+                communityAddress: pageComment.communityAddress,
                 replies: {
                     pageCids: {},
                     pages: {},
@@ -269,12 +269,12 @@ describe("fetchAndStoreSubplebbitComments", () => {
                         comments: [reply2],
                         nextCid: undefined
                     }),
-                    _subplebbit: { address: "test-sub-address" }
+                    _community: { address: "test-sub-address" }
                 }
             })
         } as any;
 
-        const result = await fetchAndStoreSubplebbitComments(mockSubplebbit, mockPlebbit, db);
+        const result = await fetchAndStoreCommunityComments(mockCommunity, mockPKC, db);
 
         expect(result.postsCount).toBe(1);
         expect(result.repliesCount).toBe(2);
@@ -348,15 +348,15 @@ describe("fetchAndStoreSubplebbitComments", () => {
             }
         });
 
-        const mockSubplebbit = createMockSubplebbit([post]);
+        const mockCommunity = createMockCommunity([post]);
 
-        const mockPlebbit = {
+        const mockPKC = {
             createComment: async () => {
                 throw new Error("createComment should not be called for preloaded replies");
             }
         } as any;
 
-        const result = await fetchAndStoreSubplebbitComments(mockSubplebbit, mockPlebbit, db);
+        const result = await fetchAndStoreCommunityComments(mockCommunity, mockPKC, db);
 
         // 1 post + 4 replies at depths 1-4
         expect(result.postsCount).toBe(1);

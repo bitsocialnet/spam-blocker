@@ -3,7 +3,7 @@ import { calculateVelocity } from "../../src/risk-score/factors/velocity.js";
 import { SpamDetectionDatabase } from "../../src/db/index.js";
 import { CombinedDataService } from "../../src/risk-score/combined-data-service.js";
 import type { RiskContext } from "../../src/risk-score/types.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 
 const baseTimestamp = Math.floor(Date.now() / 1000);
 
@@ -19,7 +19,7 @@ function createSignature(publicKey: string) {
 function createMockAuthor() {
     return {
         address: "12D3KooWTestAddress",
-        subplebbit: {
+        community: {
             postScore: 0,
             replyScore: 0,
             firstCommentTimestamp: baseTimestamp - 86400,
@@ -32,7 +32,7 @@ function createMockChallengeRequest(
     pubType: "comment" | "vote",
     publicKey: string,
     isPost = true
-): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     const base = {
         challengeRequestId: { bytes: new Uint8Array() },
         acceptedChallengeTypes: ["turnstile"],
@@ -47,28 +47,28 @@ function createMockChallengeRequest(
             ...base,
             comment: {
                 author,
-                subplebbitAddress: "test-sub.eth",
+                communityAddress: "test-sub.eth",
                 timestamp: baseTimestamp,
                 protocolVersion: "1",
                 signature,
                 content: "Test content",
                 parentCid: isPost ? undefined : "QmParentCid"
             }
-        } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+        } as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
     }
     // vote
     return {
         ...base,
         vote: {
             author,
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature,
             commentCid: "QmCommentCid",
             vote: 1
         }
-    } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 describe("calculateVelocity", () => {
@@ -111,14 +111,14 @@ describe("calculateVelocity", () => {
                 const sessionId = `challenge-${i}`;
                 db.insertChallengeSession({
                     sessionId,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey)
@@ -150,14 +150,14 @@ describe("calculateVelocity", () => {
                 const sessionId = `vote-challenge-${i}`;
                 db.insertChallengeSession({
                     sessionId,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertVote({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey),
@@ -200,12 +200,12 @@ describe("calculateVelocity", () => {
             // Posts
             for (let i = 0; i < 5; i++) {
                 const sessionId = `post-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+                db.insertChallengeSession({ sessionId, communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
                 db.insertComment({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey)
@@ -216,12 +216,12 @@ describe("calculateVelocity", () => {
             // Replies
             for (let i = 0; i < 10; i++) {
                 const sessionId = `reply-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+                db.insertChallengeSession({ sessionId, communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
                 db.insertComment({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey),
@@ -233,12 +233,12 @@ describe("calculateVelocity", () => {
             // Votes
             for (let i = 0; i < 40; i++) {
                 const sessionId = `vote-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+                db.insertChallengeSession({ sessionId, communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
                 db.insertVote({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey),
@@ -273,12 +273,12 @@ describe("calculateVelocity", () => {
             // Insert 160 votes (each one normal for votes at 20/hr threshold but massive aggregate)
             for (let i = 0; i < 160; i++) {
                 const sessionId = `vote-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+                db.insertChallengeSession({ sessionId, communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
                 db.insertVote({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey),
@@ -313,12 +313,12 @@ describe("calculateVelocity", () => {
             // Insert 150 votes (BOT_LIKE for votes: > 100)
             for (let i = 0; i < 150; i++) {
                 const sessionId = `vote-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+                db.insertChallengeSession({ sessionId, communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
                 db.insertVote({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey),
@@ -329,12 +329,12 @@ describe("calculateVelocity", () => {
             }
 
             // Insert 1 post (NORMAL for posts)
-            db.insertChallengeSession({ sessionId: "post-1", subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+            db.insertChallengeSession({ sessionId: "post-1", communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
             db.insertComment({
                 sessionId: "post-1",
                 publication: {
                     author: createMockAuthor(),
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     signature: createSignature(testPublicKey)
@@ -370,12 +370,12 @@ describe("calculateVelocity", () => {
             // Insert 30 replies (BOT_LIKE for replies: > 25)
             for (let i = 0; i < 30; i++) {
                 const sessionId = `reply-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+                db.insertChallengeSession({ sessionId, communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
                 db.insertComment({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey),
@@ -412,12 +412,12 @@ describe("calculateVelocity", () => {
             // Insert 15 posts (BOT_LIKE for posts: > 12)
             for (let i = 0; i < 15; i++) {
                 const sessionId = `post-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+                db.insertChallengeSession({ sessionId, communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
                 db.insertComment({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey)
@@ -452,12 +452,12 @@ describe("calculateVelocity", () => {
             // This is the exact scenario from the user's question
 
             // Insert 1 comment
-            db.insertChallengeSession({ sessionId: "comment-1", subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+            db.insertChallengeSession({ sessionId: "comment-1", communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
             db.insertComment({
                 sessionId: "comment-1",
                 publication: {
                     author: createMockAuthor(),
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     signature: createSignature(testPublicKey)
@@ -467,12 +467,12 @@ describe("calculateVelocity", () => {
             // Insert 150 votes
             for (let i = 0; i < 150; i++) {
                 const sessionId = `vote-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+                db.insertChallengeSession({ sessionId, communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
                 db.insertVote({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey),
@@ -507,12 +507,12 @@ describe("calculateVelocity", () => {
         it("should also flag when evaluating a new vote with the same history", () => {
             // Same setup: 1 comment + 150 votes
 
-            db.insertChallengeSession({ sessionId: "comment-1", subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+            db.insertChallengeSession({ sessionId: "comment-1", communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
             db.insertComment({
                 sessionId: "comment-1",
                 publication: {
                     author: createMockAuthor(),
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     signature: createSignature(testPublicKey)
@@ -521,12 +521,12 @@ describe("calculateVelocity", () => {
 
             for (let i = 0; i < 150; i++) {
                 const sessionId = `vote-${i}`;
-                db.insertChallengeSession({ sessionId, subplebbitPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
+                db.insertChallengeSession({ sessionId, communityPublicKey: "pk", expiresAt: baseTimestamp + 3600 });
                 db.insertVote({
                     sessionId,
                     publication: {
                         author: createMockAuthor(),
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp,
                         protocolVersion: "1",
                         signature: createSignature(testPublicKey),

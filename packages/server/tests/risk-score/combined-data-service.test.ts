@@ -22,13 +22,13 @@ describe("CombinedDataService", () => {
         const rawDb = db.getDb();
         rawDb
             .prepare(
-                `INSERT INTO indexed_subplebbits (address, discoveredVia, discoveredAt)
+                `INSERT INTO indexed_communities (address, discoveredVia, discoveredAt)
              VALUES (?, ?, ?)`
             )
             .run("sub1.eth", "manual", baseTimestamp);
         rawDb
             .prepare(
-                `INSERT INTO indexed_subplebbits (address, discoveredVia, discoveredAt)
+                `INSERT INTO indexed_communities (address, discoveredVia, discoveredAt)
              VALUES (?, ?, ?)`
             )
             .run("sub2.eth", "manual", baseTimestamp);
@@ -50,14 +50,14 @@ describe("CombinedDataService", () => {
             // should NOT contribute (prevents spammers from inflating age via rejected submissions)
             db.insertChallengeSession({
                 sessionId: "challenge-1",
-                subplebbitPublicKey: "subKey",
+                communityPublicKey: "subKey",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
                 sessionId: "challenge-1",
                 publication: {
                     author: { address: "author1" },
-                    subplebbitAddress: "sub1.eth",
+                    communityAddress: "sub1.eth",
                     timestamp: baseTimestamp - 1000,
                     signature: baseSignature,
                     protocolVersion: "1"
@@ -73,14 +73,14 @@ describe("CombinedDataService", () => {
             // Insert into engine - this should be IGNORED
             db.insertChallengeSession({
                 sessionId: "challenge-2",
-                subplebbitPublicKey: "subKey",
+                communityPublicKey: "subKey",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
                 sessionId: "challenge-2",
                 publication: {
                     author: { address: "author1" },
-                    subplebbitAddress: "sub1.eth",
+                    communityAddress: "sub1.eth",
                     timestamp: baseTimestamp - 1000, // 1000 seconds ago - engine data, ignored
                     signature: baseSignature,
                     protocolVersion: "1"
@@ -91,7 +91,7 @@ describe("CombinedDataService", () => {
             const rawDb = db.getDb();
             rawDb
                 .prepare(
-                    `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt)
+                    `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt)
                  VALUES (?, ?, ?, ?, ?, ?)`
                 )
                 .run(
@@ -109,16 +109,16 @@ describe("CombinedDataService", () => {
         });
     });
 
-    describe("getAuthorKarmaBySubplebbit", () => {
+    describe("getAuthorKarmaByCommunity", () => {
         it("should return empty map for unknown author", () => {
-            const result = combinedData.getAuthorKarmaBySubplebbit("unknownAuthor");
+            const result = combinedData.getAuthorKarmaByCommunity("unknownAuthor");
             expect(result.size).toBe(0);
         });
 
         it("should return karma from engine when only engine has data", () => {
             db.insertChallengeSession({
                 sessionId: "karma-1",
-                subplebbitPublicKey: "subKey",
+                communityPublicKey: "subKey",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
@@ -126,25 +126,25 @@ describe("CombinedDataService", () => {
                 publication: {
                     author: {
                         address: "author1",
-                        subplebbit: { postScore: 10, replyScore: 5 }
+                        community: { postScore: 10, replyScore: 5 }
                     },
-                    subplebbitAddress: "sub1.eth",
+                    communityAddress: "sub1.eth",
                     timestamp: baseTimestamp,
                     signature: baseSignature,
                     protocolVersion: "1"
                 }
             });
 
-            const result = combinedData.getAuthorKarmaBySubplebbit("testAuthorPublicKey");
+            const result = combinedData.getAuthorKarmaByCommunity("testAuthorPublicKey");
             expect(result.size).toBe(1);
             expect(result.get("sub1.eth")).toEqual({ postScore: 10, replyScore: 5 });
         });
 
-        it("should use more recent source when both have data for same subplebbit", () => {
+        it("should use more recent source when both have data for same community", () => {
             // Insert into engine with older timestamp
             db.insertChallengeSession({
                 sessionId: "karma-2",
-                subplebbitPublicKey: "subKey",
+                communityPublicKey: "subKey",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
@@ -152,9 +152,9 @@ describe("CombinedDataService", () => {
                 publication: {
                     author: {
                         address: "author1",
-                        subplebbit: { postScore: 10, replyScore: 5 }
+                        community: { postScore: 10, replyScore: 5 }
                     },
-                    subplebbitAddress: "sub1.eth",
+                    communityAddress: "sub1.eth",
                     timestamp: baseTimestamp - 1000,
                     signature: baseSignature,
                     protocolVersion: "1"
@@ -165,7 +165,7 @@ describe("CombinedDataService", () => {
             const rawDb = db.getDb();
             rawDb
                 .prepare(
-                    `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt)
+                    `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt)
                  VALUES (?, ?, ?, ?, ?, ?)`
                 )
                 .run(
@@ -182,19 +182,19 @@ describe("CombinedDataService", () => {
                     `INSERT INTO indexed_comments_update (cid, author, fetchedAt, updatedAt)
                  VALUES (?, ?, ?, ?)`
                 )
-                .run("Qm123", JSON.stringify({ subplebbit: { postScore: 50, replyScore: 25 } }), baseTimestamp, baseTimestamp + 100);
+                .run("Qm123", JSON.stringify({ community: { postScore: 50, replyScore: 25 } }), baseTimestamp, baseTimestamp + 100);
 
-            const result = combinedData.getAuthorKarmaBySubplebbit("testAuthorPublicKey");
+            const result = combinedData.getAuthorKarmaByCommunity("testAuthorPublicKey");
             expect(result.size).toBe(1);
             // Should use the indexer data since it has a more recent updatedAt
             expect(result.get("sub1.eth")).toEqual({ postScore: 50, replyScore: 25 });
         });
 
-        it("should merge karma from different subplebbits in both sources", () => {
+        it("should merge karma from different communities in both sources", () => {
             // Engine has data for sub1
             db.insertChallengeSession({
                 sessionId: "karma-3",
-                subplebbitPublicKey: "subKey",
+                communityPublicKey: "subKey",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
@@ -202,9 +202,9 @@ describe("CombinedDataService", () => {
                 publication: {
                     author: {
                         address: "author1",
-                        subplebbit: { postScore: 10, replyScore: 5 }
+                        community: { postScore: 10, replyScore: 5 }
                     },
-                    subplebbitAddress: "sub1.eth",
+                    communityAddress: "sub1.eth",
                     timestamp: baseTimestamp,
                     signature: baseSignature,
                     protocolVersion: "1"
@@ -215,7 +215,7 @@ describe("CombinedDataService", () => {
             const rawDb = db.getDb();
             rawDb
                 .prepare(
-                    `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt)
+                    `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt)
                  VALUES (?, ?, ?, ?, ?, ?)`
                 )
                 .run(
@@ -232,9 +232,9 @@ describe("CombinedDataService", () => {
                     `INSERT INTO indexed_comments_update (cid, author, fetchedAt)
                  VALUES (?, ?, ?)`
                 )
-                .run("Qm123", JSON.stringify({ subplebbit: { postScore: 20, replyScore: 15 } }), baseTimestamp);
+                .run("Qm123", JSON.stringify({ community: { postScore: 20, replyScore: 15 } }), baseTimestamp);
 
-            const result = combinedData.getAuthorKarmaBySubplebbit("testAuthorPublicKey");
+            const result = combinedData.getAuthorKarmaByCommunity("testAuthorPublicKey");
             expect(result.size).toBe(2);
             expect(result.get("sub1.eth")).toEqual({ postScore: 10, replyScore: 5 });
             expect(result.get("sub2.eth")).toEqual({ postScore: 20, replyScore: 15 });
@@ -253,14 +253,14 @@ describe("CombinedDataService", () => {
                 const sessionId = `vel-post-${i}`;
                 db.insertChallengeSession({
                     sessionId,
-                    subplebbitPublicKey: "subKey",
+                    communityPublicKey: "subKey",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId,
                     publication: {
                         author: { address: "author1" },
-                        subplebbitAddress: "sub1.eth",
+                        communityAddress: "sub1.eth",
                         timestamp: baseTimestamp - 100 - i,
                         signature: baseSignature,
                         protocolVersion: "1"
@@ -274,7 +274,7 @@ describe("CombinedDataService", () => {
             for (let i = 0; i < 3; i++) {
                 rawDb
                     .prepare(
-                        `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, parentCid)
+                        `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, parentCid)
                      VALUES (?, ?, ?, ?, ?, ?, ?)`
                     )
                     .run(
@@ -300,14 +300,14 @@ describe("CombinedDataService", () => {
                 const sessionId = `vel-vote-${i}`;
                 db.insertChallengeSession({
                     sessionId,
-                    subplebbitPublicKey: "subKey",
+                    communityPublicKey: "subKey",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertVote({
                     sessionId,
                     publication: {
                         author: { address: "author1" },
-                        subplebbitAddress: "sub1.eth",
+                        communityAddress: "sub1.eth",
                         timestamp: baseTimestamp - 100 - i,
                         signature: baseSignature,
                         protocolVersion: "1",
@@ -340,14 +340,14 @@ describe("CombinedDataService", () => {
                 const sessionId = `link-author-${i}`;
                 db.insertChallengeSession({
                     sessionId,
-                    subplebbitPublicKey: "subKey",
+                    communityPublicKey: "subKey",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId,
                     publication: {
                         author: { address: "author1" },
-                        subplebbitAddress: "sub1.eth",
+                        communityAddress: "sub1.eth",
                         timestamp: baseTimestamp - 100 - i,
                         signature: baseSignature,
                         protocolVersion: "1",
@@ -361,7 +361,7 @@ describe("CombinedDataService", () => {
             for (let i = 0; i < 3; i++) {
                 rawDb
                     .prepare(
-                        `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, link)
+                        `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, link)
                      VALUES (?, ?, ?, ?, ?, ?, ?)`
                     )
                     .run(
@@ -394,14 +394,14 @@ describe("CombinedDataService", () => {
                 const sessionId = `link-other-${i}`;
                 db.insertChallengeSession({
                     sessionId,
-                    subplebbitPublicKey: "subKey",
+                    communityPublicKey: "subKey",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId,
                     publication: {
                         author: { address: "author2" },
-                        subplebbitAddress: "sub1.eth",
+                        communityAddress: "sub1.eth",
                         timestamp: baseTimestamp - 100 - i,
                         signature: otherAuthorSignature,
                         protocolVersion: "1",
@@ -415,7 +415,7 @@ describe("CombinedDataService", () => {
             for (let i = 0; i < 2; i++) {
                 rawDb
                     .prepare(
-                        `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, link)
+                        `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, link)
                      VALUES (?, ?, ?, ?, ?, ?, ?)`
                     )
                     .run(

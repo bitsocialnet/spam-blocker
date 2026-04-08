@@ -5,12 +5,14 @@ import * as ed from "@noble/ed25519";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 const require = createRequire(import.meta.url);
-const plebbitEntry = require.resolve("@plebbit/plebbit-js");
-const plebbitRoot = path.resolve(path.dirname(plebbitEntry), "..", "..");
+const pkcEntry = require.resolve("@pkcprotocol/pkc-js");
+const pkcRoot = path.resolve(path.dirname(pkcEntry), "..", "..");
 
-const signerUtilUrl = pathToFileURL(path.join(plebbitRoot, "dist/node/signer/util.js")).href;
+const signerUtilUrl = pathToFileURL(path.join(pkcRoot, "dist/node/signer/util.js")).href;
 
-const [{ getPublicKeyFromPrivateKey, getPlebbitAddressFromPublicKey }] = await Promise.all([import(signerUtilUrl)]);
+const [{ getPublicKeyFromPrivateKey, getPKCAddressFromPublicKey: resolvePKCAddressFromPublicKey }] = await Promise.all([
+    import(signerUtilUrl)
+]);
 
 export const signBufferEd25519 = async (bufferToSign: Uint8Array, privateKeyBase64: string) => {
     const privateKeyBuffer = uint8ArrayFromString(privateKeyBase64, "base64");
@@ -22,4 +24,6 @@ export const verifyBufferEd25519 = async (bufferToSign: Uint8Array, bufferSignat
     return ed.verify(bufferSignature, bufferToSign, publicKeyBuffer);
 };
 
-export { getPublicKeyFromPrivateKey, getPlebbitAddressFromPublicKey };
+export const getPKCAddressFromPublicKey = resolvePKCAddressFromPublicKey;
+export const getPkcAddressFromPublicKey = resolvePKCAddressFromPublicKey;
+export { getPublicKeyFromPrivateKey };

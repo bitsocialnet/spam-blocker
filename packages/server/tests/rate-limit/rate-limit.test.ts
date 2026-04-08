@@ -21,7 +21,7 @@ function generateUniqueId(): string {
 function createSession(db: SpamDetectionDatabase, sessionId: string): void {
     db.insertChallengeSession({
         sessionId,
-        subplebbitPublicKey: "test-subplebbit-pubkey",
+        communityPublicKey: "test-community-pubkey",
         expiresAt: Date.now() + 3600000
     });
 }
@@ -33,7 +33,7 @@ function insertPost(db: SpamDetectionDatabase, authorPublicKey: string, received
         sessionId,
         publication: {
             author: { address: "seed-author" },
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             signature: { publicKey: authorPublicKey, signature: `sig-${generateUniqueId()}`, type: "ed25519" },
             protocolVersion: "1",
             content: "Test post",
@@ -52,7 +52,7 @@ function insertReply(db: SpamDetectionDatabase, authorPublicKey: string, receive
         sessionId,
         publication: {
             author: { address: "seed-author" },
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             signature: { publicKey: authorPublicKey, signature: `sig-${generateUniqueId()}`, type: "ed25519" },
             protocolVersion: "1",
             content: "Test reply",
@@ -72,7 +72,7 @@ function insertVote(db: SpamDetectionDatabase, authorPublicKey: string, received
         sessionId,
         publication: {
             author: { address: "seed-author" },
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             commentCid: `Qm${generateUniqueId()}`,
             signature: { publicKey: authorPublicKey, signature: `sig-${generateUniqueId()}`, type: "ed25519" },
             protocolVersion: "1",
@@ -106,11 +106,11 @@ function seedIndexedHistory(
     const nowSeconds = Math.floor(nowMs / 1000);
     const dbRaw = db.getDb();
 
-    // Create indexed subplebbit
+    // Create indexed community
     const subAddr = "indexed-sub.eth";
     dbRaw
         .prepare(
-            "INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled) VALUES (?, 'manual', ?, 1)"
+            "INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled) VALUES (?, 'manual', ?, 1)"
         )
         .run(subAddr, nowMs);
 
@@ -122,7 +122,7 @@ function seedIndexedHistory(
 
         dbRaw
             .prepare(
-                "INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion) VALUES (?, ?, ?, ?, ?, ?, '1')"
+                "INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, protocolVersion) VALUES (?, ?, ?, ?, ?, ?, '1')"
             )
             .run(
                 cid,
@@ -149,13 +149,13 @@ function seedIndexedHistory(
 
         dbRaw
             .prepare(
-                "INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled) VALUES (?, 'manual', ?, 1)"
+                "INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled) VALUES (?, 'manual', ?, 1)"
             )
             .run(banSubAddr, nowMs);
 
         dbRaw
             .prepare(
-                "INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion) VALUES (?, ?, ?, ?, ?, ?, '1')"
+                "INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, protocolVersion) VALUES (?, ?, ?, ?, ?, ?, '1')"
             )
             .run(
                 cid,
@@ -168,7 +168,7 @@ function seedIndexedHistory(
 
         dbRaw
             .prepare("INSERT INTO indexed_comments_update (cid, author, updatedAt, fetchedAt) VALUES (?, ?, ?, ?)")
-            .run(cid, JSON.stringify({ subplebbit: { banExpiresAt: nowSeconds + 86400 * 365 } }), nowSeconds - 86400, nowMs - 86400000);
+            .run(cid, JSON.stringify({ community: { banExpiresAt: nowSeconds + 86400 * 365 } }), nowSeconds - 86400, nowMs - 86400000);
     }
 }
 

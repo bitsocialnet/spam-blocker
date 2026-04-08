@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { createServer, type SpamDetectionServer } from "../src/index.js";
-import { resetPlebbitLoaderForTest, setPlebbitLoaderForTest } from "../src/subplebbit-resolver.js";
+import { resetPkcLoaderForTest, setPkcLoaderForTest } from "../src/community-resolver.js";
 
 // Mock OAuth config - we use fake credentials since we're not actually hitting OAuth providers
 const mockOAuthConfig = {
@@ -19,8 +19,8 @@ describe("OAuth Challenge Flow", () => {
     let sessionId: string;
 
     beforeEach(async () => {
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+        setPkcLoaderForTest(async () => ({
+            getCommunity: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
 
@@ -37,14 +37,14 @@ describe("OAuth Challenge Flow", () => {
         sessionId = "test-oauth-session-" + Date.now();
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: Date.now() + 3600 * 1000
         });
     });
 
     afterEach(async () => {
         await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     describe("GET /api/v1/iframe/:sessionId (OAuth mode)", () => {
@@ -140,7 +140,7 @@ describe("OAuth Challenge Flow", () => {
             const expiredSessionId = "expired-session-" + Date.now();
             server.db.insertChallengeSession({
                 sessionId: expiredSessionId,
-                subplebbitPublicKey: "test-pk",
+                communityPublicKey: "test-pk",
                 expiresAt: Date.now() - 100 * 1000 // Already expired (milliseconds)
             });
 
@@ -234,8 +234,8 @@ describe("OAuth Database Methods", () => {
     let server: SpamDetectionServer;
 
     beforeEach(async () => {
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+        setPkcLoaderForTest(async () => ({
+            getCommunity: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
 
@@ -250,7 +250,7 @@ describe("OAuth Database Methods", () => {
 
     afterEach(async () => {
         await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should insert and retrieve OAuth state", () => {
@@ -259,7 +259,7 @@ describe("OAuth Database Methods", () => {
         // Create challenge session first (required by foreign key, timestamps in ms)
         server.db.insertChallengeSession({
             sessionId: "test-session",
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
 
@@ -286,7 +286,7 @@ describe("OAuth Database Methods", () => {
         // Create challenge session first (timestamps in ms)
         server.db.insertChallengeSession({
             sessionId: "test-session",
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
 
@@ -311,7 +311,7 @@ describe("OAuth Database Methods", () => {
         // Create challenge session first (timestamps in ms)
         server.db.insertChallengeSession({
             sessionId: "test-session",
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
 
@@ -335,12 +335,12 @@ describe("OAuth Database Methods", () => {
         // Create challenge sessions first (timestamps in ms)
         server.db.insertChallengeSession({
             sessionId: "test-session",
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
         server.db.insertChallengeSession({
             sessionId: "test-session-2",
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
 
@@ -374,8 +374,8 @@ describe("OAuth Identity Storage", () => {
     let server: SpamDetectionServer;
 
     beforeEach(async () => {
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+        setPkcLoaderForTest(async () => ({
+            getCommunity: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
 
@@ -390,7 +390,7 @@ describe("OAuth Identity Storage", () => {
 
     afterEach(async () => {
         await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should store OAuth identity when completing session", () => {
@@ -399,7 +399,7 @@ describe("OAuth Identity Storage", () => {
 
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
 
@@ -420,7 +420,7 @@ describe("OAuth Identity Storage", () => {
             const sessionId = `count-test-${i}-${Date.now()}`;
             server.db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey: "test-pk",
+                communityPublicKey: "test-pk",
                 expiresAt: nowMs + 3600 * 1000
             });
             server.db.updateChallengeSessionStatus(sessionId, "completed", nowMs, "google:987654321");
@@ -430,7 +430,7 @@ describe("OAuth Identity Storage", () => {
         const differentSessionId = `different-${Date.now()}`;
         server.db.insertChallengeSession({
             sessionId: differentSessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
         server.db.updateChallengeSessionStatus(differentSessionId, "completed", nowMs, "github:111111");
@@ -454,7 +454,7 @@ describe("OAuth Identity Storage", () => {
         const oldSessionId = `old-${Date.now()}`;
         server.db.insertChallengeSession({
             sessionId: oldSessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
         server.db.updateChallengeSessionStatus(oldSessionId, "completed", twoHoursAgoMs, "facebook:555");
@@ -463,7 +463,7 @@ describe("OAuth Identity Storage", () => {
         const recentSessionId = `recent-${Date.now()}`;
         server.db.insertChallengeSession({
             sessionId: recentSessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
         server.db.updateChallengeSessionStatus(recentSessionId, "completed", nowMs, "facebook:555");
@@ -483,7 +483,7 @@ describe("OAuth Identity Storage", () => {
 
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
 
@@ -502,15 +502,15 @@ describe("OAuth-First Score Adjustment Logic", () => {
     let server: SpamDetectionServer;
 
     beforeEach(async () => {
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+        setPkcLoaderForTest(async () => ({
+            getCommunity: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
     });
 
     afterEach(async () => {
         if (server) await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should mark oauthCompleted without completing session for first OAuth in high-risk flow", async () => {
@@ -529,7 +529,7 @@ describe("OAuth-First Score Adjustment Logic", () => {
         // riskScore(0.8) * oauthMultiplier(0.6) = 0.48 >= passThreshold(0.4)
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.8
         });
@@ -560,7 +560,7 @@ describe("OAuth-First Score Adjustment Logic", () => {
         // riskScore(0.5) * oauthMultiplier(0.6) = 0.30 < passThreshold(0.4)
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.5
         });
@@ -589,7 +589,7 @@ describe("OAuth-First Score Adjustment Logic", () => {
 
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
 
@@ -616,8 +616,8 @@ describe("OAuth-First Polling Endpoint", () => {
     let server: SpamDetectionServer;
 
     beforeEach(async () => {
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+        setPkcLoaderForTest(async () => ({
+            getCommunity: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
 
@@ -633,7 +633,7 @@ describe("OAuth-First Polling Endpoint", () => {
 
     afterEach(async () => {
         await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should return needsMore=true after first OAuth when score is high", async () => {
@@ -643,7 +643,7 @@ describe("OAuth-First Polling Endpoint", () => {
         // High risk score: 0.8 * 0.6 = 0.48 >= 0.4
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.8
         });
@@ -672,7 +672,7 @@ describe("OAuth-First Polling Endpoint", () => {
         // Normal risk score: 0.5 * 0.6 = 0.30 < 0.4
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.5
         });
@@ -699,7 +699,7 @@ describe("OAuth-First Polling Endpoint", () => {
 
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.5
         });
@@ -726,15 +726,15 @@ describe("CAPTCHA-as-Fallback Complete Route", () => {
     const TURNSTILE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA";
 
     beforeEach(async () => {
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+        setPkcLoaderForTest(async () => ({
+            getCommunity: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
     });
 
     afterEach(async () => {
         if (server) await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should apply combined OAuth + CAPTCHA multiplier when both completed", async () => {
@@ -756,7 +756,7 @@ describe("CAPTCHA-as-Fallback Complete Route", () => {
         // riskScore(0.8) * oauthMultiplier(0.6) * captchaMultiplier(0.7) = 0.336 < 0.4 (PASS combined)
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.8
         });
@@ -812,7 +812,7 @@ describe("CAPTCHA-as-Fallback Complete Route", () => {
         // riskScore(0.7) * captchaMultiplier(0.7) = 0.49 >= 0.4 (FAIL)
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.7
         });
@@ -865,7 +865,7 @@ describe("CAPTCHA-as-Fallback Complete Route", () => {
         // riskScore(0.5) * captchaMultiplier(0.7) = 0.35 < 0.4 (PASS)
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.5
         });
@@ -905,15 +905,15 @@ describe("OAuth-First Iframe Content", () => {
     const TURNSTILE_TEST_SECRET_KEY = "1x0000000000000000000000000000000AA";
 
     beforeEach(async () => {
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+        setPkcLoaderForTest(async () => ({
+            getCommunity: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
     });
 
     afterEach(async () => {
         if (server) await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should show CAPTCHA fallback link when canPassWithCaptchaAlone is true", async () => {
@@ -935,7 +935,7 @@ describe("OAuth-First Iframe Content", () => {
         // riskScore(0.5) * captchaMultiplier(0.7) = 0.35 < 0.4
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.5
         });
@@ -970,7 +970,7 @@ describe("OAuth-First Iframe Content", () => {
         // riskScore(0.8) * captchaMultiplier(0.7) = 0.56 >= 0.4
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000,
             riskScore: 0.8
         });
@@ -1003,7 +1003,7 @@ describe("OAuth-First Iframe Content", () => {
 
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
 
@@ -1023,8 +1023,8 @@ describe("updateChallengeSessionOAuthCompleted", () => {
     let server: SpamDetectionServer;
 
     beforeEach(async () => {
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
+        setPkcLoaderForTest(async () => ({
+            getCommunity: vi.fn().mockResolvedValue({ signature: { publicKey: "test-pk" } }),
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
 
@@ -1039,7 +1039,7 @@ describe("updateChallengeSessionOAuthCompleted", () => {
 
     afterEach(async () => {
         await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should set oauthCompleted to 1", () => {
@@ -1048,7 +1048,7 @@ describe("updateChallengeSessionOAuthCompleted", () => {
 
         server.db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-pk",
+            communityPublicKey: "test-pk",
             expiresAt: nowMs + 3600 * 1000
         });
 

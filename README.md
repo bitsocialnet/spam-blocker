@@ -437,7 +437,7 @@ Stores comment publications for analysis and rate limiting.
 
 - `sessionId` TEXT PRIMARY KEY (foreign key of challengeSessions)
 - `author` TEXT NOT NULL -- is actually a JSON
-- `subplebbitAddress` TEXT NOT NULL
+- `communityAddress` TEXT NOT NULL
 - `parentCid` TEXT (null for posts, set for replies)
 - `content` TEXT
 - `link` TEXT
@@ -460,7 +460,7 @@ Stores vote publications.
 
 - `sessionId` TEXT PRIMARY KEY (foreign key of challengeSessions)
 - `author` TEXT NOT NULL -- is actually a json
-- `subplebbitAddress` TEXT NOT NULL
+- `communityAddress` TEXT NOT NULL
 - `commentCid` TEXT NOT NULL
 - `signature` TEXT NOT NULL
 - `protocolVersion` TEXT NOT NULL
@@ -473,7 +473,7 @@ Stores vote publications.
 Tracks challenge sessions. Sessions are kept permanently for historical analysis. Internal timestamps (completedAt, expiresAt, receivedChallengeRequestAt, authorAccessedIframeAt) are in milliseconds.
 
 - `sessionId` TEXT PRIMARY KEY -- UUID v4
-- `subplebbitPublicKey` TEXT
+- `communityPublicKey` TEXT
 - `status` TEXT DEFAULT 'pending' (pending, completed, failed)
 - `completedAt` INTEGER
 - `expiresAt` INTEGER NOT NULL
@@ -511,7 +511,7 @@ Ephemeral table for CSRF protection during OAuth flow. Internal timestamps (crea
 
 ## Challenge Code
 
-Implements plebbit-js `ChallengeFileFactory`:
+Implements pkc-js `ChallengeFileFactory`:
 
 ```typescript
 // Usage in community settings
@@ -534,8 +534,8 @@ Implements plebbit-js `ChallengeFileFactory`:
 }
 ```
 
-When calling `/api/v1/evaluate`, the `author.subplebbit` field in the publication
-(e.g., `challengeRequest.comment.author.subplebbit`) may be `undefined` for first-time
+When calling `/api/v1/evaluate`, the `author.community` field in the publication
+(e.g., `challengeRequest.comment.author.community`) may be `undefined` for first-time
 publishers who have never posted in the community before. The community populates this
 field from its internal database of author history, so new authors won't have it set.
 
@@ -609,8 +609,8 @@ These settings are configured on the HTTP server, not in the challenge package:
 - `PORT`: Server port (default: 3000)
 - `HOST`: Server host (default: 0.0.0.0)
 - `LOG_LEVEL`: Set to `silent` to disable logging
-- `PLEBBIT_RPC_URL`: Plebbit RPC URL for subplebbit resolution
-- `ALLOW_NON_DOMAIN_SUBPLEBBITS`: Set to `true` to allow non-domain subplebbit addresses
+- `PKC_RPC_URL`: PKC RPC URL for community resolution
+- `ALLOW_NON_DOMAIN_COMMUNITIES`: Set to `true` to allow non-domain community addresses
 
 ## Key Design Decisions
 
@@ -648,7 +648,7 @@ These settings are configured on the HTTP server, not in the challenge package:
 3. **Build server**:
     - Fastify setup with routes
     - better-sqlite3 database
-    - Import plebbit-js schemas for validation
+    - Import pkc-js schemas for validation
     - Risk scoring with weighted factors
     - Ed25519 request signature verification
     - Turnstile integration
@@ -669,12 +669,12 @@ These settings are configured on the HTTP server, not in the challenge package:
 3. Test iframe flow using challengeUrl from /evaluate response
 4. Test /challenge/verify with valid and invalid tokens
 5. Test post-challenge filtering (country blacklist, VPN blocking, etc.)
-6. Integrate challenge package with local plebbit-js community
+6. Integrate challenge package with local pkc-js community
 7. Verify full end-to-end flow
 
 ## Reference Files
 
-- bitsocial-js challenge example: `plebbit-js/src/runtime/node/community/challenges/bitsocial-js-challenges/captcha-canvas-v3/index.ts`
-- bitsocial-js schemas: `plebbit-js/src/community/schema.ts`
-- bitsocial-js challenge orchestration: `plebbit-js/src/runtime/node/community/challenges/index.ts`
+- bitsocial-js challenge example: `pkc-js/src/runtime/node/community/challenges/bitsocial-js-challenges/captcha-canvas-v3/index.ts`
+- bitsocial-js schemas: `pkc-js/src/community/schema.ts`
+- bitsocial-js challenge orchestration: `pkc-js/src/runtime/node/community/challenges/index.ts`
 - MintPass iframe challenge: https://github.com/bitsociallabs/mintpass/tree/master/challenge

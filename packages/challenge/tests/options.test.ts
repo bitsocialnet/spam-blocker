@@ -1,9 +1,9 @@
-import type { SubplebbitChallengeSetting } from "@plebbit/plebbit-js/dist/node/subplebbit/types.js";
+import type { CommunityChallengeSetting } from "@pkcprotocol/pkc-js/dist/node/community/types.js";
 import { describe, expect, it } from "vitest";
 import ChallengeFileFactory from "../src/index.js";
 import { createOptionsSchema } from "../src/schema.js";
 
-const optionInputs = ChallengeFileFactory({} as SubplebbitChallengeSetting).optionInputs;
+const optionInputs = ChallengeFileFactory({} as CommunityChallengeSetting).optionInputs;
 const optionsSchema = createOptionsSchema(optionInputs);
 
 type OptionName = (typeof optionInputs)[number]["option"];

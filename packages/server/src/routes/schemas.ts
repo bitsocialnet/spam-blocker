@@ -1,11 +1,11 @@
 import { z } from "zod";
-import type { DecryptedChallengeRequest } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequest } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 import {
     DecryptedChallengeRequestSchema,
-    PlebbitTimestampSchema,
-    SubplebbitAuthorSchema,
+    PKCTimestampSchema,
+    CommunityAuthorSchema,
     derivePublicationFromChallengeRequest
-} from "../plebbit-js-internals.js";
+} from "../pkc-js-internals.js";
 
 /**
  * Schema for CBOR request signatures.
@@ -20,7 +20,7 @@ export const CborSignatureSchema = z.object({
 
 export type CborSignature = z.infer<typeof CborSignatureSchema>;
 
-const ChallengeRequestWithSubplebbitAuthorSchema = DecryptedChallengeRequestSchema.superRefine((value: DecryptedChallengeRequest, ctx) => {
+const ChallengeRequestWithCommunityAuthorSchema = DecryptedChallengeRequestSchema.superRefine((value: DecryptedChallengeRequest, ctx) => {
     let publication;
     try {
         publication = derivePublicationFromChallengeRequest(value);
@@ -40,15 +40,15 @@ const ChallengeRequestWithSubplebbitAuthorSchema = DecryptedChallengeRequestSche
         return;
     }
 
-    // author.subplebbit is optional - it only exists for authors who have previously
-    // published in this subplebbit. New authors won't have this field.
-    const subplebbitAuthor = publication.author?.subplebbit;
-    if (subplebbitAuthor) {
-        const subplebbitResult = SubplebbitAuthorSchema.safeParse(subplebbitAuthor);
-        if (!subplebbitResult.success) {
+    // author.community is optional - it only exists for authors who have previously
+    // published in this community. New authors won't have this field.
+    const communityAuthor = publication.author?.community;
+    if (communityAuthor) {
+        const communityResult = CommunityAuthorSchema.safeParse(communityAuthor);
+        if (!communityResult.success) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: "Invalid subplebbit author data"
+                message: "Invalid community author data"
             });
         }
     }
@@ -62,11 +62,11 @@ export interface EvaluateRequest {
 
 export const EvaluateRequestSchema: z.ZodType<EvaluateRequest> = z
     .object({
-        challengeRequest: ChallengeRequestWithSubplebbitAuthorSchema,
-        timestamp: PlebbitTimestampSchema,
+        challengeRequest: ChallengeRequestWithCommunityAuthorSchema,
+        timestamp: PKCTimestampSchema,
         signature: CborSignatureSchema
     })
-    .strict();
+    .strict() as z.ZodType<EvaluateRequest>;
 
 /**
  * Schema for the verify request body.
@@ -81,10 +81,10 @@ export interface VerifyRequest {
 export const VerifyRequestSchema: z.ZodType<VerifyRequest> = z
     .object({
         sessionId: z.string().min(1, "sessionId is required"),
-        timestamp: PlebbitTimestampSchema,
+        timestamp: PKCTimestampSchema,
         signature: CborSignatureSchema
     })
-    .strict();
+    .strict() as z.ZodType<VerifyRequest>;
 
 /**
  * Schema for the iframe route params.

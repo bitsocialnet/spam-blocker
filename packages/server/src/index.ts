@@ -2,15 +2,15 @@ import Fastify, { type FastifyInstance, type FastifyError, type FastifyRequest }
 import * as cborg from "cborg";
 import { SpamDetectionDatabase, createDatabase } from "./db/index.js";
 import { registerRoutes } from "./routes/index.js";
-import { destroyPlebbitInstance, getPlebbitInstance, initPlebbitInstance, setPlebbitOptions } from "./subplebbit-resolver.js";
+import { destroyPkcInstance, getPkcInstance, initPkcInstance, setPkcOptions } from "./community-resolver.js";
 import { Indexer, stopIndexer } from "./indexer/index.js";
 import { createOAuthProviders, type OAuthConfig } from "./oauth/providers.js";
 import { validateChallengeTierConfig, DEFAULT_CHALLENGE_TIER_CONFIG } from "./risk-score/challenge-tier.js";
 import type { RiskFactorName } from "./risk-score/types.js";
 import { WEIGHTS_NO_IP } from "./risk-score/types.js";
-import type Plebbit from "@plebbit/plebbit-js";
+import type PKC from "@pkcprotocol/pkc-js";
 
-const DEFAULT_PLEBBIT_RPC_URL = "ws://localhost:9138/";
+const DEFAULT_PKC_RPC_URL = "ws://localhost:9138/";
 
 export interface ServerConfig {
     /** Port to listen on. Default: 3000 */
@@ -33,10 +33,10 @@ export interface ServerConfig {
     enableIndexer?: boolean;
     /** Enable the previousCommentCid crawler. Default: false */
     enablePreviousCidCrawler?: boolean;
-    /** Plebbit options passed to the Plebbit constructor. If plebbitRpcUrl is also provided, it will be merged. */
-    plebbitOptions?: Parameters<typeof Plebbit>[0];
-    /** Plebbit RPC WebSocket URL. Default: "ws://localhost:9138/". Convenience option merged into plebbitOptions. */
-    plebbitRpcUrl?: string;
+    /** PKC options passed to the PKC constructor. If pkcRpcUrl is also provided, it will be merged. */
+    pkcOptions?: Parameters<typeof PKC>[0];
+    /** PKC RPC WebSocket URL. Default: "ws://localhost:9138/". Convenience option merged into pkcOptions. */
+    pkcRpcUrl?: string;
     /** OAuth provider configurations. Only configured providers will be available. */
     oauth?: OAuthConfig;
     /** Risk score threshold for auto-accept (no challenge). Default: 0.2 */
@@ -45,8 +45,8 @@ export interface ServerConfig {
     oauthSufficientThreshold?: number;
     /** Risk score threshold for auto-reject. Default: 0.8 */
     autoRejectThreshold?: number;
-    /** Allow non-domain (IPNS) subplebbits. Useful for local testing. Default: false */
-    allowNonDomainSubplebbits?: boolean;
+    /** Allow non-domain (IPNS) communities. Useful for local testing. Default: false */
+    allowNonDomainCommunities?: boolean;
     /** Multiplier applied to riskScore after CAPTCHA (0-1]. Default: 0.7 (30% reduction) */
     captchaScoreMultiplier?: number;
     /** Multiplier applied to riskScore after first OAuth (0-1]. Default: 0.6 (40% reduction) */
@@ -82,13 +82,13 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         logging = true,
         enableIndexer = process.env.NODE_ENV !== "test",
         enablePreviousCidCrawler = false,
-        plebbitOptions: userPlebbitOptions,
-        plebbitRpcUrl = DEFAULT_PLEBBIT_RPC_URL,
+        pkcOptions: userPkcOptions,
+        pkcRpcUrl = DEFAULT_PKC_RPC_URL,
         oauth,
         autoAcceptThreshold,
         oauthSufficientThreshold,
         autoRejectThreshold,
-        allowNonDomainSubplebbits,
+        allowNonDomainCommunities,
         captchaScoreMultiplier,
         oauthScoreMultiplier,
         secondOauthScoreMultiplier,
@@ -103,10 +103,10 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         ...(autoRejectThreshold !== undefined && { autoRejectThreshold })
     };
 
-    // Merge plebbitRpcUrl into plebbitOptions
-    const plebbitOptions = {
-        ...userPlebbitOptions,
-        plebbitRpcClientsOptions: [plebbitRpcUrl]
+    // Merge pkcRpcUrl into pkcOptions
+    const pkcOptions = {
+        ...userPkcOptions,
+        pkcRpcClientsOptions: [pkcRpcUrl]
     };
 
     if (!databasePath) {
@@ -148,13 +148,13 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         }
     });
 
-    fastify.decorate("getPlebbitInstance", getPlebbitInstance);
+    fastify.decorate("getPkcInstance", getPkcInstance);
 
     // Create database
     const db = createDatabase(databasePath);
 
-    // Set Plebbit options for the subplebbit resolver
-    setPlebbitOptions(plebbitOptions);
+    // Set PKC options for the community resolver
+    setPkcOptions(pkcOptions);
 
     // Initialize OAuth providers if configured
     const oauthProvidersResult = oauth ? createOAuthProviders(oauth, baseUrl) : undefined;
@@ -162,7 +162,7 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
     // Initialize and start indexer immediately if enabled
     let indexer: Indexer | null = null;
     if (enableIndexer) {
-        indexer = new Indexer(db.getDb(), { config: { enablePreviousCidCrawler }, plebbitOptions });
+        indexer = new Indexer(db.getDb(), { config: { enablePreviousCidCrawler }, pkcOptions });
         indexer.start().catch((err) => {
             console.error("Failed to start indexer:", err);
         });
@@ -178,7 +178,7 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         indexer,
         oauthProvidersResult,
         challengeTierConfig: Object.keys(challengeTierConfig).length > 0 ? challengeTierConfig : undefined,
-        allowNonDomainSubplebbits,
+        allowNonDomainCommunities,
         captchaScoreMultiplier,
         oauthScoreMultiplier,
         secondOauthScoreMultiplier,
@@ -186,7 +186,7 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
         disabledRiskFactors
     });
 
-    initPlebbitInstance();
+    initPkcInstance();
 
     // Error handler
     fastify.setErrorHandler((error: FastifyError, request, reply) => {
@@ -218,7 +218,7 @@ export async function createServer(config: ServerConfig): Promise<SpamDetectionS
 
             await fastify.close();
             db.close();
-            await destroyPlebbitInstance();
+            await destroyPkcInstance();
         }
     };
 }
@@ -374,12 +374,12 @@ if (isMainModule) {
         logging: process.env.LOG_LEVEL !== "silent",
         enableIndexer: process.env.ENABLE_INDEXER !== "false",
         enablePreviousCidCrawler: process.env.ENABLE_PREVIOUS_CID_CRAWLER === "true",
-        plebbitRpcUrl: process.env.PLEBBIT_RPC_URL,
+        pkcRpcUrl: process.env.PKC_RPC_URL,
         oauth: Object.keys(oauth).length > 0 ? oauth : undefined,
         autoAcceptThreshold,
         oauthSufficientThreshold,
         autoRejectThreshold,
-        allowNonDomainSubplebbits: process.env.ALLOW_NON_DOMAIN_SUBPLEBBITS === "true",
+        allowNonDomainCommunities: process.env.ALLOW_NON_DOMAIN_COMMUNITIES === "true",
         captchaScoreMultiplier,
         oauthScoreMultiplier,
         secondOauthScoreMultiplier,

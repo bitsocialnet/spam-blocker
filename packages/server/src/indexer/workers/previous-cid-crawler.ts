@@ -1,16 +1,17 @@
 /**
  * Worker for crawling author.previousCommentCid chains.
- * Discovers new subplebbits and validates author history.
+ * Discovers new communities and validates author history.
  */
 
 import type { Database } from "better-sqlite3";
+import { getCommunityAddressFromRecord } from "@pkcprotocol/pkc-js/dist/node/publications/publication-community.js";
 import { IndexerQueries } from "../db/queries.js";
 import { storeRawComment } from "./comment-fetcher.js";
 import { DEFAULT_INDEXER_CONFIG } from "../types.js";
-import type { PlebbitInstance } from "../plebbit-manager.js";
+import type { PkcInstance } from "../pkc-manager.js";
 
-// Derive Comment type from Plebbit instance method
-type Comment = Awaited<ReturnType<PlebbitInstance["createComment"]>>;
+// Derive Comment type from PKC instance method
+type Comment = Awaited<ReturnType<PkcInstance["createComment"]>>;
 
 /**
  * Result of crawling a previous comment CID.
@@ -20,8 +21,8 @@ interface CrawlResult {
     success: boolean;
     /** The CID that was crawled */
     cid: string;
-    /** The subplebbit address (if found) */
-    subplebbitAddress?: string;
+    /** The community address (if found) */
+    communityAddress?: string;
     /** The next previousCommentCid to crawl (if any) */
     nextPreviousCid?: string;
     /** Whether the CommentUpdate was available */
@@ -31,11 +32,11 @@ interface CrawlResult {
 }
 
 /**
- * Crawls author.previousCommentCid chains to discover new subplebbits
+ * Crawls author.previousCommentCid chains to discover new communities
  * and validate author history.
  */
 export class PreviousCidCrawler {
-    private plebbit: PlebbitInstance;
+    private pkc: PkcInstance;
     private db: Database;
     private queries: IndexerQueries;
     private crawlTimeout: number;
@@ -50,24 +51,24 @@ export class PreviousCidCrawler {
     /** Whether the crawler is running */
     private isRunning = false;
 
-    /** Callback when a new subplebbit is discovered */
-    private onNewSubplebbit?: (address: string) => void;
+    /** Callback when a new community is discovered */
+    private onNewCommunity?: (address: string) => void;
 
     constructor(
-        plebbit: PlebbitInstance,
+        pkc: PkcInstance,
         db: Database,
         options: {
             crawlTimeout?: number;
             maxDepth?: number;
-            onNewSubplebbit?: (address: string) => void;
+            onNewCommunity?: (address: string) => void;
         } = {}
     ) {
-        this.plebbit = plebbit;
+        this.pkc = pkc;
         this.db = db;
         this.queries = new IndexerQueries(db);
         this.crawlTimeout = options.crawlTimeout ?? DEFAULT_INDEXER_CONFIG.previousCidCrawlTimeout;
         this.maxDepth = options.maxDepth ?? DEFAULT_INDEXER_CONFIG.maxPreviousCidDepth;
-        this.onNewSubplebbit = options.onNewSubplebbit;
+        this.onNewCommunity = options.onNewCommunity;
     }
 
     /**
@@ -145,16 +146,16 @@ export class PreviousCidCrawler {
                 const result = await this.crawlCid(item.cid);
 
                 if (result.success) {
-                    // Check if this is a new subplebbit
-                    if (result.subplebbitAddress) {
-                        const existingSub = this.queries.getIndexedSubplebbit(result.subplebbitAddress);
-                        if (!existingSub) {
-                            console.log(`[PreviousCidCrawler] Discovered new subplebbit: ${result.subplebbitAddress}`);
-                            this.queries.upsertIndexedSubplebbit({
-                                address: result.subplebbitAddress,
+                    // Check if this is a new community
+                    if (result.communityAddress) {
+                        const existingCommunity = this.queries.getIndexedCommunity(result.communityAddress);
+                        if (!existingCommunity) {
+                            console.log(`[PreviousCidCrawler] Discovered new community: ${result.communityAddress}`);
+                            this.queries.upsertIndexedCommunity({
+                                address: result.communityAddress,
                                 discoveredVia: "previous_comment_cid"
                             });
-                            this.onNewSubplebbit?.(result.subplebbitAddress);
+                            this.onNewCommunity?.(result.communityAddress);
                         }
                     }
 
@@ -182,7 +183,7 @@ export class PreviousCidCrawler {
         let comment: Comment | null = null;
 
         try {
-            comment = await this.plebbit.createComment({ cid });
+            comment = await this.pkc.createComment({ cid });
 
             // Start the update process
             await comment.update();
@@ -211,7 +212,7 @@ export class PreviousCidCrawler {
                 return {
                     success: true,
                     cid,
-                    subplebbitAddress: raw.comment.subplebbitAddress,
+                    communityAddress: getCommunityAddressFromRecord(raw.comment),
                     nextPreviousCid: previousCid ?? undefined,
                     hasCommentUpdate: hasUpdate
                 };

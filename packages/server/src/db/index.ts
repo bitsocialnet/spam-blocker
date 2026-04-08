@@ -8,8 +8,8 @@ export type ChallengeTierDb = "oauth_sufficient" | "oauth_plus_more";
 
 export interface ChallengeSession {
     sessionId: string;
-    /** Ed25519 public key of the subplebbit that created this session. Used to verify the same subplebbit completes the challenge. */
-    subplebbitPublicKey: string | null;
+    /** Ed25519 public key of the community that created this session. Used to verify the same community completes the challenge. */
+    communityPublicKey: string | null;
     status: "pending" | "completed" | "failed";
     completedAt: number | null;
     expiresAt: number;
@@ -154,8 +154,8 @@ export class SpamDetectionDatabase {
      */
     insertChallengeSession(params: {
         sessionId: string;
-        /** Ed25519 public key of the subplebbit */
-        subplebbitPublicKey: string;
+        /** Ed25519 public key of the community */
+        communityPublicKey: string;
         expiresAt: number;
         /** Challenge tier for tiered challenge selection */
         challengeTier?: ChallengeTierDb;
@@ -165,14 +165,14 @@ export class SpamDetectionDatabase {
         const stmt = this.db.prepare(`
       INSERT INTO challengeSessions (
         sessionId,
-        subplebbitPublicKey,
+        communityPublicKey,
         expiresAt,
         challengeTier,
         riskScore
       )
       VALUES (
         @sessionId,
-        @subplebbitPublicKey,
+        @communityPublicKey,
         @expiresAt,
         @challengeTier,
         @riskScore
@@ -412,7 +412,7 @@ export class SpamDetectionDatabase {
     // ============================================
 
     /**
-     * Insert an evaluate caller IP record (when subplebbit server calls /evaluate).
+     * Insert an evaluate caller IP record (when community server calls /evaluate).
      */
     insertEvaluateCallerIp(params: { sessionId: string; ipAddress: string; timestamp: number }): EvaluateCallerIp {
         const stmt = this.db.prepare(`
@@ -576,7 +576,7 @@ export class SpamDetectionDatabase {
         sessionId: string;
         publication: {
             author: unknown;
-            subplebbitAddress: string;
+            communityAddress: string;
             parentCid?: string;
             content?: string;
             link?: string;
@@ -595,11 +595,11 @@ export class SpamDetectionDatabase {
     }): void {
         const stmt = this.db.prepare(`
             INSERT INTO comments (
-                sessionId, author, subplebbitAddress, parentCid, content, link,
+                sessionId, author, communityAddress, parentCid, content, link,
                 linkWidth, linkHeight, postCid, signature, title, timestamp,
                 linkHtmlTagName, flair, spoiler, protocolVersion, nsfw
             ) VALUES (
-                @sessionId, @author, @subplebbitAddress, @parentCid, @content, @link,
+                @sessionId, @author, @communityAddress, @parentCid, @content, @link,
                 @linkWidth, @linkHeight, @postCid, @signature, @title, @timestamp,
                 @linkHtmlTagName, @flair, @spoiler, @protocolVersion, @nsfw
             )
@@ -608,7 +608,7 @@ export class SpamDetectionDatabase {
         stmt.run({
             sessionId: params.sessionId,
             author: JSON.stringify(params.publication.author),
-            subplebbitAddress: params.publication.subplebbitAddress,
+            communityAddress: params.publication.communityAddress,
             parentCid: params.publication.parentCid ?? null,
             content: params.publication.content ?? null,
             link: params.publication.link ?? null,
@@ -633,7 +633,7 @@ export class SpamDetectionDatabase {
         sessionId: string;
         publication: {
             author: unknown;
-            subplebbitAddress: string;
+            communityAddress: string;
             commentCid: string;
             signature: unknown;
             protocolVersion: string;
@@ -643,10 +643,10 @@ export class SpamDetectionDatabase {
     }): void {
         const stmt = this.db.prepare(`
             INSERT INTO votes (
-                sessionId, author, subplebbitAddress, commentCid, signature,
+                sessionId, author, communityAddress, commentCid, signature,
                 protocolVersion, vote, timestamp
             ) VALUES (
-                @sessionId, @author, @subplebbitAddress, @commentCid, @signature,
+                @sessionId, @author, @communityAddress, @commentCid, @signature,
                 @protocolVersion, @vote, @timestamp
             )
         `);
@@ -654,7 +654,7 @@ export class SpamDetectionDatabase {
         stmt.run({
             sessionId: params.sessionId,
             author: JSON.stringify(params.publication.author),
-            subplebbitAddress: params.publication.subplebbitAddress,
+            communityAddress: params.publication.communityAddress,
             commentCid: params.publication.commentCid,
             signature: JSON.stringify(params.publication.signature),
             protocolVersion: params.publication.protocolVersion,
@@ -773,20 +773,20 @@ export class SpamDetectionDatabase {
     // ============================================
 
     /**
-     * Get the latest karma (postScore + replyScore) per subplebbit for an author.
-     * Only counts the most recent karma from each subplebbit to avoid summing duplicates.
-     * Returns a map of subplebbitAddress -> { postScore, replyScore, receivedAt }
+     * Get the latest karma (postScore + replyScore) per community for an author.
+     * Only counts the most recent karma from each community to avoid summing duplicates.
+     * Returns a map of communityAddress -> { postScore, replyScore, receivedAt }
      *
      * @param authorPublicKey - The Ed25519 public   key from the publication's signature
      */
-    getAuthorKarmaBySubplebbit(authorPublicKey: string): Map<string, { postScore: number; replyScore: number; receivedAt: number }> {
+    getAuthorKarmaByCommunity(authorPublicKey: string): Map<string, { postScore: number; replyScore: number; receivedAt: number }> {
         const karmaMap = new Map<string, { postScore: number; replyScore: number; receivedAt: number }>();
 
         // Helper to update karma map with newer data only
-        const updateKarmaMap = (subplebbitAddress: string, postScore: number, replyScore: number, receivedAt: number) => {
-            const existing = karmaMap.get(subplebbitAddress);
+        const updateKarmaMap = (communityAddress: string, postScore: number, replyScore: number, receivedAt: number) => {
+            const existing = karmaMap.get(communityAddress);
             if (!existing || receivedAt > existing.receivedAt) {
-                karmaMap.set(subplebbitAddress, { postScore, replyScore, receivedAt });
+                karmaMap.set(communityAddress, { postScore, replyScore, receivedAt });
             }
         };
 
@@ -794,50 +794,50 @@ export class SpamDetectionDatabase {
         const commentRows = this.db
             .prepare(
                 `SELECT
-                    subplebbitAddress,
-                    COALESCE(json_extract(author, '$.subplebbit.postScore'), 0) as postScore,
-                    COALESCE(json_extract(author, '$.subplebbit.replyScore'), 0) as replyScore,
+                    communityAddress,
+                    COALESCE(json_extract(author, '$.community.postScore'), 0) as postScore,
+                    COALESCE(json_extract(author, '$.community.replyScore'), 0) as replyScore,
                     receivedAt
                  FROM comments
                  WHERE json_extract(signature, '$.publicKey') = ?
                  ORDER BY receivedAt DESC`
             )
-            .all(authorPublicKey) as Array<{ subplebbitAddress: string; postScore: number; replyScore: number; receivedAt: number }>;
+            .all(authorPublicKey) as Array<{ communityAddress: string; postScore: number; replyScore: number; receivedAt: number }>;
 
         for (const row of commentRows) {
-            updateKarmaMap(row.subplebbitAddress, row.postScore, row.replyScore, row.receivedAt);
+            updateKarmaMap(row.communityAddress, row.postScore, row.replyScore, row.receivedAt);
         }
 
         // Query votes for karma data
         const voteRows = this.db
             .prepare(
                 `SELECT
-                    subplebbitAddress,
-                    COALESCE(json_extract(author, '$.subplebbit.postScore'), 0) as postScore,
-                    COALESCE(json_extract(author, '$.subplebbit.replyScore'), 0) as replyScore,
+                    communityAddress,
+                    COALESCE(json_extract(author, '$.community.postScore'), 0) as postScore,
+                    COALESCE(json_extract(author, '$.community.replyScore'), 0) as replyScore,
                     receivedAt
                  FROM votes
                  WHERE json_extract(signature, '$.publicKey') = ?
                  ORDER BY receivedAt DESC`
             )
-            .all(authorPublicKey) as Array<{ subplebbitAddress: string; postScore: number; replyScore: number; receivedAt: number }>;
+            .all(authorPublicKey) as Array<{ communityAddress: string; postScore: number; replyScore: number; receivedAt: number }>;
 
         for (const row of voteRows) {
-            updateKarmaMap(row.subplebbitAddress, row.postScore, row.replyScore, row.receivedAt);
+            updateKarmaMap(row.communityAddress, row.postScore, row.replyScore, row.receivedAt);
         }
 
         return karmaMap;
     }
 
     /**
-     * Get the total aggregated karma for an author across all subplebbits in our database.
-     * Only counts the latest karma from each subplebbit to avoid summing duplicates.
-     * Returns { totalPostScore, totalReplyScore, subplebbitCount }
+     * Get the total aggregated karma for an author across all communities in our database.
+     * Only counts the latest karma from each community to avoid summing duplicates.
+     * Returns { totalPostScore, totalReplyScore, communityCount }
      *
      * @param authorPublicKey - The Ed25519 public key from the publication's signature
      */
-    getAuthorAggregatedKarma(authorPublicKey: string): { totalPostScore: number; totalReplyScore: number; subplebbitCount: number } {
-        const karmaMap = this.getAuthorKarmaBySubplebbit(authorPublicKey);
+    getAuthorAggregatedKarma(authorPublicKey: string): { totalPostScore: number; totalReplyScore: number; communityCount: number } {
+        const karmaMap = this.getAuthorKarmaByCommunity(authorPublicKey);
 
         let totalPostScore = 0;
         let totalReplyScore = 0;
@@ -850,7 +850,7 @@ export class SpamDetectionDatabase {
         return {
             totalPostScore,
             totalReplyScore,
-            subplebbitCount: karmaMap.size
+            communityCount: karmaMap.size
         };
     }
 
@@ -880,7 +880,7 @@ export class SpamDetectionDatabase {
         authorPublicKey: string;
         content: string | null;
         title: string | null;
-        subplebbitAddress: string;
+        communityAddress: string;
         receivedAt: number;
     }> {
         const { content, title, excludeChallengeId, sinceTimestamp, limit = 50 } = params;
@@ -929,7 +929,7 @@ export class SpamDetectionDatabase {
                 json_extract(signature, '$.publicKey') as authorPublicKey,
                 content,
                 title,
-                subplebbitAddress,
+                communityAddress,
                 receivedAt
             FROM comments
             ${whereClause}
@@ -944,7 +944,7 @@ export class SpamDetectionDatabase {
             authorPublicKey: string;
             content: string | null;
             title: string | null;
-            subplebbitAddress: string;
+            communityAddress: string;
             receivedAt: number;
         }>;
     }
@@ -971,7 +971,7 @@ export class SpamDetectionDatabase {
         sessionId: string;
         content: string | null;
         title: string | null;
-        subplebbitAddress: string;
+        communityAddress: string;
         receivedAt: number;
         contentSimilarity: number;
         titleSimilarity: number;
@@ -1016,7 +1016,7 @@ export class SpamDetectionDatabase {
                 sessionId,
                 content,
                 title,
-                subplebbitAddress,
+                communityAddress,
                 receivedAt,
                 jaccard_similarity(content, @content) as contentSimilarity,
                 jaccard_similarity(title, @title) as titleSimilarity
@@ -1030,7 +1030,7 @@ export class SpamDetectionDatabase {
             sessionId: string;
             content: string | null;
             title: string | null;
-            subplebbitAddress: string;
+            communityAddress: string;
             receivedAt: number;
             contentSimilarity: number;
             titleSimilarity: number;
@@ -1060,7 +1060,7 @@ export class SpamDetectionDatabase {
         authorPublicKey: string;
         content: string | null;
         title: string | null;
-        subplebbitAddress: string;
+        communityAddress: string;
         receivedAt: number;
         contentSimilarity: number;
         titleSimilarity: number;
@@ -1106,7 +1106,7 @@ export class SpamDetectionDatabase {
                 json_extract(signature, '$.publicKey') as authorPublicKey,
                 content,
                 title,
-                subplebbitAddress,
+                communityAddress,
                 receivedAt,
                 jaccard_similarity(content, @content) as contentSimilarity,
                 jaccard_similarity(title, @title) as titleSimilarity
@@ -1121,7 +1121,7 @@ export class SpamDetectionDatabase {
             authorPublicKey: string;
             content: string | null;
             title: string | null;
-            subplebbitAddress: string;
+            communityAddress: string;
             receivedAt: number;
             contentSimilarity: number;
             titleSimilarity: number;

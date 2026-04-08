@@ -1,16 +1,21 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 import type { EvaluateResponse } from "@bitsocial/spam-blocker-shared";
 import type { SpamDetectionDatabase, ChallengeTierDb } from "../db/index.js";
 import { EvaluateRequestSchema, type EvaluateRequest } from "./schemas.js";
-import { derivePublicationFromChallengeRequest } from "../plebbit-js-internals.js";
+import { derivePublicationFromChallengeRequest } from "../pkc-js-internals.js";
 import { randomUUID } from "crypto";
 import { verifySignedRequest } from "../security/request-signature.js";
 import { verifyPublicationSignature } from "../security/publication-signature.js";
-import { resolveSubplebbitPublicKey } from "../subplebbit-resolver.js";
+import { resolveCommunityPublicKey } from "../community-resolver.js";
 import { calculateRiskScore } from "../risk-score/index.js";
-import { getAuthorFromChallengeRequest, getAuthorPublicKeyFromChallengeRequest, getPublicationType } from "../risk-score/utils.js";
+import {
+    getAuthorFromChallengeRequest,
+    getAuthorPublicKeyFromChallengeRequest,
+    getPublicationCommunityAddressFromChallengeRequest,
+    getPublicationType
+} from "../risk-score/utils.js";
 import { checkRateLimit, type RateLimitConfig } from "../rate-limit/index.js";
 import { fetchWalletTransactionCounts } from "../security/author-field-signature.js";
 import type { RiskFactorName } from "../risk-score/types.js";
@@ -32,8 +37,8 @@ export interface EvaluateRouteOptions {
     enabledOAuthProviders?: string[];
     /** Whether Turnstile is configured */
     hasTurnstile?: boolean;
-    /** Allow non-domain (IPNS) subplebbits. Default: false */
-    allowNonDomainSubplebbits?: boolean;
+    /** Allow non-domain (IPNS) communities. Default: false */
+    allowNonDomainCommunities?: boolean;
     /** Rate limit configuration. Undefined = feature disabled. Pass {} to enable with defaults. */
     rateLimitConfig?: RateLimitConfig;
     /** List of risk factor names to disable (their weight is zeroed out and redistributed) */
@@ -51,7 +56,7 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
         challengeTierConfig,
         enabledOAuthProviders = [],
         hasTurnstile = false,
-        allowNonDomainSubplebbits = false,
+        allowNonDomainCommunities = false,
         rateLimitConfig,
         disabledRiskFactors
     } = options;
@@ -86,11 +91,11 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
 
             await verifySignedRequest({ challengeRequest: rawChallengeRequest, timestamp }, signature);
 
-            // Extract publication to get subplebbitAddress for validation
+            // Extract publication to get communityAddress for validation
             let publication;
             try {
                 publication = derivePublicationFromChallengeRequest(
-                    challengeRequest as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor
+                    challengeRequest as DecryptedChallengeRequestMessageTypeWithCommunityAuthor
                 );
             } catch (error) {
                 const invalidError = new Error("Invalid request body: missing publication");
@@ -99,12 +104,12 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             }
 
             // Validate publication type - only accept user-generated content (posts, replies, votes)
-            const typedChallengeRequest = challengeRequest as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+            const typedChallengeRequest = challengeRequest as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 
-            // Reject subplebbit-level actions - these are inherently authorized by the subplebbit's trust model
-            if (typedChallengeRequest.commentEdit || typedChallengeRequest.commentModeration || typedChallengeRequest.subplebbitEdit) {
+            // Reject community-level actions - these are inherently authorized by the community's trust model
+            if (typedChallengeRequest.commentEdit || typedChallengeRequest.commentModeration || typedChallengeRequest.communityEdit) {
                 const error = new Error(
-                    "commentEdit, commentModeration, and subplebbitEdit are subplebbit-level actions that do not require spam detection"
+                    "commentEdit, commentModeration, and communityEdit are community-level actions that do not require spam detection"
                 );
                 (error as { statusCode?: number }).statusCode = 400;
                 throw error;
@@ -119,10 +124,10 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             }
 
             // Verify publication signature (prevents forged publications)
-            const plebbit = await fastify.getPlebbitInstance();
+            const pkc = await fastify.getPkcInstance();
             const verificationResult = await verifyPublicationSignature({
                 challengeRequest: typedChallengeRequest,
-                plebbit
+                pkc
             });
             if (!verificationResult.valid) {
                 const error = new Error(`Publication signature is invalid: ${verificationResult.reason}`);
@@ -130,30 +135,37 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
                 throw error;
             }
 
-            const subplebbitAddress = publication.subplebbitAddress;
+            let communityAddress: string;
+            try {
+                communityAddress = getPublicationCommunityAddressFromChallengeRequest(typedChallengeRequest);
+            } catch {
+                const error = new Error("Invalid request body: missing community identity");
+                (error as { statusCode?: number }).statusCode = 400;
+                throw error;
+            }
             // Convert Uint8Array publicKey to base64 string for comparisons and storage
-            const subplebbitPublicKeyFromRequestBody = uint8ArrayToString(signature.publicKey, "base64");
+            const communityPublicKeyFromRequestBody = uint8ArrayToString(signature.publicKey, "base64");
 
-            // Only accept domain-addressed subplebbits (unless allowNonDomainSubplebbits is enabled)
+            // Only accept domain-addressed communities (unless allowNonDomainCommunities is enabled)
             // IPNS addresses are free to create, making them vulnerable to sybil attacks
-            if (!allowNonDomainSubplebbits && !subplebbitAddress.includes(".")) {
-                const error = new Error("Only domain-addressed subplebbits are supported");
+            if (!allowNonDomainCommunities && !communityAddress.includes(".")) {
+                const error = new Error("Only domain-addressed communities are supported");
                 (error as { statusCode?: number }).statusCode = 400;
                 throw error;
             }
 
-            // Verify the request signature matches the resolved subplebbit public key
+            // Verify the request signature matches the resolved community public key
             let resolvedPublicKey: string;
             try {
-                resolvedPublicKey = await resolveSubplebbitPublicKey(subplebbitAddress, plebbit);
+                resolvedPublicKey = await resolveCommunityPublicKey(communityAddress, pkc);
             } catch (error) {
-                const resolveError = new Error("Unable to resolve subplebbit address");
+                const resolveError = new Error("Unable to resolve community address");
                 (resolveError as { statusCode?: number }).statusCode = 401;
                 throw resolveError;
             }
 
-            if (resolvedPublicKey !== subplebbitPublicKeyFromRequestBody) {
-                const mismatchError = new Error("Request signature does not match subplebbit");
+            if (resolvedPublicKey !== communityPublicKeyFromRequestBody) {
+                const mismatchError = new Error("Request signature does not match community");
                 (mismatchError as { statusCode?: number }).statusCode = 401;
                 throw mismatchError;
             }
@@ -165,13 +177,13 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             const nowMs = Date.now();
             const expiresAt = nowMs + CHALLENGE_EXPIRY_MS;
 
-            // Register subplebbit for indexing (only if not already registered)
+            // Register community for indexing (only if not already registered)
             const indexerQueries = new IndexerQueries(db.getDb());
-            const existingSubplebbit = indexerQueries.getIndexedSubplebbit(subplebbitAddress);
-            if (!existingSubplebbit) {
-                indexerQueries.upsertIndexedSubplebbit({
-                    address: subplebbitAddress,
-                    publicKey: subplebbitPublicKeyFromRequestBody,
+            const existingCommunity = indexerQueries.getIndexedCommunity(communityAddress);
+            if (!existingCommunity) {
+                indexerQueries.upsertIndexedCommunity({
+                    address: communityAddress,
+                    publicKey: communityPublicKeyFromRequestBody,
                     discoveredVia: "evaluate_api"
                 });
             }
@@ -186,7 +198,7 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
                       wallets: author.wallets as
                           | Record<string, { address: string; timestamp: number; signature: { signature: string; type: string } }>
                           | undefined,
-                      plebbit
+                      pkc
                   });
 
             // Check for duplicate publication (replay attack prevention)
@@ -229,7 +241,7 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
 
             // Calculate risk score using the risk-score module
             const riskScoreResult = calculateRiskScore({
-                challengeRequest: challengeRequest as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor,
+                challengeRequest: challengeRequest as DecryptedChallengeRequestMessageTypeWithCommunityAuthor,
                 db,
                 walletTransactionCounts,
                 enabledOAuthProviders,
@@ -266,13 +278,13 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             // Create challenge session in database (store riskScore for post-CAPTCHA adjustment)
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey: subplebbitPublicKeyFromRequestBody,
+                communityPublicKey: communityPublicKeyFromRequestBody,
                 expiresAt,
                 challengeTier: dbChallengeTier,
                 riskScore: riskScoreResult.score
             });
 
-            // Record the IP address of the subplebbit server calling /evaluate
+            // Record the IP address of the community server calling /evaluate
             const callerIp = getClientIp(request);
             if (callerIp) {
                 db.insertEvaluateCallerIp({
@@ -286,12 +298,18 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             if (typedChallengeRequest.comment) {
                 db.insertComment({
                     sessionId,
-                    publication: typedChallengeRequest.comment
+                    publication: {
+                        ...typedChallengeRequest.comment,
+                        communityAddress
+                    }
                 });
             } else if (typedChallengeRequest.vote) {
                 db.insertVote({
                     sessionId,
-                    publication: typedChallengeRequest.vote
+                    publication: {
+                        ...typedChallengeRequest.vote,
+                        communityAddress
+                    }
                 });
             }
 

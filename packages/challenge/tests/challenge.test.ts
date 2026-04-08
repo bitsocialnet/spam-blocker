@@ -1,9 +1,9 @@
-import type { SubplebbitChallengeSetting } from "@plebbit/plebbit-js/dist/node/subplebbit/types.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
-import type { LocalSubplebbit } from "@plebbit/plebbit-js/dist/node/runtime/node/subplebbit/local-subplebbit.js";
+import type { CommunityChallengeSetting } from "@pkcprotocol/pkc-js/dist/node/community/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
+import type { LocalCommunity } from "@pkcprotocol/pkc-js/dist/node/runtime/node/community/local-community.js";
 import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { getPublicKeyFromPrivateKey } from "../src/plebbit-js-signer.js";
+import { getPublicKeyFromPrivateKey } from "../src/pkc-js-signer.js";
 import type { EvaluateResponse, VerifyResponse } from "@bitsocial/spam-blocker-shared";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import ChallengeFileFactory from "../src/index.js";
@@ -48,19 +48,19 @@ const createVerifyResponse = (overrides: Partial<VerifyResponse> = {}): VerifyRe
     ...overrides
 });
 
-const request = {} as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+const request = {} as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 const testPrivateKey = Buffer.alloc(32, 7).toString("base64");
-let subplebbit: LocalSubplebbit;
+let community: LocalCommunity;
 
 beforeAll(async () => {
     const publicKey = await getPublicKeyFromPrivateKey(testPrivateKey);
-    subplebbit = {
+    community = {
         signer: {
             privateKey: testPrivateKey,
             publicKey,
             type: "ed25519"
         }
-    } as LocalSubplebbit;
+    } as LocalCommunity;
 });
 
 afterEach(() => {
@@ -68,24 +68,24 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
-describe("BitsocialSpamBlocker challenge package", () => {
+describe("Bitsocial Spam Blocker challenge package", () => {
     it("exposes metadata and option inputs", () => {
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         expect(challengeFile.type).toBe("url/iframe");
-        expect(challengeFile.description).toMatch(/BitsocialSpamBlocker/i);
+        expect(challengeFile.description).toMatch(/Bitsocial Spam Blocker/i);
         expect(challengeFile.optionInputs.some((input) => input.option === "serverUrl")).toBe(true);
     });
 
     it("auto-accepts low risk scores using the default serverUrl", async () => {
         const fetchMock = stubFetch(createResponse(createEvaluateResponse({ riskScore: 0.1 })));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         expect(result).toEqual({ success: true });
@@ -98,13 +98,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
 
     it("wraps evaluate requests with the challengeRequest payload", async () => {
         const fetchMock = stubFetch(createResponse(createEvaluateResponse({ riskScore: 0.1 })));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         // Decode CBOR body from Buffer
@@ -127,32 +127,32 @@ describe("BitsocialSpamBlocker challenge package", () => {
 
     it("auto-rejects when riskScore meets the reject threshold", async () => {
         const fetchMock = stubFetch(createResponse(createEvaluateResponse({ riskScore: 0.8, explanation: "Too risky" })));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         expect(fetchMock).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
             success: false,
-            error: "Rejected by BitsocialSpamBlocker (riskScore 0.80). Too risky"
+            error: "Rejected by Bitsocial Spam Blocker (riskScore 0.80). Too risky"
         });
     });
 
     it("returns a challenge and calls verify endpoint with sessionId", async () => {
         const evaluateResponse = createEvaluateResponse({ riskScore: 0.5 });
         const fetchMock = stubFetch(createResponse(evaluateResponse), createResponse(createVerifyResponse()));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         if (!("verify" in result)) {
@@ -188,13 +188,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
             createResponse(createEvaluateResponse({ riskScore: 0.5 })),
             createResponse(createVerifyResponse({ success: false, error: "Challenge not yet completed" }))
         );
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         if (!("verify" in result)) {
@@ -212,13 +212,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
             createResponse(createEvaluateResponse({ riskScore: 0.5 })),
             createResponse(createVerifyResponse({ success: false, error: "Nope" }))
         );
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         if (!("verify" in result)) {
@@ -232,13 +232,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
 
     it("rejects by IP risk policy when configured", async () => {
         stubFetch(createResponse(createEvaluateResponse({ riskScore: 0.5 })), createResponse(createVerifyResponse({ ipRisk: 0.7 })));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: { maxIpRisk: "0.4" } } as SubplebbitChallengeSetting,
+            challengeSettings: { options: { maxIpRisk: "0.4" } } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         if (!("verify" in result)) {
@@ -257,13 +257,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
             createResponse(createEvaluateResponse({ riskScore: 0.5 })),
             createResponse(createVerifyResponse({ ipAddressCountry: "us" }))
         );
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: { countryBlacklist: "us, ca" } } as SubplebbitChallengeSetting,
+            challengeSettings: { options: { countryBlacklist: "us, ca" } } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         if (!("verify" in result)) {
@@ -287,13 +287,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
             createResponse(createEvaluateResponse({ riskScore: 0.5 })),
             createResponse(createVerifyResponse({ ipTypeEstimation: ipType }))
         );
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options } as SubplebbitChallengeSetting,
+            challengeSettings: { options } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         if (!("verify" in result)) {
@@ -315,13 +315,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
                 })
             )
         );
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         if (!("verify" in result)) {
@@ -334,13 +334,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
 
     it("normalizes serverUrl before calling the API", async () => {
         const fetchMock = stubFetch(createResponse(createEvaluateResponse({ riskScore: 0.1 })));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         await challengeFile.getChallenge({
-            challengeSettings: { options: { serverUrl: "https://example.com/api///" } } as SubplebbitChallengeSetting,
+            challengeSettings: { options: { serverUrl: "https://example.com/api///" } } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         expect(fetchMock).toHaveBeenCalledWith("https://example.com/api/evaluate", expect.any(Object));
@@ -348,13 +348,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
 
     it("returns {success:false} on invalid evaluate responses", async () => {
         stubFetch(createResponse(createEvaluateResponse({ riskScore: 2 }) as unknown as EvaluateResponse));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         expect(result).toHaveProperty("success", false);
@@ -363,13 +363,13 @@ describe("BitsocialSpamBlocker challenge package", () => {
 
     it("returns {success:false} on invalid verify responses", async () => {
         stubFetch(createResponse(createEvaluateResponse({ riskScore: 0.5 })), createResponse({}));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         if (!("verify" in result)) {
@@ -383,44 +383,44 @@ describe("BitsocialSpamBlocker challenge package", () => {
 
     it("returns {success:false} on server errors with JSON details", async () => {
         stubFetch(createResponse({ error: "boom" }, { ok: false, status: 500 }));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         expect(result).toHaveProperty("success", false);
-        expect((result as any).error).toMatch(/BitsocialSpamBlocker server error \(500\).*boom/i);
+        expect((result as any).error).toMatch(/Bitsocial Spam Blocker server error \(500\).*boom/i);
     });
 
     it("returns {success:false} when the server returns invalid JSON", async () => {
         stubFetch(createResponse(undefined, { ok: true, jsonThrows: true }));
-        const challengeFile = ChallengeFileFactory({} as SubplebbitChallengeSetting);
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         const result = await challengeFile.getChallenge({
-            challengeSettings: { options: {} } as SubplebbitChallengeSetting,
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
             challengeRequestMessage: request,
             challengeIndex: 0,
-            subplebbit
+            community
         });
 
         expect(result).toHaveProperty("success", false);
         expect((result as any).error).toMatch(/Invalid JSON response/i);
     });
 
-    it("does not expose serverUrl or options in the public subplebbit challenge record", async () => {
+    it("does not expose serverUrl or options in the public community challenge record", async () => {
         const __dirname = path.dirname(fileURLToPath(import.meta.url));
         const challengePath = path.resolve(__dirname, "../dist/index.js");
 
         const require = createRequire(import.meta.url);
-        const plebbitJsDir = path.dirname(require.resolve("@plebbit/plebbit-js"));
-        const plebbitJsChallengesPath = path.join(plebbitJsDir, "runtime/node/subplebbit/challenges/index.js");
-        const { getSubplebbitChallengeFromSubplebbitChallengeSettings } = await import(pathToFileURL(plebbitJsChallengesPath).href);
+        const pkcJsDir = path.dirname(require.resolve("@pkcprotocol/pkc-js"));
+        const pkcJsChallengesPath = path.join(pkcJsDir, "runtime/node/community/challenges/index.js");
+        const { getCommunityChallengeFromCommunityChallengeSettings } = await import(pathToFileURL(pkcJsChallengesPath).href);
 
-        const publicChallenge = await getSubplebbitChallengeFromSubplebbitChallengeSettings({
+        const publicChallenge = await getCommunityChallengeFromCommunityChallengeSettings({
             path: challengePath,
             options: {
                 serverUrl: "https://secret-server.example.com/api/v1",
@@ -432,7 +432,7 @@ describe("BitsocialSpamBlocker challenge package", () => {
 
         // The public challenge should only contain these fields
         expect(publicChallenge.type).toBe("url/iframe");
-        expect(publicChallenge.description).toMatch(/BitsocialSpamBlocker/i);
+        expect(publicChallenge.description).toMatch(/Bitsocial/i);
 
         // options and serverUrl must NOT be in the public record
         const serialized = JSON.stringify(publicChallenge);

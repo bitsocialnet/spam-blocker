@@ -19,7 +19,7 @@ const CAPTCHA_SCORE_MULTIPLIER = process.env.CAPTCHA_SCORE_MULTIPLIER ? parseFlo
 const OAUTH_SCORE_MULTIPLIER = process.env.OAUTH_SCORE_MULTIPLIER ? parseFloat(process.env.OAUTH_SCORE_MULTIPLIER) : 0.5;
 const CHALLENGE_PASS_THRESHOLD = process.env.CHALLENGE_PASS_THRESHOLD ? parseFloat(process.env.CHALLENGE_PASS_THRESHOLD) : 0.4;
 import type { IpIntelligence } from "../src/risk-score/factors/ip-risk.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 import { computeBudgetMultiplier, DEFAULT_RATE_LIMITS, DEFAULT_AGGREGATE_LIMITS } from "../src/rate-limit/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -326,7 +326,7 @@ const SCENARIOS: ScenarioConfig[] = [
         urlSpam: "no_urls",
         exampleContent: {
             title: "First time posting here!",
-            content: "Hey everyone, just discovered plebbit and wanted to introduce myself..."
+            content: "Hey everyone, just discovered pkc and wanted to introduce myself..."
         }
     },
     {
@@ -345,8 +345,8 @@ const SCENARIOS: ScenarioConfig[] = [
         hasOAuthVerification: ["google"],
         walletNonce: 250,
         exampleContent: {
-            title: "Question about plebbit development",
-            content: "Has anyone figured out how to run a subplebbit on a VPS? I've been here a while and still learning..."
+            title: "Question about pkc development",
+            content: "Has anyone figured out how to run a community on a VPS? I've been here a while and still learning..."
         }
     },
     {
@@ -604,7 +604,7 @@ const SCENARIOS: ScenarioConfig[] = [
         hasOAuthVerification: ["google", "github"],
         walletNonce: 500,
         exampleContent: {
-            title: "Comprehensive guide to running your own subplebbit",
+            title: "Comprehensive guide to running your own community",
             content: "After over a year on the platform, I've compiled everything I've learned..."
         }
     },
@@ -623,7 +623,7 @@ const SCENARIOS: ScenarioConfig[] = [
         urlSpam: "no_urls",
         walletNonce: 150,
         exampleContent: {
-            title: "Been using crypto for years, just found plebbit",
+            title: "Been using crypto for years, just found pkc",
             content: "Excited to finally have a decentralized alternative to Reddit..."
         }
     },
@@ -642,7 +642,7 @@ const SCENARIOS: ScenarioConfig[] = [
         urlSpam: "no_urls",
         walletNonce: 5,
         exampleContent: {
-            title: "Just getting started with crypto and plebbit",
+            title: "Just getting started with crypto and pkc",
             content: "New to both but excited to learn..."
         }
     },
@@ -664,8 +664,8 @@ const SCENARIOS: ScenarioConfig[] = [
         walletNonce: 250,
         pseudonymityMode: "per-post",
         exampleContent: {
-            title: "Question about plebbit development",
-            content: "Has anyone figured out how to run a subplebbit on a VPS? I've been here a while and still learning..."
+            title: "Question about pkc development",
+            content: "Has anyone figured out how to run a community on a VPS? I've been here a while and still learning..."
         }
     },
     {
@@ -758,13 +758,13 @@ function seedDatabase(
     oauthConfig: OAuthConfig
 ): void {
     const nowMs = now * 1000;
-    const subplebbitAddress = "test-sub.eth";
+    const communityAddress = "test-sub.eth";
 
     // Helper to create sessions and publications
     const createSession = (sessionId: string) => {
         db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "test-subplebbit-pubkey",
+            communityPublicKey: "test-community-pubkey",
             expiresAt: nowMs + 3600000
         });
     };
@@ -779,14 +779,14 @@ function seedDatabase(
         db_raw
             .prepare(
                 `
-            INSERT INTO comments (sessionId, author, subplebbitAddress, content, signature, timestamp, protocolVersion, receivedAt)
+            INSERT INTO comments (sessionId, author, communityAddress, content, signature, timestamp, protocolVersion, receivedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `
             )
             .run(
                 sessionId,
                 JSON.stringify({ address: "seed-author" }),
-                subplebbitAddress,
+                communityAddress,
                 "Historical comment for account age",
                 JSON.stringify({ publicKey: authorPublicKey, signature: "dummy", type: "ed25519" }),
                 accountAgeTimestamp,
@@ -799,17 +799,17 @@ function seedDatabase(
     if (scenario.karma !== "no_data") {
         const karmaValue = scenario.karma === "+5" ? 5 : scenario.karma === "+3" ? 3 : scenario.karma === "-5" ? -5 : 0;
 
-        // Add karma to multiple domain-addressed subplebbits
+        // Add karma to multiple domain-addressed communities
         const karmaSubsCount = Math.abs(karmaValue) > 0 ? Math.abs(karmaValue) : 1;
         for (let i = 0; i < karmaSubsCount; i++) {
             const subAddr = `karma-sub-${i}.eth`;
             const db_raw = db.getDb();
 
-            // Insert indexed subplebbit
+            // Insert indexed community
             db_raw
                 .prepare(
                     `
-                INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+                INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled)
                 VALUES (?, 'manual', ?, 1)
             `
                 )
@@ -820,7 +820,7 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
                 VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
@@ -843,7 +843,7 @@ function seedDatabase(
                 VALUES (?, ?, ?, ?)
             `
                 )
-                .run(cid, JSON.stringify({ subplebbit: { postScore, replyScore: 0 } }), now - 86400, nowMs - 86400000);
+                .run(cid, JSON.stringify({ community: { postScore, replyScore: 0 } }), now - 86400, nowMs - 86400000);
         }
     }
 
@@ -874,7 +874,7 @@ function seedDatabase(
                     sessionId,
                     publication: {
                         author: { address: "seed-author" },
-                        subplebbitAddress,
+                        communityAddress,
                         commentCid: `Qm${generateUniqueId()}`,
                         signature: { publicKey: authorPublicKey, signature: "dummy", type: "ed25519" },
                         protocolVersion: "1",
@@ -887,7 +887,7 @@ function seedDatabase(
             } else {
                 const publication: Parameters<typeof db.insertComment>[0]["publication"] = {
                     author: { address: "seed-author" },
-                    subplebbitAddress,
+                    communityAddress,
                     signature: { publicKey: authorPublicKey, signature: "dummy", type: "ed25519" },
                     protocolVersion: "1",
                     content: `Velocity test content ${i}`,
@@ -909,11 +909,11 @@ function seedDatabase(
         for (let i = 0; i < scenario.banCount; i++) {
             const subAddr = `ban-sub-${i}.eth`;
 
-            // Insert indexed subplebbit
+            // Insert indexed community
             db_raw
                 .prepare(
                     `
-                INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+                INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled)
                 VALUES (?, 'manual', ?, 1)
             `
                 )
@@ -924,7 +924,7 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
                 VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
@@ -945,7 +945,7 @@ function seedDatabase(
                 VALUES (?, ?, ?, ?)
             `
                 )
-                .run(cid, JSON.stringify({ subplebbit: { banExpiresAt: now + 86400 * 365 } }), now - 86400, nowMs - 86400000);
+                .run(cid, JSON.stringify({ community: { banExpiresAt: now + 86400 * 365 } }), now - 86400, nowMs - 86400000);
         }
     }
 
@@ -956,7 +956,7 @@ function seedDatabase(
         const existingCount = (
             db_raw
                 .prepare(
-                    `SELECT COUNT(DISTINCT subplebbitAddress) as cnt FROM indexed_comments_ipfs
+                    `SELECT COUNT(DISTINCT communityAddress) as cnt FROM indexed_comments_ipfs
                      WHERE json_extract(signature, '$.publicKey') = ?`
                 )
                 .get(authorPublicKey) as { cnt: number }
@@ -969,14 +969,14 @@ function seedDatabase(
 
             db_raw
                 .prepare(
-                    `INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+                    `INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled)
                      VALUES (?, 'manual', ?, 1)`
                 )
                 .run(subAddr, nowMs);
 
             db_raw
                 .prepare(
-                    `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                    `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
                      VALUES (?, ?, ?, ?, ?, ?, '1', ?)`
                 )
                 .run(
@@ -1019,7 +1019,7 @@ function seedDatabase(
         db_raw
             .prepare(
                 `
-            INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+            INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled)
             VALUES (?, 'manual', ?, 1)
         `
             )
@@ -1032,7 +1032,7 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO modqueue_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, firstSeenAt, protocolVersion, pseudonymityMode)
+                INSERT INTO modqueue_comments_ipfs (cid, communityAddress, author, signature, timestamp, firstSeenAt, protocolVersion, pseudonymityMode)
                 VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
@@ -1078,7 +1078,7 @@ function seedDatabase(
         db_raw
             .prepare(
                 `
-            INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+            INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled)
             VALUES (?, 'manual', ?, 1)
         `
             )
@@ -1091,7 +1091,7 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
                 VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
@@ -1137,7 +1137,7 @@ function seedDatabase(
         db_raw
             .prepare(
                 `
-            INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+            INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled)
             VALUES (?, 'manual', ?, 1)
         `
             )
@@ -1150,7 +1150,7 @@ function seedDatabase(
             db_raw
                 .prepare(
                     `
-                INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
+                INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, protocolVersion, pseudonymityMode)
                 VALUES (?, ?, ?, ?, ?, ?, '1', ?)
             `
                 )
@@ -1188,7 +1188,7 @@ function seedDatabase(
                 sessionId,
                 publication: {
                     author: { address: "seed-author" },
-                    subplebbitAddress,
+                    communityAddress,
                     signature: { publicKey: authorPublicKey, signature: `dup-${i}`, type: "ed25519" },
                     protocolVersion: "1",
                     content: dupContent,
@@ -1218,7 +1218,7 @@ function seedDatabase(
                     sessionId,
                     publication: {
                         author: { address: "seed-author" },
-                        subplebbitAddress,
+                        communityAddress,
                         signature: { publicKey: authorPublicKey, signature: `url-${i}`, type: "ed25519" },
                         protocolVersion: "1",
                         content: "Check out this link",
@@ -1260,7 +1260,7 @@ function seedDatabase(
             sessionId,
             publication: {
                 author: { address: "seed-author" },
-                subplebbitAddress,
+                communityAddress,
                 signature: { publicKey: authorPublicKey, signature: `oauth-${provider}`, type: "ed25519" },
                 protocolVersion: "1",
                 content: "OAuth verified comment",
@@ -1281,23 +1281,23 @@ function createMockChallengeRequest(
     scenario: ScenarioConfig,
     authorPublicKey: string,
     now: number
-): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
-    const subplebbitAddress = "test-sub.eth";
+): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
+    const communityAddress = "test-sub.eth";
 
     // Build author object
     const author: Record<string, unknown> = {
         address: "12D3KooWAuthorAddress"
     };
 
-    // Add subplebbit author data for karma
+    // Add community author data for karma
     if (scenario.karma !== "no_data") {
         const karmaValue = scenario.karma === "+5" ? 10 : scenario.karma === "+3" ? 5 : scenario.karma === "-5" ? -10 : 0;
-        author.subplebbit = {
+        author.community = {
             postScore: karmaValue,
             replyScore: 0
         };
     } else {
-        author.subplebbit = {
+        author.community = {
             postScore: 0,
             replyScore: 0
         };
@@ -1319,12 +1319,12 @@ function createMockChallengeRequest(
         publicKey: authorPublicKey,
         signature: "mock-signature",
         type: "ed25519",
-        signedPropertyNames: ["author", "subplebbitAddress", "timestamp", "protocolVersion", "content"]
+        signedPropertyNames: ["author", "communityAddress", "timestamp", "protocolVersion", "content"]
     };
 
     const basePublication = {
         author,
-        subplebbitAddress,
+        communityAddress,
         timestamp: now,
         protocolVersion: "1",
         signature
@@ -1338,7 +1338,7 @@ function createMockChallengeRequest(
                 commentCid: "QmVoteTarget",
                 vote: 1
             }
-        } as unknown as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+        } as unknown as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
     }
 
     // Comment (post or reply)
@@ -1360,7 +1360,7 @@ function createMockChallengeRequest(
 
     return {
         comment
-    } as unknown as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as unknown as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 // ============================================================================

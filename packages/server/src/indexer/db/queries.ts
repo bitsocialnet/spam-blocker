@@ -1,6 +1,6 @@
 /**
  * Database queries for the indexer module.
- * Provides methods for managing indexed subplebbits, comments, and modqueue.
+ * Provides methods for managing indexed communities, comments, and modqueue.
  */
 
 import type { Database } from "better-sqlite3";
@@ -11,7 +11,7 @@ import type {
     DiscoverySource,
     IndexedCommentIpfs,
     IndexedCommentUpdate,
-    IndexedSubplebbit,
+    IndexedCommunity,
     ModQueueCommentUpdate,
     ModQueueCommentUpdateInsertParams
 } from "../types.js";
@@ -23,17 +23,17 @@ export class IndexerQueries {
     constructor(private db: Database) {}
 
     // ============================================
-    // Indexed Subplebbits
+    // Indexed Communities
     // ============================================
 
     /**
-     * Insert or update an indexed subplebbit.
+     * Insert or update an indexed community.
      */
-    upsertIndexedSubplebbit(params: { address: string; publicKey?: string; discoveredVia: DiscoverySource }): void {
+    upsertIndexedCommunity(params: { address: string; publicKey?: string; discoveredVia: DiscoverySource }): void {
         const now = Date.now();
         this.db
             .prepare(
-                `INSERT INTO indexed_subplebbits (address, publicKey, discoveredVia, discoveredAt)
+                `INSERT INTO indexed_communities (address, publicKey, discoveredVia, discoveredAt)
                  VALUES (@address, @publicKey, @discoveredVia, @discoveredAt)
                  ON CONFLICT(address) DO UPDATE SET
                      publicKey = COALESCE(@publicKey, publicKey)`
@@ -47,34 +47,34 @@ export class IndexerQueries {
     }
 
     /**
-     * Get all indexed subplebbits that are enabled for indexing.
+     * Get all indexed communities that are enabled for indexing.
      */
-    getEnabledSubplebbits(): IndexedSubplebbit[] {
-        return this.db.prepare(`SELECT * FROM indexed_subplebbits WHERE indexingEnabled = 1`).all() as IndexedSubplebbit[];
+    getEnabledCommunities(): IndexedCommunity[] {
+        return this.db.prepare(`SELECT * FROM indexed_communities WHERE indexingEnabled = 1`).all() as IndexedCommunity[];
     }
 
     /**
-     * Get an indexed subplebbit by address.
+     * Get an indexed community by address.
      */
-    getIndexedSubplebbit(address: string): IndexedSubplebbit | undefined {
-        return this.db.prepare(`SELECT * FROM indexed_subplebbits WHERE address = ?`).get(address) as IndexedSubplebbit | undefined;
+    getIndexedCommunity(address: string): IndexedCommunity | undefined {
+        return this.db.prepare(`SELECT * FROM indexed_communities WHERE address = ?`).get(address) as IndexedCommunity | undefined;
     }
 
     /**
-     * Update subplebbit cache markers (for change detection).
+     * Update community cache markers (for change detection).
      */
-    updateSubplebbitCacheMarkers(params: {
+    updateCommunityCacheMarkers(params: {
         address: string;
         lastPostsPageCidNew: string | null;
-        lastSubplebbitUpdatedAt: number | null;
+        lastCommunityUpdatedAt: number | null;
         lastUpdateCid: string;
         lastModQueuePendingApprovalPageCid?: string | null;
     }): void {
         this.db
             .prepare(
-                `UPDATE indexed_subplebbits
+                `UPDATE indexed_communities
                  SET lastPostsPageCidNew = @lastPostsPageCidNew,
-                     lastSubplebbitUpdatedAt = @lastSubplebbitUpdatedAt,
+                     lastCommunityUpdatedAt = @lastCommunityUpdatedAt,
                      lastUpdateCid = @lastUpdateCid,
                      lastModQueuePendingApprovalPageCid = @lastModQueuePendingApprovalPageCid,
                      consecutiveErrors = 0,
@@ -84,19 +84,19 @@ export class IndexerQueries {
             .run({
                 address: params.address,
                 lastPostsPageCidNew: params.lastPostsPageCidNew,
-                lastSubplebbitUpdatedAt: params.lastSubplebbitUpdatedAt,
+                lastCommunityUpdatedAt: params.lastCommunityUpdatedAt,
                 lastUpdateCid: params.lastUpdateCid,
                 lastModQueuePendingApprovalPageCid: params.lastModQueuePendingApprovalPageCid ?? null
             });
     }
 
     /**
-     * Record an error for a subplebbit and increment error count.
+     * Record an error for a community and increment error count.
      */
-    recordSubplebbitError(address: string, error: string): void {
+    recordCommunityError(address: string, error: string): void {
         this.db
             .prepare(
-                `UPDATE indexed_subplebbits
+                `UPDATE indexed_communities
                  SET consecutiveErrors = consecutiveErrors + 1,
                      lastError = @error
                  WHERE address = @address`
@@ -105,10 +105,10 @@ export class IndexerQueries {
     }
 
     /**
-     * Disable indexing for a subplebbit.
+     * Disable indexing for a community.
      */
-    disableSubplebbitIndexing(address: string): void {
-        this.db.prepare(`UPDATE indexed_subplebbits SET indexingEnabled = 0 WHERE address = ?`).run(address);
+    disableCommunityIndexing(address: string): void {
+        this.db.prepare(`UPDATE indexed_communities SET indexingEnabled = 0 WHERE address = ?`).run(address);
     }
 
     // ============================================
@@ -124,16 +124,16 @@ export class IndexerQueries {
         this.db
             .prepare(
                 `INSERT INTO indexed_comments_ipfs (
-                    cid, subplebbitAddress, author, signature, parentCid, content, title, link,
+                    cid, communityAddress, author, signature, parentCid, content, title, link,
                     timestamp, depth, protocolVersion, pseudonymityMode, fetchedAt
                  ) VALUES (
-                    @cid, @subplebbitAddress, @author, @signature, @parentCid, @content, @title, @link,
+                    @cid, @communityAddress, @author, @signature, @parentCid, @content, @title, @link,
                     @timestamp, @depth, @protocolVersion, @pseudonymityMode, @fetchedAt
                  ) ON CONFLICT(cid) DO NOTHING`
             )
             .run({
                 cid: params.cid,
-                subplebbitAddress: params.subplebbitAddress,
+                communityAddress: params.communityAddress,
                 author: JSON.stringify(params.author),
                 signature: JSON.stringify(params.signature),
                 parentCid: params.parentCid,
@@ -281,13 +281,13 @@ export class IndexerQueries {
     }
 
     /**
-     * Bulk-update seenAtSubplebbitUpdatedAt for a batch of CIDs.
+     * Bulk-update seenAtCommunityUpdatedAt for a batch of CIDs.
      * Sets the timestamp for all specified CIDs in a single transaction.
      */
     updateLastSeenInPagesAtBatch({ cids, timestamp }: { cids: string[]; timestamp: number }): void {
         if (cids.length === 0) return;
 
-        const stmt = this.db.prepare(`UPDATE indexed_comments_update SET seenAtSubplebbitUpdatedAt = @timestamp WHERE cid = @cid`);
+        const stmt = this.db.prepare(`UPDATE indexed_comments_update SET seenAtCommunityUpdatedAt = @timestamp WHERE cid = @cid`);
         const runBatch = this.db.transaction((cids: string[]) => {
             for (const cid of cids) {
                 stmt.run({ cid, timestamp });
@@ -297,22 +297,22 @@ export class IndexerQueries {
     }
 
     /**
-     * Find CIDs that have disappeared from subplebbit pages.
-     * Returns posts (parentCid IS NULL) where seenAtSubplebbitUpdatedAt < crawlTimestamp,
+     * Find CIDs that have disappeared from community pages.
+     * Returns posts (parentCid IS NULL) where seenAtCommunityUpdatedAt < crawlTimestamp,
      * meaning they were previously seen but not present in the latest crawl.
      * Replies are excluded because reply pages are truncated and skipped when unchanged.
      */
-    getDisappearedFromPagesCids({ subplebbitAddress, crawlTimestamp }: { subplebbitAddress: string; crawlTimestamp: number }): string[] {
+    getDisappearedFromPagesCids({ communityAddress, crawlTimestamp }: { communityAddress: string; crawlTimestamp: number }): string[] {
         const rows = this.db
             .prepare(
                 `SELECT u.cid FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
-                 WHERE i.subplebbitAddress = @subplebbitAddress
+                 WHERE i.communityAddress = @communityAddress
                    AND i.parentCid IS NULL
-                   AND u.seenAtSubplebbitUpdatedAt IS NOT NULL
-                   AND u.seenAtSubplebbitUpdatedAt < @crawlTimestamp`
+                   AND u.seenAtCommunityUpdatedAt IS NOT NULL
+                   AND u.seenAtCommunityUpdatedAt < @crawlTimestamp`
             )
-            .all({ subplebbitAddress, crawlTimestamp }) as Array<{ cid: string }>;
+            .all({ communityAddress, crawlTimestamp }) as Array<{ cid: string }>;
         return rows.map((r) => r.cid);
     }
 
@@ -327,7 +327,7 @@ export class IndexerQueries {
 
     /**
      * Mark CIDs as purged, recursively cascading to all known descendants.
-     * Handles plebbit's recursive purge behavior — when a reply is purged,
+     * Handles pkc's recursive purge behavior — when a reply is purged,
      * all its sub-replies are also gone.
      */
     markAsPurged(cids: string[]): void {
@@ -352,19 +352,19 @@ export class IndexerQueries {
      * Get posts awaiting IPFS verification (disappeared but not yet confirmed purged/removed).
      * Returns posts with 1-2 fetch failures that haven't been marked as purged or removed.
      */
-    getPostsAwaitingVerification(subplebbitAddress: string): Array<{ cid: string }> {
+    getPostsAwaitingVerification(communityAddress: string): Array<{ cid: string }> {
         return this.db
             .prepare(
                 `SELECT u.cid FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
-                 WHERE i.subplebbitAddress = @subplebbitAddress
+                 WHERE i.communityAddress = @communityAddress
                    AND i.parentCid IS NULL
                    AND u.fetchFailureCount > 0
                    AND u.fetchFailureCount < 3
                    AND (u.purged IS NULL OR u.purged = 0)
                    AND (u.removed IS NULL OR u.removed = 0)`
             )
-            .all({ subplebbitAddress }) as Array<{ cid: string }>;
+            .all({ communityAddress }) as Array<{ cid: string }>;
     }
 
     /**
@@ -386,16 +386,16 @@ export class IndexerQueries {
         this.db
             .prepare(
                 `INSERT INTO modqueue_comments_ipfs (
-                    cid, subplebbitAddress, author, signature, parentCid, content, title, link,
+                    cid, communityAddress, author, signature, parentCid, content, title, link,
                     timestamp, depth, protocolVersion, pseudonymityMode, firstSeenAt
                  ) VALUES (
-                    @cid, @subplebbitAddress, @author, @signature, @parentCid, @content, @title, @link,
+                    @cid, @communityAddress, @author, @signature, @parentCid, @content, @title, @link,
                     @timestamp, @depth, @protocolVersion, @pseudonymityMode, @firstSeenAt
                  ) ON CONFLICT(cid) DO NOTHING`
             )
             .run({
                 cid: params.cid,
-                subplebbitAddress: params.subplebbitAddress,
+                communityAddress: params.communityAddress,
                 author: JSON.stringify(params.author),
                 signature: JSON.stringify(params.signature),
                 parentCid: params.parentCid,
@@ -439,16 +439,16 @@ export class IndexerQueries {
     }
 
     /**
-     * Get all unresolved modqueue items for a subplebbit.
+     * Get all unresolved modqueue items for a community.
      */
-    getUnresolvedModQueueItems(subplebbitAddress: string): ModQueueCommentUpdate[] {
+    getUnresolvedModQueueItems(communityAddress: string): ModQueueCommentUpdate[] {
         return this.db
             .prepare(
                 `SELECT u.* FROM modqueue_comments_update u
                  JOIN modqueue_comments_ipfs i ON u.cid = i.cid
-                 WHERE i.subplebbitAddress = ? AND u.resolved = 0`
+                 WHERE i.communityAddress = ? AND u.resolved = 0`
             )
-            .all(subplebbitAddress) as ModQueueCommentUpdate[];
+            .all(communityAddress) as ModQueueCommentUpdate[];
     }
 
     /**
@@ -483,13 +483,13 @@ export class IndexerQueries {
         // Count active bans across subs (only where banExpiresAt >= current time)
         const banResult = this.db
             .prepare(
-                `SELECT COUNT(DISTINCT i.subplebbitAddress) as banCount
+                `SELECT COUNT(DISTINCT i.communityAddress) as banCount
                  FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
                  WHERE json_extract(i.signature, '$.publicKey') = ?
                    AND i.pseudonymityMode IS NULL
-                   AND json_extract(u.author, '$.subplebbit.banExpiresAt') IS NOT NULL
-                   AND json_extract(u.author, '$.subplebbit.banExpiresAt') >= ?`
+                   AND json_extract(u.author, '$.community.banExpiresAt') IS NOT NULL
+                   AND json_extract(u.author, '$.community.banExpiresAt') >= ?`
             )
             .get(authorPublicKey, nowSeconds) as { banCount: number };
 
@@ -567,10 +567,10 @@ export class IndexerQueries {
             )
             .get(authorPublicKey) as { total: number };
 
-        // Count distinct subplebbits the author has posted to
+        // Count distinct communities the author has posted to
         const distinctSubsResult = this.db
             .prepare(
-                `SELECT COUNT(DISTINCT subplebbitAddress) as distinctSubs
+                `SELECT COUNT(DISTINCT communityAddress) as distinctSubs
                  FROM indexed_comments_ipfs
                  WHERE json_extract(signature, '$.publicKey') = ?
                    AND pseudonymityMode IS NULL`
@@ -586,14 +586,14 @@ export class IndexerQueries {
             modqueueRejected: modqueueResult.rejected,
             modqueueAccepted: modqueueResult.accepted,
             totalIndexedComments: totalResult.total,
-            distinctSubplebbitsPostedTo: distinctSubsResult.distinctSubs
+            distinctCommunitiesPostedTo: distinctSubsResult.distinctSubs
         };
     }
 
     /**
      * Get the earliest timestamp for an author across indexed comments.
      * Uses fetchedAt (server-generated) instead of timestamp (user-provided) for security.
-     * This prevents manipulation by subplebbit owners who could backdate comment.timestamp.
+     * This prevents manipulation by community owners who could backdate comment.timestamp.
      *
      * @returns The earliest fetchedAt timestamp in seconds, or undefined if no records
      */
@@ -636,24 +636,24 @@ export class IndexerQueries {
     // ============================================
 
     /**
-     * Get karma per subplebbit from indexed comments.
-     * Returns author.subplebbit data (TRUSTED, from CommentUpdate).
-     * Only returns the most recent entry per subplebbit based on updatedAt.
+     * Get karma per community from indexed comments.
+     * Returns author.community data (TRUSTED, from CommentUpdate).
+     * Only returns the most recent entry per community based on updatedAt.
      */
-    getAuthorKarmaBySubplebbitFromIndexer(
+    getAuthorKarmaByCommunityFromIndexer(
         authorPublicKey: string
     ): Map<string, { postScore: number; replyScore: number; updatedAt: number }> {
         const karmaMap = new Map<string, { postScore: number; replyScore: number; updatedAt: number }>();
 
         // Query indexed_comments_update joined with indexed_comments_ipfs
-        // The author field in indexed_comments_update contains author.subplebbit (TRUSTED)
-        // Use updatedAt (when subplebbit last updated the comment) for recency comparison
+        // The author field in indexed_comments_update contains author.community (TRUSTED)
+        // Use updatedAt (when community last updated the comment) for recency comparison
         const rows = this.db
             .prepare(
                 `SELECT
-                    i.subplebbitAddress,
-                    COALESCE(json_extract(u.author, '$.subplebbit.postScore'), 0) as postScore,
-                    COALESCE(json_extract(u.author, '$.subplebbit.replyScore'), 0) as replyScore,
+                    i.communityAddress,
+                    COALESCE(json_extract(u.author, '$.community.postScore'), 0) as postScore,
+                    COALESCE(json_extract(u.author, '$.community.replyScore'), 0) as replyScore,
                     COALESCE(u.updatedAt, u.fetchedAt) as updatedAt
                  FROM indexed_comments_update u
                  JOIN indexed_comments_ipfs i ON u.cid = i.cid
@@ -663,16 +663,16 @@ export class IndexerQueries {
                  ORDER BY COALESCE(u.updatedAt, u.fetchedAt) DESC`
             )
             .all(authorPublicKey) as Array<{
-            subplebbitAddress: string;
+            communityAddress: string;
             postScore: number;
             replyScore: number;
             updatedAt: number;
         }>;
 
-        // Keep only the most recent entry per subplebbit
+        // Keep only the most recent entry per community
         for (const row of rows) {
-            if (!karmaMap.has(row.subplebbitAddress)) {
-                karmaMap.set(row.subplebbitAddress, {
+            if (!karmaMap.has(row.communityAddress)) {
+                karmaMap.set(row.communityAddress, {
                     postScore: row.postScore,
                     replyScore: row.replyScore,
                     updatedAt: row.updatedAt
@@ -726,7 +726,7 @@ export class IndexerQueries {
 
     /**
      * Find similar content from indexed comments.
-     * Used for cross-subplebbit spam detection.
+     * Used for cross-community spam detection.
      *
      * Note: This method requires the jaccard_similarity function to be registered.
      * The function should be registered on the database before calling this method.
@@ -744,7 +744,7 @@ export class IndexerQueries {
         authorPublicKey: string;
         content: string | null;
         title: string | null;
-        subplebbitAddress: string;
+        communityAddress: string;
         timestamp: number;
         contentSimilarity: number;
         titleSimilarity: number;
@@ -796,7 +796,7 @@ export class IndexerQueries {
                 json_extract(i.signature, '$.publicKey') as authorPublicKey,
                 i.content,
                 i.title,
-                i.subplebbitAddress,
+                i.communityAddress,
                 i.timestamp,
                 jaccard_similarity(i.content, @content) as contentSimilarity,
                 jaccard_similarity(i.title, @title) as titleSimilarity
@@ -811,7 +811,7 @@ export class IndexerQueries {
             authorPublicKey: string;
             content: string | null;
             title: string | null;
-            subplebbitAddress: string;
+            communityAddress: string;
             timestamp: number;
             contentSimilarity: number;
             titleSimilarity: number;
@@ -834,7 +834,7 @@ export class IndexerQueries {
         authorPublicKey: string;
         content: string | null;
         title: string | null;
-        subplebbitAddress: string;
+        communityAddress: string;
         timestamp: number;
     }> {
         const { content, title, sinceTimestamp, authorPublicKey, excludeAuthorPublicKey, limit = 100 } = params;
@@ -880,7 +880,7 @@ export class IndexerQueries {
                 json_extract(i.signature, '$.publicKey') as authorPublicKey,
                 i.content,
                 i.title,
-                i.subplebbitAddress,
+                i.communityAddress,
                 i.timestamp
             FROM indexed_comments_ipfs i
             WHERE ${conditions.join(" AND ")}
@@ -893,14 +893,14 @@ export class IndexerQueries {
             authorPublicKey: string;
             content: string | null;
             title: string | null;
-            subplebbitAddress: string;
+            communityAddress: string;
             timestamp: number;
         }>;
     }
 
     /**
      * Find links from indexed comments.
-     * Used for cross-subplebbit link spam detection.
+     * Used for cross-community link spam detection.
      */
     findLinksFromIndexer(params: { link: string; sinceTimestamp?: number; authorPublicKey?: string; excludeAuthorPublicKey?: string }): {
         count: number;
@@ -942,7 +942,7 @@ export class IndexerQueries {
 
     /**
      * Find similar URLs (matching prefix) from indexed comments.
-     * Used for cross-subplebbit similar link spam detection.
+     * Used for cross-community similar link spam detection.
      *
      * @param params.urlPrefix - The URL prefix to match (e.g., "spam.com/promo/deal")
      * @param params.sinceTimestamp - Only count links posted after this timestamp (seconds, protocol format)

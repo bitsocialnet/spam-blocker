@@ -10,7 +10,7 @@ import { calculateNetworkRemovalRate } from "../../src/risk-score/factors/networ
 import { SpamDetectionDatabase } from "../../src/db/index.js";
 import { CombinedDataService } from "../../src/risk-score/combined-data-service.js";
 import type { RiskContext } from "../../src/risk-score/types.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 
 const baseTimestamp = Math.floor(Date.now() / 1000);
 const authorPublicKey = "test-removal-author-pk";
@@ -22,17 +22,17 @@ const baseSignature = {
     signedPropertyNames: ["author"]
 };
 
-function createMockChallengeRequest(): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+function createMockChallengeRequest(): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     return {
         comment: {
             author: { address: "12D3KooWTestAddress" },
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: baseSignature,
             content: "Test content"
         }
-    } as unknown as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as unknown as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 function seedComments(db: SpamDetectionDatabase, count: number): void {
@@ -42,7 +42,7 @@ function seedComments(db: SpamDetectionDatabase, count: number): void {
 
     dbRaw
         .prepare(
-            `INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+            `INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled)
              VALUES (?, 'manual', ?, 1)`
         )
         .run(subAddr, nowMs);
@@ -51,7 +51,7 @@ function seedComments(db: SpamDetectionDatabase, count: number): void {
         const cid = `QmComment${i}`;
         dbRaw
             .prepare(
-                `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion)
+                `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, protocolVersion)
                  VALUES (?, ?, ?, ?, ?, ?, '1')`
             )
             .run(

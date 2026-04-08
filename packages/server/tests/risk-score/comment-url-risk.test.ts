@@ -3,7 +3,7 @@ import { calculateCommentUrlRisk } from "../../src/risk-score/factors/comment-ur
 import { SpamDetectionDatabase } from "../../src/db/index.js";
 import { CombinedDataService } from "../../src/risk-score/combined-data-service.js";
 import type { RiskContext } from "../../src/risk-score/types.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 
 const baseTimestamp = Math.floor(Date.now() / 1000);
 const baseSignature = {
@@ -20,7 +20,7 @@ function createMockChallengeRequest(
     title?: string,
     parentCid?: string,
     publicKey?: string
-): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     return {
         challengeRequestId: { bytes: new Uint8Array() },
         acceptedChallengeTypes: ["turnstile"],
@@ -29,7 +29,7 @@ function createMockChallengeRequest(
             author: {
                 address: authorAddress
             },
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: publicKey ? { ...baseSignature, publicKey } : baseSignature,
@@ -38,10 +38,10 @@ function createMockChallengeRequest(
             link,
             parentCid
         }
-    } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
-function createMockVoteChallengeRequest(authorAddress: string): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+function createMockVoteChallengeRequest(authorAddress: string): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     return {
         challengeRequestId: { bytes: new Uint8Array() },
         acceptedChallengeTypes: ["turnstile"],
@@ -50,14 +50,14 @@ function createMockVoteChallengeRequest(authorAddress: string): DecryptedChallen
             author: {
                 address: authorAddress
             },
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: baseSignature,
             commentCid: "QmTest",
             vote: 1
         }
-    } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 describe("calculateCommentUrlRisk", () => {
@@ -218,14 +218,14 @@ describe("calculateCommentUrlRisk", () => {
             // Add existing comment with same link
             db.insertChallengeSession({
                 sessionId: "prev-link-1",
-                subplebbitPublicKey: "pk",
+                communityPublicKey: "pk",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
                 sessionId: "prev-link-1",
                 publication: {
                     author: { address: authorAddress },
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp - 1000,
                     protocolVersion: "1",
                     signature: baseSignature,
@@ -257,14 +257,14 @@ describe("calculateCommentUrlRisk", () => {
             for (let i = 0; i < 5; i++) {
                 db.insertChallengeSession({
                     sessionId: `prev-link-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `prev-link-${i}`,
                     publication: {
                         author: { address: authorAddress },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 1000 - i * 100,
                         protocolVersion: "1",
                         signature: baseSignature,
@@ -299,14 +299,14 @@ describe("calculateCommentUrlRisk", () => {
 
             db.insertChallengeSession({
                 sessionId: "other-author-link",
-                subplebbitPublicKey: "pk",
+                communityPublicKey: "pk",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
                 sessionId: "other-author-link",
                 publication: {
                     author: { address: otherAuthor },
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp - 1000,
                     protocolVersion: "1",
                     signature: otherSignature,
@@ -339,14 +339,14 @@ describe("calculateCommentUrlRisk", () => {
                 const authorSignature = { ...baseSignature, publicKey: `author${i}-pk` };
                 db.insertChallengeSession({
                     sessionId: `coord-link-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `coord-link-${i}`,
                     publication: {
                         author: { address: `author${i}` },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 1000 - i * 100,
                         protocolVersion: "1",
                         signature: authorSignature,
@@ -399,14 +399,14 @@ describe("calculateCommentUrlRisk", () => {
             for (let i = 0; i < 5; i++) {
                 db.insertChallengeSession({
                     sessionId: `similar-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `similar-${i}`,
                     publication: {
                         author: { address: authorAddress },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 1000 - i * 100,
                         protocolVersion: "1",
                         signature: baseSignature,
@@ -440,14 +440,14 @@ describe("calculateCommentUrlRisk", () => {
                 const authorSignature = { ...baseSignature, publicKey: `author${i}-pk` };
                 db.insertChallengeSession({
                     sessionId: `coord-similar-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `coord-similar-${i}`,
                     publication: {
                         author: { address: `author${i}` },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 300 - i * 60, // Posts 1-5 minutes apart (tight clustering)
                         protocolVersion: "1",
                         signature: authorSignature,
@@ -489,14 +489,14 @@ describe("calculateCommentUrlRisk", () => {
                 const authorSignature = { ...baseSignature, publicKey: `cluster-author${i}-pk` };
                 db.insertChallengeSession({
                     sessionId: `cluster-tight-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `cluster-tight-${i}`,
                     publication: {
                         author: { address: `cluster-author${i}` },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 100 - i * 60, // 1 minute apart
                         protocolVersion: "1",
                         signature: authorSignature,
@@ -544,14 +544,14 @@ describe("calculateCommentUrlRisk", () => {
                 const authorSignature = { ...baseSignature, publicKey: `spread-author${i + 1}-pk` };
                 db.insertChallengeSession({
                     sessionId: `cluster-spread-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `cluster-spread-${i}`,
                     publication: {
                         author: { address: `spread-author${i + 1}` },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: timestamps[i],
                         protocolVersion: "1",
                         signature: authorSignature,
@@ -592,14 +592,14 @@ describe("calculateCommentUrlRisk", () => {
             for (let i = 0; i < 5; i++) {
                 db.insertChallengeSession({
                     sessionId: `twitter-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `twitter-${i}`,
                     publication: {
                         author: { address: "author1" },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 1000 - i * 100,
                         protocolVersion: "1",
                         signature: baseSignature,
@@ -629,14 +629,14 @@ describe("calculateCommentUrlRisk", () => {
             for (let i = 0; i < 5; i++) {
                 db.insertChallengeSession({
                     sessionId: `youtube-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `youtube-${i}`,
                     publication: {
                         author: { address: "author1" },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 1000 - i * 100,
                         protocolVersion: "1",
                         signature: baseSignature,
@@ -664,14 +664,14 @@ describe("calculateCommentUrlRisk", () => {
             for (let i = 0; i < 5; i++) {
                 db.insertChallengeSession({
                     sessionId: `github-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `github-${i}`,
                     publication: {
                         author: { address: "author1" },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 1000 - i * 100,
                         protocolVersion: "1",
                         signature: baseSignature,
@@ -701,14 +701,14 @@ describe("calculateCommentUrlRisk", () => {
             // Add exact same URL
             db.insertChallengeSession({
                 sessionId: "exact-twitter",
-                subplebbitPublicKey: "pk",
+                communityPublicKey: "pk",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
                 sessionId: "exact-twitter",
                 publication: {
                     author: { address: "author1" },
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp - 1000,
                     protocolVersion: "1",
                     signature: baseSignature,
@@ -744,14 +744,14 @@ describe("calculateCommentUrlRisk", () => {
 
             db.insertChallengeSession({
                 sessionId: "old-link",
-                subplebbitPublicKey: "pk",
+                communityPublicKey: "pk",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
                 sessionId: "old-link",
                 publication: {
                     author: { address: authorAddress },
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: twoDaysAgo,
                     protocolVersion: "1",
                     signature: baseSignature,
@@ -791,14 +791,14 @@ describe("calculateCommentUrlRisk", () => {
             for (let i = 0; i < 3; i++) {
                 db.insertChallengeSession({
                     sessionId: `similar-db-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `similar-db-${i}`,
                     publication: {
                         author: { address: "author1" },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 1000,
                         protocolVersion: "1",
                         signature,
@@ -824,14 +824,14 @@ describe("calculateCommentUrlRisk", () => {
                 const otherSignature = { ...baseSignature, publicKey: `author${i}-pk` };
                 db.insertChallengeSession({
                     sessionId: `other-similar-${i}`,
-                    subplebbitPublicKey: "pk",
+                    communityPublicKey: "pk",
                     expiresAt: baseTimestamp + 3600
                 });
                 db.insertComment({
                     sessionId: `other-similar-${i}`,
                     publication: {
                         author: { address: `author${i}` },
-                        subplebbitAddress: "test-sub.eth",
+                        communityAddress: "test-sub.eth",
                         timestamp: baseTimestamp - 1000,
                         protocolVersion: "1",
                         signature: otherSignature,

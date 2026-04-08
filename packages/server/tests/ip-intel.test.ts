@@ -5,7 +5,7 @@ import { refreshIpIntelIfNeeded } from "../src/ip-intel/index.js";
 describe("IP intelligence", () => {
     let db: ReturnType<typeof createDatabase>;
     let originalFetch: typeof fetch;
-    const subplebbitPublicKey = "test-public-key";
+    const communityPublicKey = "test-public-key";
 
     beforeEach(() => {
         db = createDatabase(":memory:");
@@ -22,7 +22,7 @@ describe("IP intelligence", () => {
         // First create a challenge session
         db.insertChallengeSession({
             sessionId: "challenge",
-            subplebbitPublicKey,
+            communityPublicKey,
             expiresAt: Math.floor(Date.now() / 1000) + 3600
         });
 
@@ -71,7 +71,7 @@ describe("IP intelligence", () => {
     it("works without an API key", async () => {
         db.insertChallengeSession({
             sessionId: "challenge-no-key",
-            subplebbitPublicKey,
+            communityPublicKey,
             expiresAt: Math.floor(Date.now() / 1000) + 3600
         });
 
@@ -116,7 +116,7 @@ describe("IP intelligence", () => {
     it("stores null flags when ipapi.is response lacks detection fields", async () => {
         db.insertChallengeSession({
             sessionId: "challenge-no-privacy",
-            subplebbitPublicKey,
+            communityPublicKey,
             expiresAt: Math.floor(Date.now() / 1000) + 3600
         });
 
@@ -156,7 +156,7 @@ describe("IP intelligence", () => {
         // First create a challenge session
         db.insertChallengeSession({
             sessionId: "challenge2",
-            subplebbitPublicKey,
+            communityPublicKey,
             expiresAt: Math.floor(Date.now() / 1000) + 3600
         });
 

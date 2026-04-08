@@ -1,4 +1,4 @@
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 import type { SpamDetectionDatabase } from "../db/index.js";
 import type { CombinedDataService } from "./combined-data-service.js";
 
@@ -37,7 +37,7 @@ export interface RiskScoreResult {
  */
 export interface RiskContext {
     /** The full decrypted challenge request being evaluated */
-    challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
     /** Current Unix timestamp in seconds */
     now: number;
     /** Whether IP information is available (affects weight distribution) */

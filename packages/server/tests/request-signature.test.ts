@@ -55,7 +55,7 @@ describe("verifySignedRequest with CBOR", () => {
                 comment: {
                     author: { address: "12D3KooWTest" },
                     content: "Hello world",
-                    subplebbitAddress: "test-sub.eth"
+                    communityAddress: "test-sub.eth"
                 }
             },
             timestamp: 1234567890

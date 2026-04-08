@@ -34,13 +34,13 @@ const SCORES = {
 /**
  * Calculate risk score based on account age.
  *
- * SECURITY: Only uses indexer's fetchedAt timestamp (when comment was found in subplebbit pages).
+ * SECURITY: Only uses indexer's fetchedAt timestamp (when comment was found in community pages).
  * Does NOT trust:
- * - author.subplebbit.firstCommentTimestamp (can be fabricated by malicious subplebbit)
- * - comment.timestamp (subplebbit owner can backdate their own comments)
+ * - author.community.firstCommentTimestamp (can be fabricated by malicious community)
+ * - comment.timestamp (community owner can backdate their own comments)
  * - engine's receivedAt (counts rejected submissions, inflating spammer's "age")
  *
- * By only counting indexed comments (those actually included in subplebbit pages),
+ * By only counting indexed comments (those actually included in community pages),
  * a spammer who keeps submitting rejected spam won't get "old account" credit.
  *
  * Scoring logic:
@@ -52,7 +52,7 @@ export function calculateAccountAge(ctx: RiskContext, weight: number): RiskFacto
     const { challengeRequest, now, combinedData } = ctx;
     const authorPublicKey = getAuthorPublicKeyFromChallengeRequest(challengeRequest);
 
-    // Get first indexed timestamp from indexer (when comment appeared in subplebbit pages)
+    // Get first indexed timestamp from indexer (when comment appeared in community pages)
     // Only counts accepted publications, not rejected spam attempts
     const firstActivityTimestamp = combinedData.getAuthorEarliestTimestamp(authorPublicKey);
 
@@ -62,7 +62,7 @@ export function calculateAccountAge(ctx: RiskContext, weight: number): RiskFacto
             name: "accountAge",
             score: SCORES.NO_HISTORY,
             weight,
-            explanation: "No account history in this subplebbit"
+            explanation: "No account history in this community"
         };
     }
 

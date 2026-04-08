@@ -28,8 +28,8 @@ describe("pseudonymityMode", () => {
         db = new Database(":memory:");
         db.exec(SCHEMA_SQL);
         queries = new IndexerQueries(db);
-        queries.upsertIndexedSubplebbit({ address: SUB_ADDRESS, discoveredVia: "manual" });
-        queries.upsertIndexedSubplebbit({ address: MODQUEUE_SUB_ADDRESS, discoveredVia: "manual" });
+        queries.upsertIndexedCommunity({ address: SUB_ADDRESS, discoveredVia: "manual" });
+        queries.upsertIndexedCommunity({ address: MODQUEUE_SUB_ADDRESS, discoveredVia: "manual" });
     });
 
     afterEach(() => {
@@ -40,7 +40,7 @@ describe("pseudonymityMode", () => {
         it("stores pseudonymityMode on indexed_comments_ipfs", () => {
             queries.insertIndexedCommentIpfsIfNotExists({
                 cid: "QmNormal",
-                subplebbitAddress: SUB_ADDRESS,
+                communityAddress: SUB_ADDRESS,
                 author: { address: "a" },
                 signature: { publicKey: AUTHOR_PUBLIC_KEY, signature: "s", type: "ed25519" },
                 parentCid: null,
@@ -55,7 +55,7 @@ describe("pseudonymityMode", () => {
 
             queries.insertIndexedCommentIpfsIfNotExists({
                 cid: "QmPseudo",
-                subplebbitAddress: SUB_ADDRESS,
+                communityAddress: SUB_ADDRESS,
                 author: { address: "pseudo-addr" },
                 signature: { publicKey: AUTHOR_PUBLIC_KEY, signature: "s", type: "ed25519" },
                 parentCid: null,
@@ -78,7 +78,7 @@ describe("pseudonymityMode", () => {
         it("stores pseudonymityMode on modqueue_comments_ipfs", () => {
             queries.upsertModQueueCommentIpfs({
                 cid: "QmModPseudo",
-                subplebbitAddress: MODQUEUE_SUB_ADDRESS,
+                communityAddress: MODQUEUE_SUB_ADDRESS,
                 author: { address: "a" },
                 signature: { publicKey: AUTHOR_PUBLIC_KEY, signature: "s", type: "ed25519" },
                 parentCid: null,
@@ -106,7 +106,7 @@ describe("pseudonymityMode", () => {
             // Insert a normal comment
             queries.insertIndexedCommentIpfsIfNotExists({
                 cid: "QmNormal1",
-                subplebbitAddress: SUB_ADDRESS,
+                communityAddress: SUB_ADDRESS,
                 author: { address: "a" },
                 signature: { publicKey: AUTHOR_PUBLIC_KEY, signature: "s", type: "ed25519" },
                 parentCid: null,
@@ -120,7 +120,7 @@ describe("pseudonymityMode", () => {
             });
             queries.upsertIndexedCommentUpdate({
                 cid: "QmNormal1",
-                author: { subplebbit: { postScore: 5, replyScore: 2 } },
+                author: { community: { postScore: 5, replyScore: 2 } },
                 upvoteCount: 10,
                 downvoteCount: 1,
                 replyCount: 0,
@@ -135,7 +135,7 @@ describe("pseudonymityMode", () => {
             // Insert a pseudonymous comment with same publicKey
             queries.insertIndexedCommentIpfsIfNotExists({
                 cid: "QmPseudo1",
-                subplebbitAddress: SUB_ADDRESS,
+                communityAddress: SUB_ADDRESS,
                 author: { address: "pseudo-addr" },
                 signature: { publicKey: AUTHOR_PUBLIC_KEY, signature: "s", type: "ed25519" },
                 parentCid: null,
@@ -149,7 +149,7 @@ describe("pseudonymityMode", () => {
             });
             queries.upsertIndexedCommentUpdate({
                 cid: "QmPseudo1",
-                author: { subplebbit: { postScore: 3, replyScore: 1 } },
+                author: { community: { postScore: 3, replyScore: 1 } },
                 upvoteCount: 5,
                 downvoteCount: 0,
                 replyCount: 0,
@@ -167,7 +167,7 @@ describe("pseudonymityMode", () => {
             // Should only count normal comment (1 total, 0 removed since normal one isn't removed)
             expect(stats.totalIndexedComments).toBe(1);
             expect(stats.removalCount).toBe(0); // pseudo removal excluded
-            expect(stats.distinctSubplebbitsPostedTo).toBe(1);
+            expect(stats.distinctCommunitiesPostedTo).toBe(1);
         });
 
         it("getAuthorFirstIndexedTimestamp excludes pseudonymous comments", () => {
@@ -185,8 +185,8 @@ describe("pseudonymityMode", () => {
             expect(karma.downvotes).toBe(1);
         });
 
-        it("getAuthorKarmaBySubplebbitFromIndexer excludes pseudonymous comments", () => {
-            const karmaMap = queries.getAuthorKarmaBySubplebbitFromIndexer(AUTHOR_PUBLIC_KEY);
+        it("getAuthorKarmaByCommunityFromIndexer excludes pseudonymous comments", () => {
+            const karmaMap = queries.getAuthorKarmaByCommunityFromIndexer(AUTHOR_PUBLIC_KEY);
             // Should have 1 entry from normal comment only
             expect(karmaMap.size).toBe(1);
             const subKarma = karmaMap.get(SUB_ADDRESS);
@@ -213,7 +213,7 @@ describe("pseudonymityMode", () => {
 
             queries.insertIndexedCommentIpfsIfNotExists({
                 cid: "QmContentPseudo",
-                subplebbitAddress: SUB_ADDRESS,
+                communityAddress: SUB_ADDRESS,
                 author: { address: "pseudo-addr" },
                 signature: { publicKey: "different-pk", signature: "s", type: "ed25519" },
                 parentCid: null,
@@ -255,7 +255,7 @@ describe("pseudonymityMode", () => {
             // Insert normal modqueue comment (resolved, rejected)
             queries.upsertModQueueCommentIpfs({
                 cid: "QmModNormal",
-                subplebbitAddress: MODQUEUE_SUB_ADDRESS,
+                communityAddress: MODQUEUE_SUB_ADDRESS,
                 author: { address: "a" },
                 signature: { publicKey: AUTHOR_PUBLIC_KEY, signature: "s", type: "ed25519" },
                 parentCid: null,
@@ -279,7 +279,7 @@ describe("pseudonymityMode", () => {
             // Insert pseudonymous modqueue comment (resolved, rejected)
             queries.upsertModQueueCommentIpfs({
                 cid: "QmModPseudo",
-                subplebbitAddress: MODQUEUE_SUB_ADDRESS,
+                communityAddress: MODQUEUE_SUB_ADDRESS,
                 author: { address: "pseudo-addr" },
                 signature: { publicKey: AUTHOR_PUBLIC_KEY, signature: "s", type: "ed25519" },
                 parentCid: null,

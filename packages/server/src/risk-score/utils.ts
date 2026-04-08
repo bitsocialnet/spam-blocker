@@ -1,9 +1,10 @@
 import type {
-    DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor,
-    PublicationWithSubplebbitAuthorFromDecryptedChallengeRequest
-} from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
-import type { AuthorTypeWithCommentUpdate } from "@plebbit/plebbit-js/dist/node/types.js";
-import { derivePublicationFromChallengeRequest } from "../plebbit-js-internals.js";
+    DecryptedChallengeRequestMessageTypeWithCommunityAuthor,
+    PublicationWithCommunityAuthorFromDecryptedChallengeRequest
+} from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
+import { getCommunityAddressFromRecord } from "@pkcprotocol/pkc-js/dist/node/publications/publication-community.js";
+import type { AuthorTypeWithCommentUpdate } from "@pkcprotocol/pkc-js/dist/node/types.js";
+import { derivePublicationFromChallengeRequest } from "../pkc-js-internals.js";
 
 /**
  * Extract the publication from a decrypted challenge request.
@@ -14,16 +15,27 @@ import { derivePublicationFromChallengeRequest } from "../plebbit-js-internals.j
  * This helper returns the publication object regardless of type.
  */
 export function getPublicationFromChallengeRequest(
-    challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor
-): PublicationWithSubplebbitAuthorFromDecryptedChallengeRequest {
+    challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor
+): PublicationWithCommunityAuthorFromDecryptedChallengeRequest {
     return derivePublicationFromChallengeRequest(challengeRequest);
+}
+
+export function getPublicationCommunityAddressFromChallengeRequest(
+    challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor
+): string {
+    const publication = getPublicationFromChallengeRequest(challengeRequest);
+    const communityAddress = getCommunityAddressFromRecord(publication);
+    if (!communityAddress) {
+        throw new Error("Unable to derive community address from challenge request");
+    }
+    return communityAddress;
 }
 
 /**
  * Get the author from a challenge request.
  */
 export function getAuthorFromChallengeRequest(
-    challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor
+    challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor
 ): AuthorTypeWithCommentUpdate {
     const publication = getPublicationFromChallengeRequest(challengeRequest);
 
@@ -39,7 +51,7 @@ export function getAuthorFromChallengeRequest(
  *
  * Use this for identity tracking (velocity, karma, etc.) instead of author.address.
  */
-export function getAuthorPublicKeyFromChallengeRequest(challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor): string {
+export function getAuthorPublicKeyFromChallengeRequest(challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor): string {
     const publication = getPublicationFromChallengeRequest(challengeRequest);
 
     return publication.signature.publicKey;
@@ -56,7 +68,7 @@ export type PublicationType = "post" | "reply" | "vote";
  * - reply: comment with parentCid
  * - vote: vote publication
  */
-export function getPublicationType(challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor): PublicationType {
+export function getPublicationType(challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor): PublicationType {
     if (challengeRequest.comment) {
         // Check if it's a post (no parentCid) or reply (has parentCid)
         return challengeRequest.comment.parentCid ? "reply" : "post";
@@ -80,7 +92,7 @@ export interface WalletInfo {
  * Includes wallets from author.wallets and author.avatar.
  *
  * Note: author.wallets and author.avatar are user-provided but the signatures
- * are verified by plebbit-js, proving wallet ownership.
+ * are verified by pkc-js, proving wallet ownership.
  */
 export function getWalletAddresses(author: Pick<AuthorTypeWithCommentUpdate, "wallets" | "avatar">): WalletInfo[] {
     const wallets: WalletInfo[] = [];

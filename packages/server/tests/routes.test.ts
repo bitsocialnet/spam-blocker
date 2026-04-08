@@ -3,19 +3,19 @@ import { createServer, type SpamDetectionServer } from "../src/index.js";
 import * as cborg from "cborg";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-import { signBufferEd25519, getPublicKeyFromPrivateKey, getPlebbitAddressFromPublicKey } from "../src/plebbit-js-signer.js";
-import { resetPlebbitLoaderForTest, setPlebbitLoaderForTest } from "../src/subplebbit-resolver.js";
+import { signBufferEd25519, getPublicKeyFromPrivateKey, getPKCAddressFromPublicKey } from "../src/pkc-js-signer.js";
+import { resetPkcLoaderForTest, setPkcLoaderForTest } from "../src/community-resolver.js";
 
 // Cloudflare Turnstile test keys - work on any domain including localhost
 const TURNSTILE_TEST_SITE_KEY = "1x00000000000000000000AA"; // Always passes
 
 const baseTimestamp = Math.floor(Date.now() / 1000);
 
-// Signed property names for comment publications (from plebbit-js CommentSignedPropertyNames)
+// Signed property names for comment publications (from pkc-js CommentSignedPropertyNames)
 const CommentSignedPropertyNames = [
     "timestamp",
     "flair",
-    "subplebbitAddress",
+    "communityAddress",
     "author",
     "protocolVersion",
     "content",
@@ -30,7 +30,7 @@ const CommentSignedPropertyNames = [
     "postCid"
 ];
 
-const VoteSignedPropertyNames = ["timestamp", "subplebbitAddress", "author", "protocolVersion", "commentCid", "vote"];
+const VoteSignedPropertyNames = ["timestamp", "communityAddress", "author", "protocolVersion", "commentCid", "vote"];
 
 // Helper to create a properly signed publication signature (JSON format for publications)
 const signPublication = async (
@@ -57,23 +57,23 @@ const signPublication = async (
     };
 };
 
-const baseSubplebbitAuthor = {
+const baseCommunityAuthor = {
     postScore: 0,
     replyScore: 0,
     firstCommentTimestamp: baseTimestamp - 86400,
     lastCommentCid: "QmYwAPJzv5CZsnAzt8auVZRn9p6nxfZmZ75W6rS4ju4Khu"
 };
 
-// Subplebbit signer (signs requests to the spam detection server)
+// Community signer (signs requests to the spam detection server)
 const testPrivateKey = Buffer.alloc(32, 7).toString("base64");
 const alternatePrivateKey = Buffer.alloc(32, 3).toString("base64");
-// Author signer (signs publications - separate from subplebbit signer)
+// Author signer (signs publications - separate from community signer)
 const authorPrivateKey = Buffer.alloc(32, 9).toString("base64");
 
 let testPublicKey = "";
 let alternatePublicKey = "";
 let authorPublicKey = "";
-let authorPlebbitAddress = ""; // Derived from author's public key (B58 format)
+let authorPKCAddress = ""; // Derived from author's public key (B58 format)
 
 let testSigner = {
     privateKey: testPrivateKey,
@@ -95,8 +95,8 @@ beforeAll(async () => {
     testPublicKey = await getPublicKeyFromPrivateKey(testPrivateKey);
     alternatePublicKey = await getPublicKeyFromPrivateKey(alternatePrivateKey);
     authorPublicKey = await getPublicKeyFromPrivateKey(authorPrivateKey);
-    // Derive the plebbit address from the author's public key (B58 peer ID format)
-    authorPlebbitAddress = await getPlebbitAddressFromPublicKey(authorPublicKey);
+    // Derive the pkc address from the author's public key (B58 peer ID format)
+    authorPKCAddress = await getPKCAddressFromPublicKey(authorPublicKey);
     testSigner = {
         privateKey: testPrivateKey,
         publicKey: testPublicKey,
@@ -145,26 +145,26 @@ const injectCbor = async (fastify: SpamDetectionServer["fastify"], method: "POST
 const createEvaluatePayload = async ({
     commentOverrides = {},
     authorOverrides = {},
-    subplebbitOverrides = {},
-    omitSubplebbitAuthor = false,
+    communityOverrides = {},
+    omitCommunityAuthor = false,
     omitAuthorAddress = false,
-    omitSubplebbitAddress = false,
+    omitCommunityAddress = false,
     signer = testSigner,
     publicationSigner = authorSigner
 }: {
     commentOverrides?: Record<string, unknown>;
     authorOverrides?: Record<string, unknown>;
-    subplebbitOverrides?: Record<string, unknown>;
-    omitSubplebbitAuthor?: boolean;
+    communityOverrides?: Record<string, unknown>;
+    omitCommunityAuthor?: boolean;
     omitAuthorAddress?: boolean;
-    omitSubplebbitAddress?: boolean;
+    omitCommunityAddress?: boolean;
     signer?: typeof testSigner;
     publicationSigner?: typeof authorSigner;
 } = {}) => {
-    // Build author WITHOUT subplebbit for signing (matches production flow)
+    // Build author WITHOUT community for signing (matches production flow)
     const authorForSigning: Record<string, unknown> = {
-        // Use derived plebbit address (B58 peer ID) that matches the publication signer
-        address: authorPlebbitAddress,
+        // Use derived pkc address (B58 peer ID) that matches the publication signer
+        address: authorPKCAddress,
         ...authorOverrides
     };
 
@@ -172,18 +172,18 @@ const createEvaluatePayload = async ({
         delete authorForSigning.address;
     }
 
-    // Build comment without signature first (no author.subplebbit)
+    // Build comment without signature first (no author.community)
     const commentWithoutSignature: Record<string, unknown> = {
         author: authorForSigning,
-        subplebbitAddress: "test-sub.eth",
+        communityAddress: "test-sub.eth",
         timestamp: baseTimestamp,
         protocolVersion: "1",
         content: "Hello world",
         ...commentOverrides
     };
 
-    if (omitSubplebbitAddress) {
-        delete commentWithoutSignature.subplebbitAddress;
+    if (omitCommunityAddress) {
+        delete commentWithoutSignature.communityAddress;
     }
 
     // Sign the publication properly (unless commentOverrides already has a signature)
@@ -194,13 +194,13 @@ const createEvaluatePayload = async ({
         publicationSignature = await signPublication(commentWithoutSignature, publicationSigner, CommentSignedPropertyNames);
     }
 
-    // After signing, add author.subplebbit (matches production flow where
-    // the subplebbit adds this field after the author signs)
+    // After signing, add author.community (matches production flow where
+    // the community adds this field after the author signs)
     let finalAuthor: Record<string, unknown> = { ...authorForSigning };
-    if (!omitSubplebbitAuthor) {
-        finalAuthor.subplebbit = {
-            ...baseSubplebbitAuthor,
-            ...subplebbitOverrides
+    if (!omitCommunityAuthor) {
+        finalAuthor.community = {
+            ...baseCommunityAuthor,
+            ...communityOverrides
         };
     }
 
@@ -233,9 +233,9 @@ describe("API Routes", () => {
     let server: SpamDetectionServer;
 
     beforeEach(async () => {
-        const getSubplebbit = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit,
+        const getCommunity = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
+        setPkcLoaderForTest(async () => ({
+            getCommunity,
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
         server = await createServer({
@@ -250,7 +250,7 @@ describe("API Routes", () => {
 
     afterEach(async () => {
         await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     describe("GET /health", () => {
@@ -295,15 +295,15 @@ describe("API Routes", () => {
             const session = server.db.getChallengeSessionBySessionId(body.sessionId);
 
             expect(session).toBeDefined();
-            expect(session?.subplebbitPublicKey).toBe(testSigner.publicKey);
+            expect(session?.communityPublicKey).toBe(testSigner.publicKey);
             expect(session?.status).toBe("pending");
         });
 
         it("should return lower risk score for established author", async () => {
-            // Test established author - subplebbit data indicates established user
+            // Test established author - community data indicates established user
             // (Note: address must match publication signer's public key for signature verification)
             const establishedAuthorRequest = await createEvaluatePayload({
-                subplebbitOverrides: {
+                communityOverrides: {
                     firstCommentTimestamp: baseTimestamp - 400 * 86400, // 400 days ago
                     postScore: 150,
                     replyScore: 50
@@ -318,10 +318,10 @@ describe("API Routes", () => {
 
         it("should return higher risk score for new author", async () => {
             // First get the established author's score (100 days old with positive karma)
-            // (Note: Both use same signer/address - we're testing subplebbit data differences)
+            // (Note: Both use same signer/address - we're testing community data differences)
             const establishedRequest = await createEvaluatePayload({
                 commentOverrides: { content: "Established author content" },
-                subplebbitOverrides: {
+                communityOverrides: {
                     firstCommentTimestamp: baseTimestamp - 100 * 86400, // 100 days ago
                     postScore: 50,
                     replyScore: 20
@@ -333,7 +333,7 @@ describe("API Routes", () => {
             // Then get the new author's score (very new user with minimal history)
             const newAuthorRequest = await createEvaluatePayload({
                 commentOverrides: { content: "New author content" },
-                subplebbitOverrides: {
+                communityOverrides: {
                     firstCommentTimestamp: baseTimestamp - 60, // Just 1 minute ago (very new)
                     postScore: -5, // Negative karma
                     replyScore: 0
@@ -347,11 +347,11 @@ describe("API Routes", () => {
             expect(body.riskScore).toBeGreaterThan(establishedBody.riskScore);
         });
 
-        it("should accept new author without subplebbit data", async () => {
-            // author.subplebbit is optional - new authors who haven't published
-            // in this subplebbit before won't have this field
+        it("should accept new author without community data", async () => {
+            // author.community is optional - new authors who haven't published
+            // in this community before won't have this field
             const payload = await createEvaluatePayload({
-                omitSubplebbitAuthor: true
+                omitCommunityAuthor: true
             });
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
 
@@ -379,28 +379,28 @@ describe("API Routes", () => {
             expect(response.statusCode).toBe(401);
         });
 
-        it("should return 400 for invalid subplebbit author data", async () => {
+        it("should return 400 for invalid community author data", async () => {
             const payload = await createEvaluatePayload({
-                subplebbitOverrides: { lastCommentCid: "not-a-cid" }
+                communityOverrides: { lastCommentCid: "not-a-cid" }
             });
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
 
             expect(response.statusCode).toBe(400);
         });
 
-        it("should return 400 for missing author address", async () => {
+        it("should accept publications without author.address in the PKC wire format", async () => {
             const payload = await createEvaluatePayload({
                 omitAuthorAddress: true
             });
 
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
 
-            expect(response.statusCode).toBe(400);
+            expect(response.statusCode).toBe(200);
         });
 
-        it("should return 400 for missing subplebbit address", async () => {
+        it("should return 400 for missing community identity", async () => {
             const payload = await createEvaluatePayload({
-                omitSubplebbitAddress: true
+                omitCommunityAddress: true
             });
 
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
@@ -408,22 +408,22 @@ describe("API Routes", () => {
             expect(response.statusCode).toBe(400);
         });
 
-        it("should return 400 for IPNS-addressed subplebbit", async () => {
+        it("should return 400 for IPNS-addressed community", async () => {
             // IPNS addresses are free to create, making them vulnerable to sybil attacks
-            // Only domain-addressed subplebbits are supported
+            // Only domain-addressed communities are supported
             const payload = await createEvaluatePayload({
-                commentOverrides: { subplebbitAddress: "12D3KooWIPNSSubplebbit" }
+                commentOverrides: { communityAddress: "12D3KooWIPNSCommunity" }
             });
 
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
 
             expect(response.statusCode).toBe(400);
             const body = response.json();
-            expect(body.error).toContain("Only domain-addressed subplebbits are supported");
+            expect(body.error).toContain("Only domain-addressed communities are supported");
         });
 
         it("should return 401 for forged publication signature (attack vector)", async () => {
-            // SECURITY TEST: A malicious subplebbit could try to forge a publication
+            // SECURITY TEST: A malicious community could try to forge a publication
             // with a fake author address to inflate the victim's velocity scores
             // Create a publication with a mismatched signature
             const forgedPayload = await createEvaluatePayload({
@@ -434,7 +434,7 @@ describe("API Routes", () => {
                         type: "ed25519",
                         signature: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", // Invalid base64 signature
                         publicKey: authorSigner.publicKey,
-                        signedPropertyNames: ["author", "subplebbitAddress", "timestamp", "protocolVersion", "content"]
+                        signedPropertyNames: ["author", "communityAddress", "timestamp", "protocolVersion", "content"]
                     }
                 }
             });
@@ -446,17 +446,17 @@ describe("API Routes", () => {
             expect(body.error).toContain("Publication signature is invalid");
         });
 
-        it("should return 401 for publication signed by different author (impersonation attack)", async () => {
-            // SECURITY TEST: Subplebbit tries to submit publication claiming to be from
-            // author A but signed by author B
-            const victimAddress = authorPlebbitAddress; // The victim's address
+        it("should accept a valid publication even when author.address disagrees with the signer", async () => {
+            // In PKC, author identity is derived from the signature public key at runtime.
+            // The wire-format author.address field is no longer trusted for signature validity.
+            const victimAddress = authorPKCAddress; // The victim's address
 
-            // Build comment claiming to be from victim (without subplebbit for signing)
+            // Build comment claiming to be from victim (without community for signing)
             const commentWithoutSig = {
                 author: {
                     address: victimAddress // Claiming to be the victim
                 },
-                subplebbitAddress: "test-sub.eth",
+                communityAddress: "test-sub.eth",
                 timestamp: baseTimestamp,
                 protocolVersion: "1",
                 content: "Forged content to inflate victim's velocity"
@@ -469,10 +469,10 @@ describe("API Routes", () => {
                 CommentSignedPropertyNames
             );
 
-            // Add author.subplebbit after signing (matches production flow)
+            // Add author.community after signing (matches production flow)
             const comment = {
                 ...commentWithoutSig,
-                author: { ...commentWithoutSig.author, subplebbit: baseSubplebbitAuthor },
+                author: { ...commentWithoutSig.author, community: baseCommunityAuthor },
                 signature: attackerSignature
             };
 
@@ -488,10 +488,7 @@ describe("API Routes", () => {
 
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
 
-            // Should be rejected because signature.publicKey doesn't match author.address
-            expect(response.statusCode).toBe(401);
-            const body = response.json();
-            expect(body.error).toContain("Publication signature is invalid");
+            expect(response.statusCode).toBe(200);
         });
 
         it("should return 400 for unknown publication type", async () => {
@@ -499,9 +496,9 @@ describe("API Routes", () => {
             // Build a request with no known publication type (no comment, vote, etc.)
             const timestamp = Math.floor(Date.now() / 1000);
             const challengeRequest = {
-                // No comment, vote, commentEdit, commentModeration, or subplebbitEdit
+                // No comment, vote, commentEdit, commentModeration, or communityEdit
                 unknownType: {
-                    author: { address: authorPlebbitAddress },
+                    author: { address: authorPKCAddress },
                     content: "This is not a valid publication type"
                 }
             };
@@ -578,35 +575,35 @@ describe("API Routes", () => {
             expect(stats.last24Hours).toBe(1);
         });
 
-        it("should verify signature correctly when challengeRequest has extra fields (like full ChallengeRequestMessage from plebbit-js)", async () => {
-            // This replicates the real structure sent by plebbit-js challenge package
+        it("should verify signature correctly when challengeRequest has extra fields (like full ChallengeRequestMessage from pkc-js)", async () => {
+            // This replicates the real structure sent by pkc-js challenge package
             // The challengeRequest includes extra fields like type, encrypted, challengeRequestId, etc.
             // that are not part of DecryptedChallengeRequestSchema but ARE signed
 
-            // Build comment without signature first (no author.subplebbit for signing)
+            // Build comment without signature first (no author.community for signing)
             // Note: author.address must match the publication signer's public key
             const commentWithoutSig = {
                 title: "Test Post",
                 author: {
-                    address: authorPlebbitAddress
+                    address: authorPKCAddress
                 },
                 content: "This is a test comment to see the challenge response.",
                 timestamp: baseTimestamp,
                 protocolVersion: "1.0.0",
-                subplebbitAddress: "test-sub.eth"
+                communityAddress: "test-sub.eth"
             };
 
             // Sign the comment properly
             const commentSignature = await signPublication(commentWithoutSig, authorSigner, CommentSignedPropertyNames);
 
-            // Add author.subplebbit after signing (matches production flow)
+            // Add author.community after signing (matches production flow)
             const comment = {
                 ...commentWithoutSig,
-                author: { ...commentWithoutSig.author, subplebbit: baseSubplebbitAuthor },
+                author: { ...commentWithoutSig.author, community: baseCommunityAuthor },
                 signature: commentSignature
             };
 
-            // Full ChallengeRequestMessage structure (as sent by plebbit-js)
+            // Full ChallengeRequestMessage structure (as sent by pkc-js)
             // This includes fields that are NOT in DecryptedChallengeRequestSchema
             const challengeRequest = {
                 type: "CHALLENGEREQUEST",
@@ -632,7 +629,7 @@ describe("API Routes", () => {
                     ]
                 },
                 timestamp: baseTimestamp,
-                userAgent: "/plebbit-js:0.0.7/",
+                userAgent: "/pkc-js:0.0.7/",
                 protocolVersion: "1.0.0",
                 challengeRequestId: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]),
                 acceptedChallengeTypes: []
@@ -658,8 +655,8 @@ describe("API Routes", () => {
         });
     });
 
-    describe("Publication signature with author.subplebbit added after signing", () => {
-        // Regression tests: In production, the subplebbit adds author.subplebbit to the
+    describe("Publication signature with author.community added after signing", () => {
+        // Regression tests: In production, the community adds author.community to the
         // challenge request AFTER the author signs the publication. Since author is a signed
         // property, the modified author object should still verify correctly.
 
@@ -672,21 +669,21 @@ describe("API Routes", () => {
         }: {
             publicationWithoutSig: Record<string, unknown>;
             signedPropertyNames: string[];
-            publicationType: "comment" | "vote" | "commentEdit" | "commentModeration" | "subplebbitEdit"; // Note: commentEdit/commentModeration/subplebbitEdit rejected with 400
+            publicationType: "comment" | "vote" | "commentEdit" | "commentModeration" | "communityEdit"; // Note: commentEdit/commentModeration/communityEdit rejected with 400
         }) => {
-            // 1. Sign the publication WITHOUT author.subplebbit
+            // 1. Sign the publication WITHOUT author.community
             const pubSignature = await signPublication(publicationWithoutSig, authorSigner, signedPropertyNames);
             const signedPublication = { ...publicationWithoutSig, signature: pubSignature };
 
-            // 2. Add author.subplebbit AFTER signing (matches production flow)
-            const authorWithSubplebbit = {
+            // 2. Add author.community AFTER signing (matches production flow)
+            const authorWithCommunity = {
                 ...(signedPublication.author as Record<string, unknown>),
-                subplebbit: baseSubplebbitAuthor
+                community: baseCommunityAuthor
             };
-            const publicationWithSubplebbitAuthor = { ...signedPublication, author: authorWithSubplebbit };
+            const publicationWithCommunityAuthor = { ...signedPublication, author: authorWithCommunity };
 
             // 3. Wrap in challenge request
-            const challengeRequest = { [publicationType]: publicationWithSubplebbitAuthor };
+            const challengeRequest = { [publicationType]: publicationWithCommunityAuthor };
             const timestamp = Math.floor(Date.now() / 1000);
             const propsToSign = { challengeRequest, timestamp };
             const requestSignature = await createRequestSignature(propsToSign, testSigner);
@@ -694,11 +691,11 @@ describe("API Routes", () => {
             return { ...propsToSign, signature: requestSignature };
         };
 
-        it("should accept Comment signed without author.subplebbit", async () => {
+        it("should accept Comment signed without author.community", async () => {
             const payload = await buildAndSignPayload({
                 publicationWithoutSig: {
-                    author: { address: authorPlebbitAddress },
-                    subplebbitAddress: "test-sub.eth",
+                    author: { address: authorPKCAddress },
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     content: "Hello world"
@@ -714,11 +711,11 @@ describe("API Routes", () => {
             expect(response.statusCode).toBe(200);
         });
 
-        it("should accept Vote signed without author.subplebbit", async () => {
+        it("should accept Vote signed without author.community", async () => {
             const payload = await buildAndSignPayload({
                 publicationWithoutSig: {
-                    author: { address: authorPlebbitAddress },
-                    subplebbitAddress: "test-sub.eth",
+                    author: { address: authorPKCAddress },
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     commentCid: validCid,
@@ -739,7 +736,7 @@ describe("API Routes", () => {
             const CommentEditSignedPropertyNames = [
                 "timestamp",
                 "flair",
-                "subplebbitAddress",
+                "communityAddress",
                 "author",
                 "protocolVersion",
                 "commentCid",
@@ -751,8 +748,8 @@ describe("API Routes", () => {
             ];
             const payload = await buildAndSignPayload({
                 publicationWithoutSig: {
-                    author: { address: authorPlebbitAddress },
-                    subplebbitAddress: "test-sub.eth",
+                    author: { address: authorPKCAddress },
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     commentCid: validCid,
@@ -769,7 +766,7 @@ describe("API Routes", () => {
         it("should reject CommentModeration with 400", async () => {
             const CommentModerationSignedPropertyNames = [
                 "timestamp",
-                "subplebbitAddress",
+                "communityAddress",
                 "author",
                 "protocolVersion",
                 "commentCid",
@@ -777,8 +774,8 @@ describe("API Routes", () => {
             ];
             const payload = await buildAndSignPayload({
                 publicationWithoutSig: {
-                    author: { address: authorPlebbitAddress },
-                    subplebbitAddress: "test-sub.eth",
+                    author: { address: authorPKCAddress },
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     commentCid: validCid,
@@ -792,18 +789,18 @@ describe("API Routes", () => {
             expect(response.statusCode).toBe(400);
         });
 
-        it("should reject SubplebbitEdit with 400", async () => {
-            const SubplebbitEditSignedPropertyNames = ["timestamp", "subplebbitAddress", "author", "protocolVersion", "subplebbitEdit"];
+        it("should reject CommunityEdit with 400", async () => {
+            const CommunityEditSignedPropertyNames = ["timestamp", "communityAddress", "author", "protocolVersion", "communityEdit"];
             const payload = await buildAndSignPayload({
                 publicationWithoutSig: {
-                    author: { address: authorPlebbitAddress },
-                    subplebbitAddress: "test-sub.eth",
+                    author: { address: authorPKCAddress },
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
-                    subplebbitEdit: { title: "New title" }
+                    communityEdit: { title: "New title" }
                 },
-                signedPropertyNames: SubplebbitEditSignedPropertyNames,
-                publicationType: "subplebbitEdit"
+                signedPropertyNames: CommunityEditSignedPropertyNames,
+                publicationType: "communityEdit"
             });
 
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
@@ -817,7 +814,7 @@ describe("API Routes", () => {
         beforeEach(async () => {
             // Create a challenge session first
             const evaluatePayload = await createEvaluatePayload({
-                commentOverrides: { subplebbitAddress: "verify-sub.eth" }
+                commentOverrides: { communityAddress: "verify-sub.eth" }
             });
             const evalResponse = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", evaluatePayload);
 
@@ -852,7 +849,7 @@ describe("API Routes", () => {
         it("should return unified pending error for oauth_sufficient tier", async () => {
             const captchaSession = server.db.insertChallengeSession({
                 sessionId: "captcha-only-pending",
-                subplebbitPublicKey: testSigner.publicKey,
+                communityPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
                 challengeTier: "oauth_sufficient",
                 riskScore: 0.3
@@ -870,7 +867,7 @@ describe("API Routes", () => {
         it("should return unified pending error for oauth_plus_more tier", async () => {
             const combinedSession = server.db.insertChallengeSession({
                 sessionId: "combined-neither-pending",
-                subplebbitPublicKey: testSigner.publicKey,
+                communityPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
                 challengeTier: "oauth_plus_more",
                 riskScore: 0.6
@@ -888,7 +885,7 @@ describe("API Routes", () => {
         it("should return unified pending error even when captcha is done but OAuth pending", async () => {
             const combinedSession = server.db.insertChallengeSession({
                 sessionId: "combined-captcha-done",
-                subplebbitPublicKey: testSigner.publicKey,
+                communityPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
                 challengeTier: "oauth_plus_more",
                 riskScore: 0.6
@@ -907,7 +904,7 @@ describe("API Routes", () => {
         it("should return unified pending error when challengeTier is null", async () => {
             const noTierSession = server.db.insertChallengeSession({
                 sessionId: "no-tier-pending",
-                subplebbitPublicKey: testSigner.publicKey,
+                communityPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000
             });
 
@@ -968,7 +965,7 @@ describe("API Routes", () => {
         beforeEach(async () => {
             // Create a challenge session first
             const evaluatePayload = await createEvaluatePayload({
-                commentOverrides: { subplebbitAddress: "iframe-sub.eth" }
+                commentOverrides: { communityAddress: "iframe-sub.eth" }
             });
             const evalResponse = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", evaluatePayload);
 
@@ -1030,18 +1027,18 @@ describe("API Routes", () => {
     });
 });
 
-describe("allowNonDomainSubplebbits config", () => {
+describe("allowNonDomainCommunities config", () => {
     let server: SpamDetectionServer;
 
     afterEach(async () => {
         await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
-    it("should accept IPNS-addressed subplebbit when allowNonDomainSubplebbits is true", async () => {
-        const getSubplebbit = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit,
+    it("should accept IPNS-addressed community when allowNonDomainCommunities is true", async () => {
+        const getCommunity = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
+        setPkcLoaderForTest(async () => ({
+            getCommunity,
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
         server = await createServer({
@@ -1050,12 +1047,12 @@ describe("allowNonDomainSubplebbits config", () => {
             databasePath: ":memory:",
             baseUrl: "http://localhost:3000",
             turnstileSiteKey: TURNSTILE_TEST_SITE_KEY,
-            allowNonDomainSubplebbits: true
+            allowNonDomainCommunities: true
         });
         await server.fastify.ready();
 
         const payload = await createEvaluatePayload({
-            commentOverrides: { subplebbitAddress: "12D3KooWIPNSSubplebbit" }
+            commentOverrides: { communityAddress: "12D3KooWIPNSCommunity" }
         });
 
         const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
@@ -1066,10 +1063,10 @@ describe("allowNonDomainSubplebbits config", () => {
         expect(body.sessionId).toBeDefined();
     });
 
-    it("should reject IPNS-addressed subplebbit by default (allowNonDomainSubplebbits not set)", async () => {
-        const getSubplebbit = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit,
+    it("should reject IPNS-addressed community by default (allowNonDomainCommunities not set)", async () => {
+        const getCommunity = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
+        setPkcLoaderForTest(async () => ({
+            getCommunity,
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
         server = await createServer({
@@ -1082,14 +1079,14 @@ describe("allowNonDomainSubplebbits config", () => {
         await server.fastify.ready();
 
         const payload = await createEvaluatePayload({
-            commentOverrides: { subplebbitAddress: "12D3KooWIPNSSubplebbit" }
+            commentOverrides: { communityAddress: "12D3KooWIPNSCommunity" }
         });
 
         const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
 
         expect(response.statusCode).toBe(400);
         const body = response.json();
-        expect(body.error).toContain("Only domain-addressed subplebbits are supported");
+        expect(body.error).toContain("Only domain-addressed communities are supported");
     });
 });
 
@@ -1101,9 +1098,9 @@ describe("Turnstile E2E Flow", () => {
     let server: SpamDetectionServer;
 
     beforeEach(async () => {
-        const getSubplebbit = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit,
+        const getCommunity = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
+        setPkcLoaderForTest(async () => ({
+            getCommunity,
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
         server = await createServer({
@@ -1119,7 +1116,7 @@ describe("Turnstile E2E Flow", () => {
 
     afterEach(async () => {
         await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should complete full Turnstile flow with Cloudflare test keys", async () => {
@@ -1196,9 +1193,9 @@ describe("Turnstile Failure Scenarios", () => {
     let server: SpamDetectionServer;
 
     beforeEach(async () => {
-        const getSubplebbit = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit,
+        const getCommunity = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
+        setPkcLoaderForTest(async () => ({
+            getCommunity,
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
         // Use the always-failing secret key
@@ -1215,7 +1212,7 @@ describe("Turnstile Failure Scenarios", () => {
 
     afterEach(async () => {
         await server.stop();
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should return 401 when Turnstile verification fails", async () => {

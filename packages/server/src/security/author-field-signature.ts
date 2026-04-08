@@ -1,9 +1,27 @@
-import { getPlebbitAddressFromPublicKey } from "@plebbit/plebbit-js/dist/node/signer/util.js";
-import { isStringDomain } from "@plebbit/plebbit-js/dist/node/util.js";
-import type Plebbit from "@plebbit/plebbit-js";
-import type { AuthorPubsubType, ChainTicker, Nft } from "@plebbit/plebbit-js/dist/node/types.js";
+import { getPKCAddressFromPublicKey } from "@pkcprotocol/pkc-js/dist/node/signer/util.js";
+import { isStringDomain } from "@pkcprotocol/pkc-js/dist/node/util.js";
+import type PKC from "@pkcprotocol/pkc-js";
+import type { AuthorPubsubType, ChainTicker, Nft } from "@pkcprotocol/pkc-js/dist/node/types.js";
 
-type PlebbitInstance = Awaited<ReturnType<typeof Plebbit>>;
+type PkcInstance = Awaited<ReturnType<typeof PKC>>;
+type LegacyChainProvider = { urls?: string[]; chainId?: number };
+type LegacyViemClient = {
+    verifyMessage?: (args: { address: `0x${string}`; message: string; signature: `0x${string}` }) => Promise<boolean>;
+    getEnsAddress?: (args: { name: string }) => Promise<`0x${string}` | null>;
+    getTransactionCount?: (args: { address: `0x${string}` }) => Promise<bigint | number>;
+    readContract?: (args: {
+        abi: typeof nftAbi;
+        address: `0x${string}`;
+        functionName: "ownerOf";
+        args: [bigint];
+    }) => Promise<`0x${string}`>;
+};
+type LegacyPkcChainAccess = PkcInstance & {
+    chainProviders?: Partial<Record<ChainTicker, LegacyChainProvider>>;
+    _domainResolver?: {
+        _createViemClientIfNeeded: (chainTicker: ChainTicker, rpcUrl: string) => LegacyViemClient;
+    };
+};
 
 // NFT ABI for ownerOf function
 const nftAbi = [
@@ -20,25 +38,50 @@ type WalletData = NonNullable<AuthorPubsubType["wallets"]>[ChainTicker];
 
 type VerificationResult = { valid: true } | { valid: false; reason: string };
 
+const getLegacyChainProvider = (pkc: PkcInstance, chainTicker: ChainTicker): LegacyChainProvider | undefined => {
+    return (pkc as LegacyPkcChainAccess).chainProviders?.[chainTicker];
+};
+
+const getLegacyViemClient = (pkc: PkcInstance, chainTicker: ChainTicker, rpcUrl: string): LegacyViemClient | undefined => {
+    return (pkc as LegacyPkcChainAccess)._domainResolver?._createViemClientIfNeeded(chainTicker, rpcUrl);
+};
+
+const resolveAuthorNameOrAddress = async (pkc: PkcInstance, address: string): Promise<string | null> => {
+    const pkcWithFallback = pkc as PkcInstance & {
+        resolveAuthorName?: (args: { address: string }) => Promise<string | null>;
+        resolveAuthorAddress?: (args: { address: string }) => Promise<string | null>;
+    };
+
+    if (pkcWithFallback.resolveAuthorName) {
+        return pkcWithFallback.resolveAuthorName({ address });
+    }
+
+    if (pkcWithFallback.resolveAuthorAddress) {
+        return pkcWithFallback.resolveAuthorAddress({ address });
+    }
+
+    return null;
+};
+
 /**
  * Verify a single wallet signature.
- * For domain wallet addresses, also verifies the plebbit-author-address TXT record matches the publication signer.
+ * For domain wallet addresses, also verifies the pkc-author-address TXT record matches the publication signer.
  */
 export async function verifyAuthorWalletSignature({
     wallet,
     chainTicker,
     authorAddress,
     publicationSignaturePublicKey,
-    plebbit
+    pkc
 }: {
     wallet: WalletData;
     chainTicker: string;
     authorAddress: string;
     publicationSignaturePublicKey: string;
-    plebbit: PlebbitInstance;
+    pkc: PkcInstance;
 }): Promise<VerificationResult> {
     // Check if chain provider is available
-    const chainProvider = plebbit.chainProviders[chainTicker as ChainTicker];
+    const chainProvider = getLegacyChainProvider(pkc, chainTicker as ChainTicker);
     if (!chainProvider) {
         console.warn(
             `Received publication with wallet on chain '${chainTicker}' but no chain provider is configured — skipping wallet verification`
@@ -46,15 +89,15 @@ export async function verifyAuthorWalletSignature({
         return { valid: true }; // Can't verify without chain provider, skip gracefully
     }
 
-    // For domain wallet addresses (e.g., ENS), verify plebbit-author-address matches
+    // For domain wallet addresses (e.g., ENS), verify pkc-author-address matches
     if (isStringDomain(wallet.address)) {
-        const resolvedWalletAddress = await plebbit.resolveAuthorAddress({ address: wallet.address });
-        const publicationSignatureAddress = await getPlebbitAddressFromPublicKey(publicationSignaturePublicKey);
+        const resolvedWalletAddress = await resolveAuthorNameOrAddress(pkc, wallet.address);
+        const publicationSignatureAddress = await getPKCAddressFromPublicKey(publicationSignaturePublicKey);
 
-        if (resolvedWalletAddress !== publicationSignatureAddress) {
+        if (!resolvedWalletAddress || resolvedWalletAddress.toLowerCase() !== publicationSignatureAddress.toLowerCase()) {
             return {
                 valid: false,
-                reason: `Wallet domain '${wallet.address}' plebbit-author-address resolves to '${resolvedWalletAddress}' but should resolve to '${publicationSignatureAddress}'`
+                reason: `Wallet domain '${wallet.address}' pkc-author-address resolves to '${resolvedWalletAddress}' but should resolve to '${publicationSignatureAddress}'`
             };
         }
         // Domain verification passed, no need to verify EIP-191 signature for domains
@@ -63,14 +106,21 @@ export async function verifyAuthorWalletSignature({
 
     // For regular addresses, verify EIP-191 signature
     // Get viem client - always use 'eth' chain for signature verification
-    const viemClient = plebbit._domainResolver._createViemClientIfNeeded(
-        "eth",
-        plebbit.chainProviders["eth"]?.urls[0] || chainProvider.urls[0]
-    );
+    const rpcUrl = getLegacyChainProvider(pkc, "eth")?.urls?.[0] || chainProvider.urls?.[0];
+    if (!rpcUrl) {
+        console.warn(`No RPC URL is configured for wallet verification on chain '${chainTicker}' — skipping wallet verification`);
+        return { valid: true };
+    }
+
+    const viemClient = getLegacyViemClient(pkc, "eth", rpcUrl);
+    if (!viemClient?.verifyMessage) {
+        console.warn(`No EVM verifier is available for wallet verification on chain '${chainTicker}' — skipping wallet verification`);
+        return { valid: true };
+    }
 
     // Build message to verify (property order matters!)
     const messageToBeSigned: Record<string, string | number> = {};
-    messageToBeSigned["domainSeparator"] = "plebbit-author-wallet";
+    messageToBeSigned["domainSeparator"] = "pkc-author-wallet";
     messageToBeSigned["authorAddress"] = authorAddress;
     messageToBeSigned["timestamp"] = wallet.timestamp;
 
@@ -101,12 +151,12 @@ export async function verifyAuthorWallets({
     wallets,
     authorAddress,
     publicationSignaturePublicKey,
-    plebbit
+    pkc
 }: {
     wallets: Record<string, WalletData> | undefined;
     authorAddress: string;
     publicationSignaturePublicKey: string;
-    plebbit: PlebbitInstance;
+    pkc: PkcInstance;
 }): Promise<VerificationResult> {
     if (!wallets || Object.keys(wallets).length === 0) {
         return { valid: true }; // No wallets to verify
@@ -118,7 +168,7 @@ export async function verifyAuthorWallets({
             chainTicker,
             authorAddress,
             publicationSignaturePublicKey,
-            plebbit
+            pkc
         });
 
         if (!result.valid) {
@@ -142,10 +192,10 @@ export async function verifyAuthorWallets({
  */
 export async function fetchWalletTransactionCounts({
     wallets,
-    plebbit
+    pkc
 }: {
     wallets: Record<string, WalletData> | undefined;
-    plebbit: PlebbitInstance;
+    pkc: PkcInstance;
 }): Promise<Record<string, number>> {
     const result: Record<string, number> = {};
 
@@ -159,7 +209,7 @@ export async function fetchWalletTransactionCounts({
         if (!wallet?.address) continue;
 
         // Check if chain provider is available
-        const chainProvider = plebbit.chainProviders[chainTicker as ChainTicker];
+        const chainProvider = getLegacyChainProvider(pkc, chainTicker as ChainTicker);
         if (!chainProvider || !chainProvider.urls || chainProvider.urls.length === 0) continue;
 
         promises.push(
@@ -169,12 +219,15 @@ export async function fetchWalletTransactionCounts({
 
                     if (isStringDomain(wallet.address)) {
                         // Resolve ENS/domain address to hex using the ETH chain provider
-                        const ethProvider = plebbit.chainProviders["eth" as ChainTicker];
+                        const ethProvider = getLegacyChainProvider(pkc, "eth");
                         if (!ethProvider || !ethProvider.urls || ethProvider.urls.length === 0) {
                             // No ETH provider to resolve domain — skip this wallet
                             return;
                         }
-                        const ethClient = plebbit._domainResolver._createViemClientIfNeeded("eth" as ChainTicker, ethProvider.urls[0]);
+                        const ethClient = getLegacyViemClient(pkc, "eth", ethProvider.urls[0]);
+                        if (!ethClient?.getEnsAddress) {
+                            return;
+                        }
                         const resolved = await ethClient.getEnsAddress({ name: wallet.address });
                         if (!resolved) {
                             // ENS name doesn't resolve to an address
@@ -185,7 +238,15 @@ export async function fetchWalletTransactionCounts({
                         hexAddress = wallet.address as `0x${string}`;
                     }
 
-                    const viemClient = plebbit._domainResolver._createViemClientIfNeeded(chainTicker as ChainTicker, chainProvider.urls[0]);
+                    const rpcUrl = chainProvider.urls?.[0];
+                    if (!rpcUrl) {
+                        return;
+                    }
+
+                    const viemClient = getLegacyViemClient(pkc, chainTicker as ChainTicker, rpcUrl);
+                    if (!viemClient?.getTransactionCount) {
+                        return;
+                    }
                     const nonce = await viemClient.getTransactionCount({
                         address: hexAddress
                     });
@@ -214,18 +275,18 @@ export async function fetchWalletTransactionCounts({
 export async function verifyAuthorAvatarSignature({
     avatar,
     authorAddress,
-    plebbit
+    pkc
 }: {
     avatar: Nft | undefined;
     authorAddress: string;
-    plebbit: PlebbitInstance;
+    pkc: PkcInstance;
 }): Promise<VerificationResult> {
     if (!avatar) {
         return { valid: true }; // No avatar to verify
     }
 
     // Check if chain provider is available for the NFT's chain
-    const chainProvider = plebbit.chainProviders[avatar.chainTicker as ChainTicker];
+    const chainProvider = getLegacyChainProvider(pkc, avatar.chainTicker as ChainTicker);
     if (!chainProvider) {
         console.warn(
             `Received publication with avatar on chain '${avatar.chainTicker}' but no chain provider is configured — skipping avatar verification`
@@ -233,7 +294,19 @@ export async function verifyAuthorAvatarSignature({
         return { valid: true }; // Can't verify without chain provider, skip gracefully
     }
 
-    const viemClient = plebbit._domainResolver._createViemClientIfNeeded(avatar.chainTicker as ChainTicker, chainProvider.urls[0]);
+    const rpcUrl = chainProvider.urls?.[0];
+    if (!rpcUrl) {
+        console.warn(`No RPC URL is configured for avatar verification on chain '${avatar.chainTicker}' — skipping avatar verification`);
+        return { valid: true };
+    }
+
+    const viemClient = getLegacyViemClient(pkc, avatar.chainTicker as ChainTicker, rpcUrl);
+    if (!viemClient?.readContract || !viemClient?.verifyMessage) {
+        console.warn(
+            `No EVM verifier is available for avatar verification on chain '${avatar.chainTicker}' — skipping avatar verification`
+        );
+        return { valid: true };
+    }
 
     // Get current NFT owner
     let currentOwner: `0x${string}`;
@@ -253,7 +326,7 @@ export async function verifyAuthorAvatarSignature({
 
     // Build message to verify (property order matters!)
     const messageToBeSigned: Record<string, string | number> = {};
-    messageToBeSigned["domainSeparator"] = "plebbit-author-avatar";
+    messageToBeSigned["domainSeparator"] = "pkc-author-avatar";
     messageToBeSigned["authorAddress"] = authorAddress;
     messageToBeSigned["timestamp"] = avatar.timestamp;
     messageToBeSigned["tokenAddress"] = avatar.address;

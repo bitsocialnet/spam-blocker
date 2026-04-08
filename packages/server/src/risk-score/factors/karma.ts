@@ -1,6 +1,10 @@
 import type { RiskContext, RiskFactor } from "../types.js";
-import { getAuthorFromChallengeRequest, getAuthorPublicKeyFromChallengeRequest, getPublicationFromChallengeRequest } from "../utils.js";
-import { isDomainSubplebbitAddress } from "../../utils/address.js";
+import {
+    getAuthorFromChallengeRequest,
+    getAuthorPublicKeyFromChallengeRequest,
+    getPublicationCommunityAddressFromChallengeRequest
+} from "../utils.js";
+import { isDomainCommunityAddress } from "../../utils/address.js";
 
 /**
  * Net sub count thresholds for scoring.
@@ -40,7 +44,7 @@ const SCORES = {
  * Calculate risk score based on karma using a count-based approach.
  *
  * Instead of using raw karma values (which can be manipulated by colluding subs),
- * we count how many subplebbits the author has positive vs negative karma in.
+ * we count how many communities the author has positive vs negative karma in.
  * Each sub gets exactly 1 vote regardless of karma magnitude.
  *
  * This approach is resistant to collusion attacks where a few hostile subs
@@ -55,18 +59,16 @@ const SCORES = {
 export function calculateKarma(ctx: RiskContext, weight: number): RiskFactor {
     const author = getAuthorFromChallengeRequest(ctx.challengeRequest);
     const authorPublicKey = getAuthorPublicKeyFromChallengeRequest(ctx.challengeRequest);
-    const publication = getPublicationFromChallengeRequest(ctx.challengeRequest);
-
-    // Get current request's karma from the subplebbit author (TRUSTED)
-    const subplebbitAuthor = author.subplebbit;
-    const currentPostScore = subplebbitAuthor?.postScore ?? 0;
-    const currentReplyScore = subplebbitAuthor?.replyScore ?? 0;
+    // Get current request's karma from the community author (TRUSTED)
+    const communityAuthor = author.community;
+    const currentPostScore = communityAuthor?.postScore ?? 0;
+    const currentReplyScore = communityAuthor?.replyScore ?? 0;
     const currentSubKarma = currentPostScore + currentReplyScore;
-    const currentSubplebbitAddress = publication.subplebbitAddress;
+    const currentCommunityAddress = getPublicationCommunityAddressFromChallengeRequest(ctx.challengeRequest);
 
     // Get karma from combined data (engine + indexer)
-    // Per-subplebbit, uses the LATEST entry from either source
-    const dbKarma = ctx.combinedData.getAuthorKarmaBySubplebbit(authorPublicKey);
+    // Per-community, uses the LATEST entry from either source
+    const dbKarma = ctx.combinedData.getAuthorKarmaByCommunity(authorPublicKey);
 
     // Count positive and negative subs
     let positiveSubCount = 0;
@@ -76,13 +78,13 @@ export function calculateKarma(ctx: RiskContext, weight: number): RiskFactor {
         const totalKarma = karma.postScore + karma.replyScore;
 
         // Skip the current sub - we'll use the request's karma instead (more recent)
-        if (subAddress === currentSubplebbitAddress) {
+        if (subAddress === currentCommunityAddress) {
             continue;
         }
 
-        // Only count karma from domain-addressed subplebbits
+        // Only count karma from domain-addressed communities
         // IPNS addresses are free to create, making them vulnerable to self-promotion attacks
-        if (!isDomainSubplebbitAddress(subAddress)) {
+        if (!isDomainCommunityAddress(subAddress)) {
             continue;
         }
 
@@ -95,7 +97,7 @@ export function calculateKarma(ctx: RiskContext, weight: number): RiskFactor {
     }
 
     // Add current sub's vote only if it's a domain address (from the request, not DB)
-    if (isDomainSubplebbitAddress(currentSubplebbitAddress)) {
+    if (isDomainCommunityAddress(currentCommunityAddress)) {
         if (currentSubKarma > 0) {
             positiveSubCount++;
         } else if (currentSubKarma < 0) {

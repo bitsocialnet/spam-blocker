@@ -3,7 +3,7 @@
  *
  * Each factor has its own combination strategy:
  * - Account Age: Use ONLY indexer's fetchedAt (only counts accepted publications)
- * - Karma: Per-subplebbit, use the LATEST entry from either source
+ * - Karma: Per-community, use the LATEST entry from either source
  * - Velocity: Combine counts from both sources (SUM)
  * - Content/Link Similarity: Query both sources (UNION)
  */
@@ -30,7 +30,7 @@ export interface SimilarContentMatch {
     authorPublicKey: string;
     content: string | null;
     title: string | null;
-    subplebbitAddress: string;
+    communityAddress: string;
     timestamp: number;
     contentSimilarity: number;
     titleSimilarity: number;
@@ -56,7 +56,7 @@ export class CombinedDataService {
      * Returns the timestamp in **seconds** for compatibility with protocol timestamps.
      *
      * SECURITY: Only uses indexer's fetchedAt, NOT engine's receivedAt.
-     * This ensures we only count comments that the subplebbit actually included in its pages.
+     * This ensures we only count comments that the community actually included in its pages.
      * A spammer who keeps submitting rejected spam should not get "old account" credit
      * just because our engine saw their failed attempts.
      */
@@ -65,20 +65,20 @@ export class CombinedDataService {
     }
 
     // ============================================
-    // Karma: Per-subplebbit, use the LATEST entry
+    // Karma: Per-community, use the LATEST entry
     // ============================================
 
     /**
-     * Get karma per subplebbit, using the most recent data from either source.
-     * For each subplebbit, if both sources have data, use the one with the more recent timestamp.
+     * Get karma per community, using the most recent data from either source.
+     * For each community, if both sources have data, use the one with the more recent timestamp.
      */
-    getAuthorKarmaBySubplebbit(authorPublicKey: string): Map<string, KarmaRecord> {
-        const engineKarma = this.db.getAuthorKarmaBySubplebbit(authorPublicKey);
-        const indexerKarma = this.indexerQueries.getAuthorKarmaBySubplebbitFromIndexer(authorPublicKey);
+    getAuthorKarmaByCommunity(authorPublicKey: string): Map<string, KarmaRecord> {
+        const engineKarma = this.db.getAuthorKarmaByCommunity(authorPublicKey);
+        const indexerKarma = this.indexerQueries.getAuthorKarmaByCommunityFromIndexer(authorPublicKey);
 
         const result = new Map<string, KarmaRecord>();
 
-        // Collect all subplebbit addresses from both sources
+        // Collect all community addresses from both sources
         const allSubs = new Set([...engineKarma.keys(), ...indexerKarma.keys()]);
 
         for (const sub of allSubs) {
@@ -192,7 +192,7 @@ export class CombinedDataService {
                         authorPublicKey: match.authorPublicKey,
                         content: match.content,
                         title: match.title,
-                        subplebbitAddress: match.subplebbitAddress,
+                        communityAddress: match.communityAddress,
                         timestamp: Math.floor(match.receivedAt / 1000), // Convert to seconds for consistency
                         contentSimilarity: 1.0,
                         titleSimilarity: 1.0
@@ -216,7 +216,7 @@ export class CombinedDataService {
                         authorPublicKey: match.authorPublicKey,
                         content: match.content,
                         title: match.title,
-                        subplebbitAddress: match.subplebbitAddress,
+                        communityAddress: match.communityAddress,
                         timestamp: Math.floor(match.receivedAt / 1000), // Convert to seconds for consistency
                         contentSimilarity: 1.0,
                         titleSimilarity: 1.0
@@ -242,7 +242,7 @@ export class CombinedDataService {
                 authorPublicKey: match.authorPublicKey,
                 content: match.content,
                 title: match.title,
-                subplebbitAddress: match.subplebbitAddress,
+                communityAddress: match.communityAddress,
                 timestamp: match.timestamp,
                 contentSimilarity: 1.0,
                 titleSimilarity: 1.0
@@ -292,7 +292,7 @@ export class CombinedDataService {
                 authorPublicKey,
                 content: match.content,
                 title: match.title,
-                subplebbitAddress: match.subplebbitAddress,
+                communityAddress: match.communityAddress,
                 timestamp: Math.floor(match.receivedAt / 1000), // Convert to seconds for consistency
                 contentSimilarity: match.contentSimilarity,
                 titleSimilarity: match.titleSimilarity
@@ -316,7 +316,7 @@ export class CombinedDataService {
                 authorPublicKey: match.authorPublicKey,
                 content: match.content,
                 title: match.title,
-                subplebbitAddress: match.subplebbitAddress,
+                communityAddress: match.communityAddress,
                 timestamp: match.timestamp,
                 contentSimilarity: match.contentSimilarity,
                 titleSimilarity: match.titleSimilarity
@@ -366,7 +366,7 @@ export class CombinedDataService {
                 authorPublicKey: match.authorPublicKey,
                 content: match.content,
                 title: match.title,
-                subplebbitAddress: match.subplebbitAddress,
+                communityAddress: match.communityAddress,
                 timestamp: Math.floor(match.receivedAt / 1000), // Convert to seconds for consistency
                 contentSimilarity: match.contentSimilarity,
                 titleSimilarity: match.titleSimilarity
@@ -390,7 +390,7 @@ export class CombinedDataService {
                 authorPublicKey: match.authorPublicKey,
                 content: match.content,
                 title: match.title,
-                subplebbitAddress: match.subplebbitAddress,
+                communityAddress: match.communityAddress,
                 timestamp: match.timestamp,
                 contentSimilarity: match.contentSimilarity,
                 titleSimilarity: match.titleSimilarity

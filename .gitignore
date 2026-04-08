@@ -1,4 +1,4 @@
-packages/server/.plebbit/
+packages/server/.pkc/
 data/
 node_modules/
 coverage/

@@ -3,7 +3,7 @@ import { SpamDetectionDatabase, createDatabase } from "../src/db/index.js";
 
 describe("SpamDetectionDatabase", () => {
     let db: SpamDetectionDatabase;
-    const subplebbitPublicKey = "test-public-key";
+    const communityPublicKey = "test-public-key";
 
     beforeEach(() => {
         db = createDatabase(":memory:");
@@ -17,13 +17,13 @@ describe("SpamDetectionDatabase", () => {
         it("should create and retrieve a challenge session", () => {
             const session = db.insertChallengeSession({
                 sessionId: "test-challenge-123",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
             expect(session).toBeDefined();
             expect(session.sessionId).toBe("test-challenge-123");
-            expect(session.subplebbitPublicKey).toBe(subplebbitPublicKey);
+            expect(session.communityPublicKey).toBe(communityPublicKey);
             expect(session.status).toBe("pending");
             expect(session.authorAccessedIframeAt).toBeNull();
         });
@@ -31,7 +31,7 @@ describe("SpamDetectionDatabase", () => {
         it("should retrieve session by challenge ID", () => {
             db.insertChallengeSession({
                 sessionId: "test-challenge-456",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
@@ -48,7 +48,7 @@ describe("SpamDetectionDatabase", () => {
         it("should update challenge session status", () => {
             db.insertChallengeSession({
                 sessionId: "test-challenge-789",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
@@ -65,7 +65,7 @@ describe("SpamDetectionDatabase", () => {
         it("should update iframe access timestamp", () => {
             db.insertChallengeSession({
                 sessionId: "iframe-test",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
@@ -84,7 +84,7 @@ describe("SpamDetectionDatabase", () => {
             // First create a challenge session (required for foreign key)
             db.insertChallengeSession({
                 sessionId: "challenge-123",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
@@ -107,7 +107,7 @@ describe("SpamDetectionDatabase", () => {
         it("should retrieve iframe IP record by session ID", () => {
             db.insertChallengeSession({
                 sessionId: "lookup-challenge",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
@@ -128,7 +128,7 @@ describe("SpamDetectionDatabase", () => {
         it("should store IP type flags correctly", () => {
             db.insertChallengeSession({
                 sessionId: "flags-challenge",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
@@ -152,7 +152,7 @@ describe("SpamDetectionDatabase", () => {
         it("should update iframe IP intelligence data", () => {
             db.insertChallengeSession({
                 sessionId: "intel-challenge",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
@@ -183,7 +183,7 @@ describe("SpamDetectionDatabase", () => {
         it("should create an evaluate caller IP record", () => {
             db.insertChallengeSession({
                 sessionId: "eval-session-1",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
@@ -203,7 +203,7 @@ describe("SpamDetectionDatabase", () => {
         it("should retrieve evaluate caller IP by session ID", () => {
             db.insertChallengeSession({
                 sessionId: "eval-session-2",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
@@ -226,7 +226,7 @@ describe("SpamDetectionDatabase", () => {
             for (let i = 1; i <= 3; i++) {
                 db.insertChallengeSession({
                     sessionId: `shared-ip-session-${i}`,
-                    subplebbitPublicKey,
+                    communityPublicKey,
                     expiresAt: Math.floor(Date.now() / 1000) + 3600
                 });
 
@@ -250,16 +250,16 @@ describe("SpamDetectionDatabase", () => {
         it("should store both iframe and evaluate caller IPs for same session", () => {
             db.insertChallengeSession({
                 sessionId: "dual-ip-session",
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Math.floor(Date.now() / 1000) + 3600
             });
 
             const now = Date.now();
 
-            // Subplebbit server calls /evaluate
+            // Community server calls /evaluate
             db.insertEvaluateCallerIp({
                 sessionId: "dual-ip-session",
-                ipAddress: "10.0.0.1", // Subplebbit server IP
+                ipAddress: "10.0.0.1", // Community server IP
                 timestamp: now
             });
 
@@ -287,7 +287,7 @@ describe("SpamDetectionDatabase", () => {
 
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Date.now() + 3600000
             });
 
@@ -295,7 +295,7 @@ describe("SpamDetectionDatabase", () => {
                 sessionId,
                 publication: {
                     author: { address: "test-author.eth" },
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1.0.0",
                     signature: {
@@ -318,7 +318,7 @@ describe("SpamDetectionDatabase", () => {
 
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Date.now() + 3600000
             });
 
@@ -326,7 +326,7 @@ describe("SpamDetectionDatabase", () => {
                 sessionId,
                 publication: {
                     author: { address: "test-author.eth" },
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     commentCid: "Qm123",
                     vote: 1,
                     timestamp: baseTimestamp,
@@ -354,7 +354,7 @@ describe("SpamDetectionDatabase", () => {
 
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey,
+                communityPublicKey,
                 expiresAt: Date.now() + 3600000
             });
 
@@ -362,7 +362,7 @@ describe("SpamDetectionDatabase", () => {
                 sessionId,
                 publication: {
                     author: { address: "test-author.eth" },
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1.0.0",
                     signature: {

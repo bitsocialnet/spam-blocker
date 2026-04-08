@@ -4,7 +4,7 @@ import { SpamDetectionDatabase } from "../../src/db/index.js";
 import { CombinedDataService } from "../../src/risk-score/combined-data-service.js";
 import { IndexerQueries } from "../../src/indexer/db/queries.js";
 import type { RiskContext } from "../../src/risk-score/types.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 
 const baseTimestamp = Math.floor(Date.now() / 1000);
 const baseSignature = {
@@ -19,7 +19,7 @@ const SECONDS_PER_DAY = 24 * 60 * 60;
 function createMockAuthor(firstCommentTimestamp?: number) {
     return {
         address: "12D3KooWTestAddress",
-        subplebbit: firstCommentTimestamp
+        community: firstCommentTimestamp
             ? {
                   postScore: 0,
                   replyScore: 0,
@@ -30,20 +30,20 @@ function createMockAuthor(firstCommentTimestamp?: number) {
     };
 }
 
-function createMockChallengeRequest(author: ReturnType<typeof createMockAuthor>): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+function createMockChallengeRequest(author: ReturnType<typeof createMockAuthor>): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     return {
         challengeRequestId: { bytes: new Uint8Array() },
         acceptedChallengeTypes: ["turnstile"],
         encrypted: {} as never,
         comment: {
             author,
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: baseSignature,
             content: "Test content"
         }
-    } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 describe("calculateAccountAge", () => {
@@ -51,11 +51,11 @@ describe("calculateAccountAge", () => {
     let combinedData: CombinedDataService;
     let indexerQueries: IndexerQueries;
 
-    // Helper to ensure subplebbit exists for foreign key constraint
-    function ensureIndexedSubplebbit(address: string) {
+    // Helper to ensure community exists for foreign key constraint
+    function ensureIndexedCommunity(address: string) {
         db.getDb()
             .prepare(
-                `INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt)
+                `INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt)
                  VALUES (?, ?, ?)`
             )
             .run(address, "manual", baseTimestamp);
@@ -72,7 +72,7 @@ describe("calculateAccountAge", () => {
     });
 
     describe("with no history", () => {
-        it("should return NO_HISTORY score when author has no subplebbit data and no DB history", () => {
+        it("should return NO_HISTORY score when author has no community data and no DB history", () => {
             const author = createMockAuthor(undefined);
             const challengeRequest = createMockChallengeRequest(author);
 
@@ -93,9 +93,9 @@ describe("calculateAccountAge", () => {
         });
     });
 
-    describe("ignoring author.subplebbit.firstCommentTimestamp (security fix)", () => {
+    describe("ignoring author.community.firstCommentTimestamp (security fix)", () => {
         it("should return NO_HISTORY even when firstCommentTimestamp claims old account", () => {
-            // Subplebbit claims account is 400 days old, but we have no DB records
+            // Community claims account is 400 days old, but we have no DB records
             // We should NOT trust this claim - it could be fabricated
             const firstCommentTimestamp = baseTimestamp - 400 * SECONDS_PER_DAY;
             const author = createMockAuthor(firstCommentTimestamp);
@@ -117,7 +117,7 @@ describe("calculateAccountAge", () => {
         });
 
         it("should return NO_HISTORY even when firstCommentTimestamp claims recent account", () => {
-            // Even if subplebbit provides a firstCommentTimestamp, we ignore it
+            // Even if community provides a firstCommentTimestamp, we ignore it
             const firstCommentTimestamp = baseTimestamp - 3 * SECONDS_PER_DAY;
             const author = createMockAuthor(firstCommentTimestamp);
             const challengeRequest = createMockChallengeRequest(author);
@@ -145,10 +145,10 @@ describe("calculateAccountAge", () => {
 
             // Insert an indexed comment from 100 days ago
             const indexedTime = baseTimestamp - 100 * SECONDS_PER_DAY;
-            ensureIndexedSubplebbit("test-sub.eth");
+            ensureIndexedCommunity("test-sub.eth");
             indexerQueries.insertIndexedCommentIpfsIfNotExists({
                 cid: "Qm100DaysOld",
-                subplebbitAddress: "test-sub.eth",
+                communityAddress: "test-sub.eth",
                 author: { address: author.address },
                 signature: baseSignature,
                 parentCid: undefined,
@@ -193,7 +193,7 @@ describe("calculateAccountAge", () => {
             const sessionId = "rejected-spam";
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey: "pk",
+                communityPublicKey: "pk",
                 expiresAt: baseTimestamp + 3600
             });
 
@@ -201,7 +201,7 @@ describe("calculateAccountAge", () => {
                 sessionId,
                 publication: {
                     author: { address: author.address },
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: engineTime,
                     protocolVersion: "1",
                     signature: baseSignature,
@@ -214,7 +214,7 @@ describe("calculateAccountAge", () => {
                 .prepare("UPDATE comments SET receivedAt = ? WHERE sessionId = ?")
                 .run(engineTime * 1000, sessionId);
 
-            // NO indexer records - the comment was never accepted by the subplebbit
+            // NO indexer records - the comment was never accepted by the community
 
             const ctx: RiskContext = {
                 challengeRequest,
@@ -233,19 +233,19 @@ describe("calculateAccountAge", () => {
         });
     });
 
-    describe("indexer-only scoring (ignoring subplebbit claims)", () => {
-        it("should use only indexer timestamp even when subplebbit claims different age", () => {
-            // Subplebbit says first comment was 30 days ago, but we ignore this
-            const subplebbitFirstComment = baseTimestamp - 30 * SECONDS_PER_DAY;
-            const author = createMockAuthor(subplebbitFirstComment);
+    describe("indexer-only scoring (ignoring community claims)", () => {
+        it("should use only indexer timestamp even when community claims different age", () => {
+            // Community says first comment was 30 days ago, but we ignore this
+            const communityFirstComment = baseTimestamp - 30 * SECONDS_PER_DAY;
+            const author = createMockAuthor(communityFirstComment);
             const challengeRequest = createMockChallengeRequest(author);
 
             // Our indexer shows they have an indexed comment from 200 days ago
             const indexedTime = baseTimestamp - 200 * SECONDS_PER_DAY;
-            ensureIndexedSubplebbit("test-sub.eth");
+            ensureIndexedCommunity("test-sub.eth");
             indexerQueries.insertIndexedCommentIpfsIfNotExists({
                 cid: "Qm200DaysOld",
-                subplebbitAddress: "test-sub.eth",
+                communityAddress: "test-sub.eth",
                 author: { address: author.address },
                 signature: baseSignature,
                 parentCid: undefined,
@@ -276,18 +276,18 @@ describe("calculateAccountAge", () => {
             expect(result.explanation).toContain("200 days old");
         });
 
-        it("should NOT use subplebbit timestamp even when it claims older than indexed data", () => {
-            // Subplebbit claims 500 days old - could be fabricated by malicious sub owner
-            const subplebbitFirstComment = baseTimestamp - 500 * SECONDS_PER_DAY;
-            const author = createMockAuthor(subplebbitFirstComment);
+        it("should NOT use community timestamp even when it claims older than indexed data", () => {
+            // Community claims 500 days old - could be fabricated by malicious sub owner
+            const communityFirstComment = baseTimestamp - 500 * SECONDS_PER_DAY;
+            const author = createMockAuthor(communityFirstComment);
             const challengeRequest = createMockChallengeRequest(author);
 
             // Our indexer only shows them from 10 days ago - this is what we trust
             const indexedTime = baseTimestamp - 10 * SECONDS_PER_DAY;
-            ensureIndexedSubplebbit("test-sub.eth");
+            ensureIndexedCommunity("test-sub.eth");
             indexerQueries.insertIndexedCommentIpfsIfNotExists({
                 cid: "Qm10DaysOld",
-                subplebbitAddress: "test-sub.eth",
+                communityAddress: "test-sub.eth",
                 author: { address: author.address },
                 signature: baseSignature,
                 parentCid: undefined,
@@ -313,7 +313,7 @@ describe("calculateAccountAge", () => {
 
             const result = calculateAccountAge(ctx, 0.17);
 
-            // Should use indexer's 10 days (ignoring subplebbit's 500 claim) -> MODERATE score (0.5)
+            // Should use indexer's 10 days (ignoring community's 500 claim) -> MODERATE score (0.5)
             expect(result.score).toBe(0.5);
             expect(result.explanation).toContain("10 days old");
         });
@@ -328,12 +328,12 @@ describe("calculateAccountAge", () => {
             const oldTime = baseTimestamp - 400 * SECONDS_PER_DAY;
             const recentTime = baseTimestamp - 20 * SECONDS_PER_DAY;
 
-            ensureIndexedSubplebbit("test-sub.eth");
+            ensureIndexedCommunity("test-sub.eth");
 
             // Old indexed comment
             indexerQueries.insertIndexedCommentIpfsIfNotExists({
                 cid: "QmVeryOld",
-                subplebbitAddress: "test-sub.eth",
+                communityAddress: "test-sub.eth",
                 author: { address: author.address },
                 signature: baseSignature,
                 parentCid: undefined,
@@ -351,7 +351,7 @@ describe("calculateAccountAge", () => {
             // Recent indexed comment
             indexerQueries.insertIndexedCommentIpfsIfNotExists({
                 cid: "QmRecent",
-                subplebbitAddress: "test-sub.eth",
+                communityAddress: "test-sub.eth",
                 author: { address: author.address },
                 signature: baseSignature,
                 parentCid: undefined,
@@ -382,18 +382,18 @@ describe("calculateAccountAge", () => {
             expect(result.explanation).toContain("very established");
         });
 
-        it("should use oldest indexed comment across different subplebbits", () => {
+        it("should use oldest indexed comment across different communities", () => {
             const author = createMockAuthor(undefined);
             const challengeRequest = createMockChallengeRequest(author);
 
-            ensureIndexedSubplebbit("sub-a.eth");
-            ensureIndexedSubplebbit("sub-b.eth");
+            ensureIndexedCommunity("sub-a.eth");
+            ensureIndexedCommunity("sub-b.eth");
 
             // Indexed comment in sub A from 150 days ago
             const subATime = baseTimestamp - 150 * SECONDS_PER_DAY;
             indexerQueries.insertIndexedCommentIpfsIfNotExists({
                 cid: "QmSubA",
-                subplebbitAddress: "sub-a.eth",
+                communityAddress: "sub-a.eth",
                 author: { address: author.address },
                 signature: baseSignature,
                 parentCid: undefined,
@@ -412,7 +412,7 @@ describe("calculateAccountAge", () => {
             const subBTime = baseTimestamp - 50 * SECONDS_PER_DAY;
             indexerQueries.insertIndexedCommentIpfsIfNotExists({
                 cid: "QmSubB",
-                subplebbitAddress: "sub-b.eth",
+                communityAddress: "sub-b.eth",
                 author: { address: author.address },
                 signature: baseSignature,
                 parentCid: undefined,
@@ -453,7 +453,7 @@ describe("calculateAccountAge", () => {
             const sessionId = "old-vote";
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey: "pk",
+                communityPublicKey: "pk",
                 expiresAt: baseTimestamp + 3600
             });
 
@@ -461,7 +461,7 @@ describe("calculateAccountAge", () => {
                 sessionId,
                 publication: {
                     author: { address: author.address },
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: voteTime,
                     protocolVersion: "1",
                     signature: baseSignature,

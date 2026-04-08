@@ -2,8 +2,8 @@
  * Tests for disappeared-from-pages detection:
  * - updateLastSeenInPagesAtBatch sets timestamps correctly
  * - getDisappearedFromPagesCids detects disappeared posts
- * - Crawler-discovered comments (NULL seenAtSubplebbitUpdatedAt) are excluded
- * - Cross-subplebbit isolation
+ * - Crawler-discovered comments (NULL seenAtCommunityUpdatedAt) are excluded
+ * - Cross-community isolation
  * - Replies are excluded (only posts detected)
  * - Integration with unfetchableCount via recordCommentUpdateFetchFailure
  */
@@ -22,8 +22,8 @@ function setup() {
     db.exec(SCHEMA_SQL);
     const queries = new IndexerQueries(db);
 
-    // Insert the subplebbit
-    queries.upsertIndexedSubplebbit({ address: SUB_ADDRESS, discoveredVia: "manual" });
+    // Insert the community
+    queries.upsertIndexedCommunity({ address: SUB_ADDRESS, discoveredVia: "manual" });
 
     return { db, queries };
 }
@@ -33,12 +33,12 @@ function seedComment(
     db: InstanceType<typeof Database>,
     {
         cid,
-        subplebbitAddress = SUB_ADDRESS,
+        communityAddress = SUB_ADDRESS,
         parentCid = null,
         authorPublicKey = AUTHOR_PK
     }: {
         cid: string;
-        subplebbitAddress?: string;
+        communityAddress?: string;
         parentCid?: string | null;
         authorPublicKey?: string;
     }
@@ -46,11 +46,11 @@ function seedComment(
     // Use a past timestamp so recordCommentUpdateFetchFailure's Date.now() will always be greater
     const nowMs = Date.now() - 60_000;
     db.prepare(
-        `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, parentCid, timestamp, fetchedAt, protocolVersion)
+        `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, parentCid, timestamp, fetchedAt, protocolVersion)
          VALUES (?, ?, ?, ?, ?, ?, ?, '1')`
     ).run(
         cid,
-        subplebbitAddress,
+        communityAddress,
         JSON.stringify({ address: "addr" }),
         JSON.stringify({ publicKey: authorPublicKey, signature: "sig", type: "ed25519" }),
         parentCid,
@@ -79,7 +79,7 @@ describe("disappeared-from-pages detection", () => {
     });
 
     describe("updateLastSeenInPagesAtBatch", () => {
-        it("should set seenAtSubplebbitUpdatedAt for specified CIDs only", () => {
+        it("should set seenAtCommunityUpdatedAt for specified CIDs only", () => {
             seedComment(db, { cid: "QmA" });
             seedComment(db, { cid: "QmB" });
             seedComment(db, { cid: "QmC" });
@@ -90,9 +90,9 @@ describe("disappeared-from-pages detection", () => {
             const b = queries.getIndexedCommentUpdate("QmB");
             const c = queries.getIndexedCommentUpdate("QmC");
 
-            expect(a!.seenAtSubplebbitUpdatedAt).toBe(T1);
-            expect(b!.seenAtSubplebbitUpdatedAt).toBe(T1);
-            expect(c!.seenAtSubplebbitUpdatedAt).toBeNull();
+            expect(a!.seenAtCommunityUpdatedAt).toBe(T1);
+            expect(b!.seenAtCommunityUpdatedAt).toBe(T1);
+            expect(c!.seenAtCommunityUpdatedAt).toBeNull();
         });
 
         it("should handle empty cids array without error", () => {
@@ -112,7 +112,7 @@ describe("disappeared-from-pages detection", () => {
             queries.updateLastSeenInPagesAtBatch({ cids: ["QmPost0", "QmPost1", "QmPost2"], timestamp: T2 });
 
             // QmPost3 and QmPost4 should be detected as disappeared
-            const disappeared = queries.getDisappearedFromPagesCids({ subplebbitAddress: SUB_ADDRESS, crawlTimestamp: T2 });
+            const disappeared = queries.getDisappearedFromPagesCids({ communityAddress: SUB_ADDRESS, crawlTimestamp: T2 });
             expect(disappeared.sort()).toEqual(["QmPost3", "QmPost4"]);
         });
 
@@ -120,32 +120,32 @@ describe("disappeared-from-pages detection", () => {
             seedComment(db, { cid: "QmStillHere" });
             queries.updateLastSeenInPagesAtBatch({ cids: ["QmStillHere"], timestamp: T2 });
 
-            const disappeared = queries.getDisappearedFromPagesCids({ subplebbitAddress: SUB_ADDRESS, crawlTimestamp: T2 });
+            const disappeared = queries.getDisappearedFromPagesCids({ communityAddress: SUB_ADDRESS, crawlTimestamp: T2 });
             expect(disappeared).toEqual([]);
         });
 
-        it("should exclude comments with NULL seenAtSubplebbitUpdatedAt (crawler-discovered)", () => {
+        it("should exclude comments with NULL seenAtCommunityUpdatedAt (crawler-discovered)", () => {
             seedComment(db, { cid: "QmCrawled" });
-            // Don't call updateLastSeenInPagesAtBatch — seenAtSubplebbitUpdatedAt stays NULL
+            // Don't call updateLastSeenInPagesAtBatch — seenAtCommunityUpdatedAt stays NULL
 
-            const disappeared = queries.getDisappearedFromPagesCids({ subplebbitAddress: SUB_ADDRESS, crawlTimestamp: T2 });
+            const disappeared = queries.getDisappearedFromPagesCids({ communityAddress: SUB_ADDRESS, crawlTimestamp: T2 });
             expect(disappeared).toEqual([]);
         });
 
-        it("should isolate by subplebbit address", () => {
-            // Insert another subplebbit
-            queries.upsertIndexedSubplebbit({ address: "other-sub.eth", discoveredVia: "manual" });
+        it("should isolate by community address", () => {
+            // Insert another community
+            queries.upsertIndexedCommunity({ address: "other-sub.eth", discoveredVia: "manual" });
 
-            seedComment(db, { cid: "QmSub1Post", subplebbitAddress: SUB_ADDRESS });
-            seedComment(db, { cid: "QmSub2Post", subplebbitAddress: "other-sub.eth" });
+            seedComment(db, { cid: "QmSub1Post", communityAddress: SUB_ADDRESS });
+            seedComment(db, { cid: "QmSub2Post", communityAddress: "other-sub.eth" });
 
             queries.updateLastSeenInPagesAtBatch({ cids: ["QmSub1Post", "QmSub2Post"], timestamp: T1 });
 
             // Only query for SUB_ADDRESS — QmSub2Post should not appear
-            const disappeared = queries.getDisappearedFromPagesCids({ subplebbitAddress: SUB_ADDRESS, crawlTimestamp: T2 });
+            const disappeared = queries.getDisappearedFromPagesCids({ communityAddress: SUB_ADDRESS, crawlTimestamp: T2 });
             expect(disappeared).toEqual(["QmSub1Post"]);
 
-            const disappeared2 = queries.getDisappearedFromPagesCids({ subplebbitAddress: "other-sub.eth", crawlTimestamp: T2 });
+            const disappeared2 = queries.getDisappearedFromPagesCids({ communityAddress: "other-sub.eth", crawlTimestamp: T2 });
             expect(disappeared2).toEqual(["QmSub2Post"]);
         });
 
@@ -156,7 +156,7 @@ describe("disappeared-from-pages detection", () => {
             queries.updateLastSeenInPagesAtBatch({ cids: ["QmPost", "QmReply"], timestamp: T1 });
 
             // Both are stale, but only the post should show up
-            const disappeared = queries.getDisappearedFromPagesCids({ subplebbitAddress: SUB_ADDRESS, crawlTimestamp: T2 });
+            const disappeared = queries.getDisappearedFromPagesCids({ communityAddress: SUB_ADDRESS, crawlTimestamp: T2 });
             expect(disappeared).toEqual(["QmPost"]);
         });
     });

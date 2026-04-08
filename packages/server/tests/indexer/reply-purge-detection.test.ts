@@ -19,7 +19,7 @@ function setup() {
     const db = new Database(":memory:");
     db.exec(SCHEMA_SQL);
     const queries = new IndexerQueries(db);
-    queries.upsertIndexedSubplebbit({ address: SUB_ADDRESS, discoveredVia: "manual" });
+    queries.upsertIndexedCommunity({ address: SUB_ADDRESS, discoveredVia: "manual" });
     return { db, queries };
 }
 
@@ -29,21 +29,21 @@ function seedComment(
         cid,
         parentCid = null,
         authorPublicKey = AUTHOR_PK,
-        subplebbitAddress = SUB_ADDRESS
+        communityAddress = SUB_ADDRESS
     }: {
         cid: string;
         parentCid?: string | null;
         authorPublicKey?: string;
-        subplebbitAddress?: string;
+        communityAddress?: string;
     }
 ) {
     const nowMs = Date.now() - 60_000;
     db.prepare(
-        `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, parentCid, timestamp, fetchedAt, protocolVersion)
+        `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, parentCid, timestamp, fetchedAt, protocolVersion)
          VALUES (?, ?, ?, ?, ?, ?, ?, '1')`
     ).run(
         cid,
-        subplebbitAddress,
+        communityAddress,
         JSON.stringify({ address: "addr" }),
         JSON.stringify({ publicKey: authorPublicKey, signature: "sig", type: "ed25519" }),
         parentCid,

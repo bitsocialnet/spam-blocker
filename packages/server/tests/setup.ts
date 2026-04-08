@@ -1,9 +1,12 @@
 import { afterEach, beforeEach, vi } from "vitest";
-import { resetPlebbitLoaderForTest, setPlebbitLoaderForTest } from "../src/subplebbit-resolver.js";
+import {
+    resetPkcLoaderForTest as resetCommunityLoaderForTest,
+    setPkcLoaderForTest as setCommunityLoaderForTest
+} from "../src/community-resolver.js";
 
-const createDefaultPlebbitStub = () => ({
+const createDefaultCommunityStub = () => ({
     destroy: vi.fn().mockResolvedValue(undefined),
-    getSubplebbit: vi.fn(async ({ address }: { address: string }) => ({
+    getCommunity: vi.fn(async ({ address }: { address: string }) => ({
         address,
         signature: {
             publicKey: `stub-public-key:${address}`
@@ -12,9 +15,9 @@ const createDefaultPlebbitStub = () => ({
 });
 
 beforeEach(() => {
-    setPlebbitLoaderForTest(async () => createDefaultPlebbitStub());
+    setCommunityLoaderForTest(async () => createDefaultCommunityStub());
 });
 
 afterEach(() => {
-    resetPlebbitLoaderForTest();
+    resetCommunityLoaderForTest();
 });

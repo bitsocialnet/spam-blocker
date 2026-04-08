@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import type { GetChallengeArgs } from "@plebbit/plebbit-js/dist/node/subplebbit/types.js";
+import type { GetChallengeArgs } from "@pkcprotocol/pkc-js/dist/node/community/types.js";
 import ChallengeFileFactory from "../src/index.js";
 
 // Minimal valid signer for createRequestSignature
@@ -21,7 +21,7 @@ const makeArgs = (overrides?: Partial<GetChallengeArgs>): GetChallengeArgs =>
         challengeRequestMessage: {
             publication: { signature: { publicKey: "abc123" } }
         },
-        subplebbit: { address: "test.eth", signer: fakeSigner },
+        community: { address: "test.eth", signer: fakeSigner },
         ...overrides
     }) as unknown as GetChallengeArgs;
 

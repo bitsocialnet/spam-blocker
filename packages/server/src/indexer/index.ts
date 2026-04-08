@@ -4,8 +4,8 @@
  */
 
 import type { Database } from "better-sqlite3";
-import { getPlebbit, stopPlebbit, type PlebbitManagerOptions } from "./plebbit-manager.js";
-import { SubplebbitIndexer } from "./workers/subplebbit-indexer.js";
+import { getPkc, stopPkc, type PkcManagerOptions } from "./pkc-manager.js";
+import { CommunityIndexer } from "./community-indexer.js";
 import { PreviousCidCrawler } from "./workers/previous-cid-crawler.js";
 import { ModQueueTracker } from "./workers/modqueue-tracker.js";
 import { IndexerQueries } from "./db/queries.js";
@@ -14,10 +14,10 @@ import type { IndexerConfig } from "./types.js";
 import { DEFAULT_INDEXER_CONFIG } from "./types.js";
 
 export * from "./types.js";
-export * from "./plebbit-manager.js";
+export * from "./pkc-manager.js";
 export * from "./page-queue.js";
 export { IndexerQueries } from "./db/queries.js";
-export { SubplebbitIndexer } from "./workers/subplebbit-indexer.js";
+export { CommunityIndexer } from "./community-indexer.js";
 export { PreviousCidCrawler } from "./workers/previous-cid-crawler.js";
 export { ModQueueTracker } from "./workers/modqueue-tracker.js";
 
@@ -26,7 +26,7 @@ export { ModQueueTracker } from "./workers/modqueue-tracker.js";
  */
 export interface IndexerState {
     isRunning: boolean;
-    subscribedSubplebbits: number;
+    subscribedCommunities: number;
     pendingCrawls: number;
     activeCrawls: number;
 }
@@ -37,9 +37,9 @@ export interface IndexerState {
 export class Indexer {
     private db: Database;
     private config: IndexerConfig;
-    private plebbitOptions?: PlebbitManagerOptions;
+    private pkcOptions?: PkcManagerOptions;
 
-    private subplebbitIndexer: SubplebbitIndexer | null = null;
+    private communityIndexer: CommunityIndexer | null = null;
     private previousCidCrawler: PreviousCidCrawler | null = null;
     private modQueueTracker: ModQueueTracker | null = null;
 
@@ -49,12 +49,12 @@ export class Indexer {
         db: Database,
         options: {
             config?: Partial<IndexerConfig>;
-            plebbitOptions?: PlebbitManagerOptions;
+            pkcOptions?: PkcManagerOptions;
         } = {}
     ) {
         this.db = db;
         this.config = { ...DEFAULT_INDEXER_CONFIG, ...options.config };
-        this.plebbitOptions = options.plebbitOptions;
+        this.pkcOptions = options.pkcOptions;
     }
 
     /**
@@ -69,37 +69,37 @@ export class Indexer {
         console.log("[Indexer] Starting...");
 
         try {
-            // Get shared Plebbit instance
-            const plebbit = await getPlebbit(this.plebbitOptions);
+            // Get shared PKC instance
+            const pkc = await getPkc(this.pkcOptions);
 
             // Initialize previous CID crawler (only if enabled)
             if (this.config.enablePreviousCidCrawler) {
-                this.previousCidCrawler = new PreviousCidCrawler(plebbit, this.db, {
+                this.previousCidCrawler = new PreviousCidCrawler(pkc, this.db, {
                     crawlTimeout: this.config.previousCidCrawlTimeout,
                     maxDepth: this.config.maxPreviousCidDepth,
-                    onNewSubplebbit: (address) => {
-                        // Subscribe to newly discovered subplebbit
-                        this.subplebbitIndexer?.addSubplebbit(address, "previous_comment_cid");
+                    onNewCommunity: (address) => {
+                        // Subscribe to newly discovered community
+                        this.communityIndexer?.addCommunity(address, "previous_comment_cid");
                     }
                 });
             }
 
             // Initialize modQueue tracker
-            this.modQueueTracker = new ModQueueTracker(plebbit, this.db);
+            this.modQueueTracker = new ModQueueTracker(pkc, this.db);
 
-            // Initialize subplebbit indexer
-            this.subplebbitIndexer = new SubplebbitIndexer(plebbit, this.db, {
+            // Initialize community indexer
+            this.communityIndexer = new CommunityIndexer(pkc, this.db, {
                 onNewPreviousCid: this.config.enablePreviousCidCrawler
                     ? (previousCid) => {
                           this.previousCidCrawler?.queueCrawl(previousCid);
                       }
                     : undefined,
-                onSubplebbitUpdate: (subplebbit) => this.modQueueTracker?.processModQueue(subplebbit) ?? Promise.resolve()
+                onCommunityUpdate: (community) => this.modQueueTracker?.processModQueue(community) ?? Promise.resolve()
             });
 
             // Start workers
             this.previousCidCrawler?.start();
-            await this.subplebbitIndexer.start();
+            await this.communityIndexer.start();
 
             this.isRunning = true;
             console.log("[Indexer] Started successfully");
@@ -122,35 +122,35 @@ export class Indexer {
 
         // Stop workers
         this.previousCidCrawler?.stop();
-        await this.subplebbitIndexer?.stop();
+        await this.communityIndexer?.stop();
 
         // Clean up
         this.previousCidCrawler = null;
-        this.subplebbitIndexer = null;
+        this.communityIndexer = null;
         this.modQueueTracker = null;
 
         // Reset page queue
         resetPageQueue();
 
-        // Stop Plebbit instance
-        await stopPlebbit();
+        // Stop PKC instance
+        await stopPkc();
 
         this.isRunning = false;
         console.log("[Indexer] Stopped");
     }
 
     /**
-     * Add a subplebbit for indexing.
+     * Add a community for indexing.
      */
-    async addSubplebbit(address: string, discoveredVia: "evaluate_api" | "previous_comment_cid" | "manual"): Promise<void> {
+    async addCommunity(address: string, discoveredVia: "evaluate_api" | "previous_comment_cid" | "manual"): Promise<void> {
         const queries = new IndexerQueries(this.db);
 
         // Insert into DB
-        queries.upsertIndexedSubplebbit({ address, discoveredVia });
+        queries.upsertIndexedCommunity({ address, discoveredVia });
 
         // Subscribe if running
-        if (this.isRunning && this.subplebbitIndexer) {
-            await this.subplebbitIndexer.subscribeToSubplebbit(address);
+        if (this.isRunning && this.communityIndexer) {
+            await this.communityIndexer.subscribeToCommunity(address);
         }
     }
 
@@ -160,7 +160,7 @@ export class Indexer {
     getState(): IndexerState {
         return {
             isRunning: this.isRunning,
-            subscribedSubplebbits: this.subplebbitIndexer?.subscriptionCount ?? 0,
+            subscribedCommunities: this.communityIndexer?.subscriptionCount ?? 0,
             pendingCrawls: this.previousCidCrawler?.queueSize ?? 0,
             activeCrawls: this.previousCidCrawler?.activeCrawls ?? 0
         };
@@ -203,7 +203,7 @@ export function getIndexer(
     db: Database,
     options?: {
         config?: Partial<IndexerConfig>;
-        plebbitOptions?: PlebbitManagerOptions;
+        pkcOptions?: PkcManagerOptions;
     }
 ): Indexer {
     if (!indexerInstance) {
@@ -219,7 +219,7 @@ export async function startIndexer(
     db: Database,
     options?: {
         config?: Partial<IndexerConfig>;
-        plebbitOptions?: PlebbitManagerOptions;
+        pkcOptions?: PkcManagerOptions;
     }
 ): Promise<Indexer> {
     const indexer = getIndexer(db, options);

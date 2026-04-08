@@ -4,7 +4,7 @@ import { calculateRiskScore } from "../../src/risk-score/index.js";
 import { SpamDetectionDatabase } from "../../src/db/index.js";
 import { CombinedDataService } from "../../src/risk-score/combined-data-service.js";
 import type { RiskContext } from "../../src/risk-score/types.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 
 const baseTimestamp = Math.floor(Date.now() / 1000);
 
@@ -23,20 +23,20 @@ function createMockAuthor(address: string = "12D3KooWTestAddress") {
     };
 }
 
-function createMockChallengeRequest(authorPublicKey: string = "pk1"): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+function createMockChallengeRequest(authorPublicKey: string = "pk1"): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     return {
         challengeRequestId: { bytes: new Uint8Array() },
         acceptedChallengeTypes: ["turnstile"],
         encrypted: {} as never,
         comment: {
             author: createMockAuthor(),
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: createMockSignature(authorPublicKey),
             content: "Test content"
         }
-    } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 describe("calculateSocialVerification", () => {
@@ -72,7 +72,7 @@ describe("calculateSocialVerification", () => {
 
         db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "subpk",
+            communityPublicKey: "subpk",
             expiresAt: Date.now() + 3600000
         });
 
@@ -84,7 +84,7 @@ describe("calculateSocialVerification", () => {
             sessionId,
             publication: {
                 author: createMockAuthor(),
-                subplebbitAddress: "test-sub.eth",
+                communityAddress: "test-sub.eth",
                 timestamp: baseTimestamp,
                 protocolVersion: "1",
                 signature: createMockSignature(authorPublicKey),
@@ -307,7 +307,7 @@ describe("calculateSocialVerification", () => {
 
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey: "subpk",
+                communityPublicKey: "subpk",
                 expiresAt: Date.now() + 3600000
             });
 
@@ -321,7 +321,7 @@ describe("calculateSocialVerification", () => {
                 sessionId,
                 publication: {
                     author: createMockAuthor(),
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     signature: createMockSignature(authorPublicKey),
@@ -544,7 +544,7 @@ describe("calculateSocialVerification", () => {
             const sessionId = "age-session";
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey: "subpk",
+                communityPublicKey: "subpk",
                 expiresAt: Date.now() + 3600000
             });
             db.updateChallengeSessionStatus(sessionId, "completed", Date.now(), "github:age123");
@@ -560,7 +560,7 @@ describe("calculateSocialVerification", () => {
             const sessionId = "no-age-session";
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey: "subpk",
+                communityPublicKey: "subpk",
                 expiresAt: Date.now() + 3600000
             });
             db.updateChallengeSessionStatus(sessionId, "completed", Date.now(), "google:noage");
@@ -577,13 +577,13 @@ describe("calculateSocialVerification", () => {
         it("getOAuthAccountCreatedAt returns most recent session data", () => {
             // First session
             const sessionId1 = "age-session-old";
-            db.insertChallengeSession({ sessionId: sessionId1, subplebbitPublicKey: "subpk", expiresAt: Date.now() + 3600000 });
+            db.insertChallengeSession({ sessionId: sessionId1, communityPublicKey: "subpk", expiresAt: Date.now() + 3600000 });
             db.updateChallengeSessionStatus(sessionId1, "completed", Date.now() - 1000, "github:multi");
             db.updateChallengeSessionOAuthAccountCreatedAt(sessionId1, 1609459200);
 
             // Second session (newer)
             const sessionId2 = "age-session-new";
-            db.insertChallengeSession({ sessionId: sessionId2, subplebbitPublicKey: "subpk", expiresAt: Date.now() + 3600000 });
+            db.insertChallengeSession({ sessionId: sessionId2, communityPublicKey: "subpk", expiresAt: Date.now() + 3600000 });
             db.updateChallengeSessionStatus(sessionId2, "completed", Date.now(), "github:multi");
             db.updateChallengeSessionOAuthAccountCreatedAt(sessionId2, 1640995200); // 2022-01-01
 
@@ -621,7 +621,7 @@ describe("calculateSocialVerification", () => {
             const sessionId = "vote-session";
             db.insertChallengeSession({
                 sessionId,
-                subplebbitPublicKey: "subpk",
+                communityPublicKey: "subpk",
                 expiresAt: Date.now() + 3600000
             });
             db.updateChallengeSessionStatus(sessionId, "completed", Date.now(), "google:voter");
@@ -630,7 +630,7 @@ describe("calculateSocialVerification", () => {
                 sessionId,
                 publication: {
                     author: createMockAuthor(),
-                    subplebbitAddress: "test-sub.eth",
+                    communityAddress: "test-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     signature: createMockSignature("voter-pk"),
@@ -661,7 +661,7 @@ describe("calculateRiskScore integration — socialVerification factor", () => {
 
         db.insertChallengeSession({
             sessionId,
-            subplebbitPublicKey: "subpk",
+            communityPublicKey: "subpk",
             expiresAt: Date.now() + 3600000
         });
 
@@ -671,7 +671,7 @@ describe("calculateRiskScore integration — socialVerification factor", () => {
             sessionId,
             publication: {
                 author: { address: "12D3KooWTestAddress" },
-                subplebbitAddress: "test-sub.eth",
+                communityAddress: "test-sub.eth",
                 timestamp: baseTimestamp,
                 protocolVersion: "1",
                 signature: { type: "ed25519", signature: "sig", publicKey: authorPublicKey, signedPropertyNames: ["author"] },

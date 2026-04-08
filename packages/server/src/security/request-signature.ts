@@ -1,5 +1,5 @@
 import * as cborg from "cborg";
-import { verifyBufferEd25519 } from "../plebbit-js-signer.js";
+import { verifyBufferEd25519 } from "../pkc-js-signer.js";
 
 export interface CborRequestSignature {
     signature: Uint8Array;

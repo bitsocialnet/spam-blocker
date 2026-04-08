@@ -37,10 +37,10 @@
         }
     },
     "dependencies": {
-        "@plebbit/plebbit-js": "https://github.com/plebbit/plebbit-js#10ed04e3866dd986a7f802bc9efd027f0e7d465b"
+        "@pkcprotocol/pkc-js": "https://github.com/pkcprotocol/pkc-js.git#e63026e6cd33df5af3a3b5e6473b1e364d89fbdb"
     },
     "overrides": {
-        "@plebbit/plebbit-js": "$@plebbit/plebbit-js",
+        "@pkcprotocol/pkc-js": "$@pkcprotocol/pkc-js",
         "@mintpass/challenge": "npm:empty-npm-package@1.0.0",
         "skia-canvas": "npm:empty-npm-package@1.0.0"
     }

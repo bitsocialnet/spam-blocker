@@ -1,10 +1,10 @@
 import "fastify";
-import type Plebbit from "@plebbit/plebbit-js";
+import type PKC from "@pkcprotocol/pkc-js";
 
-type PlebbitInstance = Awaited<ReturnType<typeof Plebbit>>;
+type PkcInstance = Awaited<ReturnType<typeof PKC>>;
 
 declare module "fastify" {
     interface FastifyInstance {
-        getPlebbitInstance: () => Promise<PlebbitInstance>;
+        getPkcInstance: () => Promise<PkcInstance>;
     }
 }

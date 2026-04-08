@@ -3,7 +3,7 @@ import { calculateKarma } from "../../src/risk-score/factors/karma.js";
 import { SpamDetectionDatabase } from "../../src/db/index.js";
 import { CombinedDataService } from "../../src/risk-score/combined-data-service.js";
 import type { RiskContext } from "../../src/risk-score/types.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 
 const baseTimestamp = Math.floor(Date.now() / 1000);
 const baseSignature = {
@@ -16,7 +16,7 @@ const baseSignature = {
 function createMockAuthor(postScore: number, replyScore: number) {
     return {
         address: "12D3KooWTestAddress",
-        subplebbit: {
+        community: {
             postScore,
             replyScore,
             firstCommentTimestamp: baseTimestamp - 86400,
@@ -27,34 +27,34 @@ function createMockAuthor(postScore: number, replyScore: number) {
 
 function createMockChallengeRequest(
     author: ReturnType<typeof createMockAuthor>,
-    subplebbitAddress = "current-sub.eth"
-): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+    communityAddress = "current-sub.eth"
+): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     return {
         challengeRequestId: { bytes: new Uint8Array() },
         acceptedChallengeTypes: ["turnstile"],
         encrypted: {} as never,
         comment: {
             author,
-            subplebbitAddress,
+            communityAddress,
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: baseSignature,
             content: "Test content"
         }
-    } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 function addKarmaFromSub(
     db: SpamDetectionDatabase,
-    subplebbitAddress: string,
+    communityAddress: string,
     postScore: number,
     replyScore: number,
     authorAddress = "12D3KooWTestAddress"
 ) {
-    const sessionId = `session-${subplebbitAddress}-${Date.now()}-${Math.random()}`;
+    const sessionId = `session-${communityAddress}-${Date.now()}-${Math.random()}`;
     db.insertChallengeSession({
         sessionId,
-        subplebbitPublicKey: "pk",
+        communityPublicKey: "pk",
         expiresAt: baseTimestamp + 3600
     });
     db.insertComment({
@@ -62,9 +62,9 @@ function addKarmaFromSub(
         publication: {
             author: {
                 address: authorAddress,
-                subplebbit: { postScore, replyScore }
+                community: { postScore, replyScore }
             },
-            subplebbitAddress,
+            communityAddress,
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: baseSignature,
@@ -462,18 +462,18 @@ describe("calculateKarma (count-based)", () => {
     });
 
     describe("database methods", () => {
-        it("getAuthorKarmaBySubplebbit should return empty map for unknown author", () => {
-            const karmaMap = db.getAuthorKarmaBySubplebbit("unknown-address");
+        it("getAuthorKarmaByCommunity should return empty map for unknown author", () => {
+            const karmaMap = db.getAuthorKarmaByCommunity("unknown-address");
             expect(karmaMap.size).toBe(0);
         });
 
-        it("getAuthorKarmaBySubplebbit should aggregate from votes", () => {
+        it("getAuthorKarmaByCommunity should aggregate from votes", () => {
             const authorPublicKey = "vote-author-pk";
             const signature = { ...baseSignature, publicKey: authorPublicKey };
 
             db.insertChallengeSession({
                 sessionId: "vote-1",
-                subplebbitPublicKey: "pk",
+                communityPublicKey: "pk",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertVote({
@@ -481,9 +481,9 @@ describe("calculateKarma (count-based)", () => {
                 publication: {
                     author: {
                         address: "test-author",
-                        subplebbit: { postScore: 25, replyScore: 15 }
+                        community: { postScore: 25, replyScore: 15 }
                     },
-                    subplebbitAddress: "vote-sub.eth",
+                    communityAddress: "vote-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     signature,
@@ -492,7 +492,7 @@ describe("calculateKarma (count-based)", () => {
                 }
             });
 
-            const karmaMap = db.getAuthorKarmaBySubplebbit(authorPublicKey);
+            const karmaMap = db.getAuthorKarmaByCommunity(authorPublicKey);
 
             expect(karmaMap.size).toBe(1);
             expect(karmaMap.get("vote-sub.eth")).toEqual({
@@ -502,14 +502,14 @@ describe("calculateKarma (count-based)", () => {
             });
         });
 
-        it("getAuthorKarmaBySubplebbit should use latest record per sub", () => {
+        it("getAuthorKarmaByCommunity should use latest record per sub", () => {
             const authorPublicKey = "same-author-pk";
             const signature = { ...baseSignature, publicKey: authorPublicKey };
 
             // Old record
             db.insertChallengeSession({
                 sessionId: "old-record",
-                subplebbitPublicKey: "pk",
+                communityPublicKey: "pk",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
@@ -517,9 +517,9 @@ describe("calculateKarma (count-based)", () => {
                 publication: {
                     author: {
                         address: "test-author",
-                        subplebbit: { postScore: 10, replyScore: 5 }
+                        community: { postScore: 10, replyScore: 5 }
                     },
-                    subplebbitAddress: "same-sub.eth",
+                    communityAddress: "same-sub.eth",
                     timestamp: baseTimestamp - 1000,
                     protocolVersion: "1",
                     signature,
@@ -533,7 +533,7 @@ describe("calculateKarma (count-based)", () => {
             // New record with different karma
             db.insertChallengeSession({
                 sessionId: "new-record",
-                subplebbitPublicKey: "pk",
+                communityPublicKey: "pk",
                 expiresAt: baseTimestamp + 3600
             });
             db.insertComment({
@@ -541,9 +541,9 @@ describe("calculateKarma (count-based)", () => {
                 publication: {
                     author: {
                         address: "test-author",
-                        subplebbit: { postScore: 100, replyScore: 50 }
+                        community: { postScore: 100, replyScore: 50 }
                     },
-                    subplebbitAddress: "same-sub.eth",
+                    communityAddress: "same-sub.eth",
                     timestamp: baseTimestamp,
                     protocolVersion: "1",
                     signature,
@@ -551,7 +551,7 @@ describe("calculateKarma (count-based)", () => {
                 }
             });
 
-            const karmaMap = db.getAuthorKarmaBySubplebbit(authorPublicKey);
+            const karmaMap = db.getAuthorKarmaByCommunity(authorPublicKey);
 
             expect(karmaMap.size).toBe(1);
             expect(karmaMap.get("same-sub.eth")).toEqual({
@@ -563,7 +563,7 @@ describe("calculateKarma (count-based)", () => {
     });
 
     describe("domain-only filtering", () => {
-        it("should ignore karma from IPNS-addressed subplebbits", () => {
+        it("should ignore karma from IPNS-addressed communities", () => {
             const author = createMockAuthor(10, 5); // +15 in current domain sub
             const challengeRequest = createMockChallengeRequest(author, "current-sub.eth");
 
@@ -588,7 +588,7 @@ describe("calculateKarma (count-based)", () => {
             expect(result.explanation).toContain("0 subs negative");
         });
 
-        it("should count karma only from domain-addressed subplebbits", () => {
+        it("should count karma only from domain-addressed communities", () => {
             const author = createMockAuthor(10, 5); // +15 in current domain sub
             const challengeRequest = createMockChallengeRequest(author, "current-sub.eth");
 
@@ -612,7 +612,7 @@ describe("calculateKarma (count-based)", () => {
             expect(result.explanation).toContain("4 subs positive");
         });
 
-        it("should handle mixed domain and IPNS subplebbits", () => {
+        it("should handle mixed domain and IPNS communities", () => {
             const author = createMockAuthor(10, 5); // +15 in current domain sub
             const challengeRequest = createMockChallengeRequest(author, "current-sub.eth");
 
@@ -662,7 +662,7 @@ describe("calculateKarma (count-based)", () => {
             expect(result.explanation).toContain("1 sub positive");
         });
 
-        it("should return NEUTRAL when all karma is from IPNS subplebbits", () => {
+        it("should return NEUTRAL when all karma is from IPNS communities", () => {
             const author = createMockAuthor(0, 0); // Zero in current sub
             const challengeRequest = createMockChallengeRequest(author, "current-sub.eth");
 

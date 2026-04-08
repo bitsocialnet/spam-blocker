@@ -23,8 +23,8 @@ export interface RouteOptions {
     oauthProvidersResult?: OAuthProvidersResult;
     /** Challenge tier configuration thresholds */
     challengeTierConfig?: Partial<ChallengeTierConfig>;
-    /** Allow non-domain (IPNS) subplebbits. Default: false */
-    allowNonDomainSubplebbits?: boolean;
+    /** Allow non-domain (IPNS) communities. Default: false */
+    allowNonDomainCommunities?: boolean;
     /** Rate limit configuration. Undefined = feature disabled. Pass {} to enable with defaults. */
     rateLimitConfig?: RateLimitConfig;
     /** Multiplier applied to riskScore after CAPTCHA (0-1]. Default: 0.7 */
@@ -52,7 +52,7 @@ export function registerRoutes(fastify: FastifyInstance, options: RouteOptions):
         indexer,
         oauthProvidersResult,
         challengeTierConfig,
-        allowNonDomainSubplebbits,
+        allowNonDomainCommunities,
         rateLimitConfig,
         captchaScoreMultiplier,
         oauthScoreMultiplier,
@@ -74,7 +74,7 @@ export function registerRoutes(fastify: FastifyInstance, options: RouteOptions):
         challengeTierConfig,
         enabledOAuthProviders,
         hasTurnstile,
-        allowNonDomainSubplebbits,
+        allowNonDomainCommunities,
         rateLimitConfig,
         disabledRiskFactors
     });

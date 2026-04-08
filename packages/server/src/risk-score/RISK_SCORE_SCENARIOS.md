@@ -97,7 +97,7 @@ A completely new user making their first post with no history.
 
 ```
 title: "First time posting here!"
-content: "Hey everyone, just discovered plebbit and wanted to introduce myself..."
+content: "Hey everyone, just discovered pkc and wanted to introduce myself..."
 ```
 
 **Author Profile:**
@@ -182,8 +182,8 @@ A well-established user with 90+ days history, positive karma, Google verificati
 **Example Publication:**
 
 ```
-title: "Question about plebbit development"
-content: "Has anyone figured out how to run a subplebbit on a VPS? I've been here a while and still learning..."
+title: "Question about pkc development"
+content: "Has anyone figured out how to run a community on a VPS? I've been here a while and still learning..."
 ```
 
 **Author Profile:**
@@ -1394,7 +1394,7 @@ An ideal user with 365+ days history, +5 karma, dual OAuth, active wallet (500+ 
 **Example Publication:**
 
 ```
-title: "Comprehensive guide to running your own subplebbit"
+title: "Comprehensive guide to running your own community"
 content: "After over a year on the platform, I've compiled everything I've learned..."
 ```
 
@@ -1482,7 +1482,7 @@ A brand new user with no history but a verified wallet with 150 transactions.
 **Example Publication:**
 
 ```
-title: "Been using crypto for years, just found plebbit"
+title: "Been using crypto for years, just found pkc"
 content: "Excited to finally have a decentralized alternative to Reddit..."
 ```
 
@@ -1569,7 +1569,7 @@ A new user with a wallet that has very few transactions (5 tx).
 **Example Publication:**
 
 ```
-title: "Just getting started with crypto and plebbit"
+title: "Just getting started with crypto and pkc"
 content: "New to both but excited to learn..."
 ```
 
@@ -1656,8 +1656,8 @@ Same profile as Established Trusted User (90+ days, +5 karma, Google verified, 2
 **Example Publication:**
 
 ```
-title: "Question about plebbit development"
-content: "Has anyone figured out how to run a subplebbit on a VPS? I've been here a while and still learning..."
+title: "Question about pkc development"
+content: "Has anyone figured out how to run a community on a VPS? I've been here a while and still learning..."
 ```
 
 **Author Profile:**

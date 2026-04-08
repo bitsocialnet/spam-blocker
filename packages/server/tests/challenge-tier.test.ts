@@ -3,8 +3,8 @@ import { createServer, type SpamDetectionServer } from "../src/index.js";
 import * as cborg from "cborg";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-import { signBufferEd25519, getPublicKeyFromPrivateKey, getPlebbitAddressFromPublicKey } from "../src/plebbit-js-signer.js";
-import { resetPlebbitLoaderForTest, setPlebbitLoaderForTest } from "../src/subplebbit-resolver.js";
+import { signBufferEd25519, getPublicKeyFromPrivateKey, getPKCAddressFromPublicKey } from "../src/pkc-js-signer.js";
+import { resetPkcLoaderForTest, setPkcLoaderForTest } from "../src/community-resolver.js";
 import { determineChallengeTier, validateChallengeTierConfig, DEFAULT_CHALLENGE_TIER_CONFIG } from "../src/risk-score/challenge-tier.js";
 
 // Cloudflare Turnstile test keys
@@ -17,7 +17,7 @@ const baseTimestamp = Math.floor(Date.now() / 1000);
 const CommentSignedPropertyNames = [
     "timestamp",
     "flair",
-    "subplebbitAddress",
+    "communityAddress",
     "author",
     "protocolVersion",
     "content",
@@ -32,7 +32,7 @@ const CommentSignedPropertyNames = [
     "postCid"
 ];
 
-const baseSubplebbitAuthor = {
+const baseCommunityAuthor = {
     postScore: 0,
     replyScore: 0,
     firstCommentTimestamp: baseTimestamp - 86400,
@@ -45,7 +45,7 @@ const authorPrivateKey = Buffer.alloc(32, 9).toString("base64");
 
 let testPublicKey = "";
 let authorPublicKey = "";
-let authorPlebbitAddress = "";
+let authorPKCAddress = "";
 
 let testSigner = {
     privateKey: testPrivateKey,
@@ -111,23 +111,23 @@ const injectCbor = async (fastify: SpamDetectionServer["fastify"], method: "POST
 const createEvaluatePayload = async ({
     commentOverrides = {},
     authorOverrides = {},
-    subplebbitOverrides = {},
-    omitSubplebbitAuthor = false
+    communityOverrides = {},
+    omitCommunityAuthor = false
 }: {
     commentOverrides?: Record<string, unknown>;
     authorOverrides?: Record<string, unknown>;
-    subplebbitOverrides?: Record<string, unknown>;
-    omitSubplebbitAuthor?: boolean;
+    communityOverrides?: Record<string, unknown>;
+    omitCommunityAuthor?: boolean;
 } = {}) => {
-    // Build author WITHOUT subplebbit for signing (matches production flow)
+    // Build author WITHOUT community for signing (matches production flow)
     const authorForSigning: Record<string, unknown> = {
-        address: authorPlebbitAddress,
+        address: authorPKCAddress,
         ...authorOverrides
     };
 
     const commentWithoutSignature: Record<string, unknown> = {
         author: authorForSigning,
-        subplebbitAddress: "test-sub.eth",
+        communityAddress: "test-sub.eth",
         timestamp: baseTimestamp,
         protocolVersion: "1",
         content: "Hello world",
@@ -136,13 +136,13 @@ const createEvaluatePayload = async ({
 
     const publicationSignature = await signPublication(commentWithoutSignature, authorSigner, CommentSignedPropertyNames);
 
-    // After signing, add author.subplebbit (matches production flow where
-    // the subplebbit adds this field after the author signs)
+    // After signing, add author.community (matches production flow where
+    // the community adds this field after the author signs)
     let finalAuthor: Record<string, unknown> = { ...authorForSigning };
-    if (!omitSubplebbitAuthor) {
-        finalAuthor.subplebbit = {
-            ...baseSubplebbitAuthor,
-            ...subplebbitOverrides
+    if (!omitCommunityAuthor) {
+        finalAuthor.community = {
+            ...baseCommunityAuthor,
+            ...communityOverrides
         };
     }
 
@@ -309,13 +309,13 @@ describe("Challenge Tier Integration", () => {
     beforeEach(async () => {
         testPublicKey = await getPublicKeyFromPrivateKey(testPrivateKey);
         authorPublicKey = await getPublicKeyFromPrivateKey(authorPrivateKey);
-        authorPlebbitAddress = await getPlebbitAddressFromPublicKey(authorPublicKey);
+        authorPKCAddress = await getPKCAddressFromPublicKey(authorPublicKey);
         testSigner = { privateKey: testPrivateKey, publicKey: testPublicKey, type: "ed25519" };
         authorSigner = { privateKey: authorPrivateKey, publicKey: authorPublicKey, type: "ed25519" };
 
-        const getSubplebbit = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit,
+        const getCommunity = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
+        setPkcLoaderForTest(async () => ({
+            getCommunity,
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
     });
@@ -324,7 +324,7 @@ describe("Challenge Tier Integration", () => {
         if (server) {
             await server.stop();
         }
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     describe("Session creation with challenge tier and riskScore", () => {
@@ -404,7 +404,7 @@ describe("Challenge Tier Integration", () => {
             await server.fastify.ready();
 
             const payload = await createEvaluatePayload({
-                omitSubplebbitAuthor: true
+                omitCommunityAuthor: true
             });
             const evalResponse = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
             const { sessionId, riskScore } = evalResponse.json();
@@ -633,7 +633,7 @@ describe("Challenge Tier Integration", () => {
             // Test with oauth_sufficient tier
             const captchaSession = server.db.insertChallengeSession({
                 sessionId: "captcha-only-pending",
-                subplebbitPublicKey: testSigner.publicKey,
+                communityPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
                 challengeTier: "oauth_sufficient",
                 riskScore: 0.3
@@ -653,7 +653,7 @@ describe("Challenge Tier Integration", () => {
             // Test with oauth_plus_more tier
             const combinedSession = server.db.insertChallengeSession({
                 sessionId: "combined-pending",
-                subplebbitPublicKey: testSigner.publicKey,
+                communityPublicKey: testSigner.publicKey,
                 expiresAt: Date.now() + 600_000,
                 challengeTier: "oauth_plus_more",
                 riskScore: 0.6
@@ -678,13 +678,13 @@ describe("Database OAuth Provider Methods", () => {
     beforeEach(async () => {
         testPublicKey = await getPublicKeyFromPrivateKey(testPrivateKey);
         authorPublicKey = await getPublicKeyFromPrivateKey(authorPrivateKey);
-        authorPlebbitAddress = await getPlebbitAddressFromPublicKey(authorPublicKey);
+        authorPKCAddress = await getPKCAddressFromPublicKey(authorPublicKey);
         testSigner = { privateKey: testPrivateKey, publicKey: testPublicKey, type: "ed25519" };
         authorSigner = { privateKey: authorPrivateKey, publicKey: authorPublicKey, type: "ed25519" };
 
-        const getSubplebbit = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
-        setPlebbitLoaderForTest(async () => ({
-            getSubplebbit,
+        const getCommunity = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
+        setPkcLoaderForTest(async () => ({
+            getCommunity,
             destroy: vi.fn().mockResolvedValue(undefined)
         }));
 
@@ -703,7 +703,7 @@ describe("Database OAuth Provider Methods", () => {
         if (server) {
             await server.stop();
         }
-        resetPlebbitLoaderForTest();
+        resetPkcLoaderForTest();
     });
 
     it("should extract provider names from OAuth identities", async () => {

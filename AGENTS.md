@@ -23,22 +23,22 @@ Spam blocker for the Bitsocial protocol. The server handles risk scoring, challe
 
 ## Task Router
 
-| Situation                                  | Action                                                                                                                   |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| DB schema column added or modified         | Remind the user to delete the existing DB file                                                                           |
-| Risk score logic changed                   | Update `packages/server/src/risk-score/RISK_SCORING.md` and run `cd packages/server && corepack yarn generate-scenarios` |
-| Risk factor changed                        | Check whether the scenario generator also needs to change                                                                |
-| Bug reported                               | Reproduce with a test first, then fix                                                                                    |
-| `package.json` changed                     | Run `corepack yarn install` to keep `yarn.lock` in sync                                                                  |
-| Code changed                               | Run `corepack yarn build` for all packages                                                                               |
-| New feature added                          | Add vitest coverage                                                                                                      |
-| Shared schema changed                      | Keep it in `packages/shared`                                                                                             |
-| README drifts from implementation          | Update `README.md`                                                                                                       |
-| Hidden AI workflow files change            | Keep the repo-managed AI workflow surfaces aligned                                                                       |
-| Iframe or OAuth browser behavior changed   | Verify the affected local route with `playwright-cli` against the running server                                         |
-| Long-running or multi-session task started | Track state under `docs/agent-runs/<slug>/` using the long-running workflow playbook                                     |
-| GitHub operation needed                    | Use `gh` CLI, not GitHub MCP                                                                                             |
-| User-facing UI text                        | Use `Bitsocial` instead of `plebbit`, `community` instead of `subplebbit`                                                |
+| Situation                                  | Action                                                                                                                     |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| DB schema column added or modified         | Remind the user to delete the existing DB file                                                                             |
+| Risk score logic changed                   | Update `packages/server/src/risk-score/RISK_SCORING.md` and run `cd packages/server && corepack yarn generate-scenarios`   |
+| Risk factor changed                        | Check whether the scenario generator also needs to change                                                                  |
+| Bug reported                               | Reproduce with a test first, then fix                                                                                      |
+| `package.json` changed                     | Run `corepack yarn install` to keep `yarn.lock` in sync                                                                    |
+| Code changed                               | Run `corepack yarn build` for all packages                                                                                 |
+| New feature added                          | Add vitest coverage                                                                                                        |
+| Shared schema changed                      | Keep it in `packages/shared`                                                                                               |
+| README drifts from implementation          | Update `README.md`                                                                                                         |
+| Hidden AI workflow files change            | Keep the repo-managed AI workflow surfaces aligned                                                                         |
+| Iframe or OAuth browser behavior changed   | Verify the affected local route with `playwright-cli` against the running server                                           |
+| Long-running or multi-session task started | Track state under `docs/agent-runs/<slug>/` using the long-running workflow playbook                                       |
+| GitHub operation needed                    | Use `gh` CLI, not GitHub MCP                                                                                               |
+| User-facing UI text                        | Use `Bitsocial` for product/network text, `community` instead of `community`, and `PKC` / `pkc-js` for protocol-core names |
 
 ## Stack
 
@@ -71,7 +71,7 @@ packages/
 
 - Function parameters should use a single object shape: `{param1, param2}`.
 - Everything should be properly typed. If you cannot type something, ask the user for help.
-- In user-facing UI text, use `Bitsocial` instead of `plebbit` and `community` instead of `subplebbit`.
+- In user-facing UI text, use `Bitsocial` for product/network text, `community` instead of `community`, and `PKC` / `pkc-js` for protocol-core names.
 
 ### Testing
 
@@ -86,8 +86,8 @@ packages/
 
 ### Dependencies & Types
 
-- Do not duplicate `plebbit-js` schemas or types. Import them from `@plebbit/plebbit-js`.
-- `subplebbit.address` can be a domain. Resolve it with `plebbit-js` to get the public key.
+- Do not duplicate `pkc-js` schemas or types. Import them from `@pkcprotocol/pkc-js`.
+- `community.address` can be a domain. Resolve it with `pkc-js` to get the public key.
 
 ### Shared Code
 
@@ -95,7 +95,7 @@ packages/
 
 ### Security & Trust
 
-- Author fields are user-provided and not trusted, except `author.subplebbit`, which is generated by the subplebbit and can be trusted.
+- Author fields are user-provided and not trusted, except `author.community`, which is generated by the community and can be trusted.
 - Authors can spam with different signers; the protocol is pseudonymous.
 
 ## SHOULD Rules

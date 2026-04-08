@@ -71,7 +71,7 @@ export function registerVerifyRoute(fastify: FastifyInstance, options: VerifyRou
                 };
             }
 
-            if (!session.subplebbitPublicKey) {
+            if (!session.communityPublicKey) {
                 reply.status(401);
                 return {
                     success: false,
@@ -81,7 +81,7 @@ export function registerVerifyRoute(fastify: FastifyInstance, options: VerifyRou
 
             // Convert Uint8Array publicKey to base64 string for comparison with session
             const requestPublicKey = uint8ArrayToString(signature.publicKey, "base64");
-            if (session.subplebbitPublicKey !== requestPublicKey) {
+            if (session.communityPublicKey !== requestPublicKey) {
                 reply.status(401);
                 return {
                     success: false,

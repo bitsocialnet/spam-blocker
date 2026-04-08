@@ -5,10 +5,10 @@ import * as ed from "@noble/ed25519";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 const require = createRequire(import.meta.url);
-const plebbitEntry = require.resolve("@plebbit/plebbit-js");
-const plebbitRoot = path.resolve(path.dirname(plebbitEntry), "..", "..");
+const pkcEntry = require.resolve("@pkcprotocol/pkc-js");
+const pkcRoot = path.resolve(path.dirname(pkcEntry), "..", "..");
 
-const signerUtilUrl = pathToFileURL(path.join(plebbitRoot, "dist/node/signer/util.js")).href;
+const signerUtilUrl = pathToFileURL(path.join(pkcRoot, "dist/node/signer/util.js")).href;
 
 const [{ getPublicKeyFromPrivateKey }] = await Promise.all([import(signerUtilUrl)]);
 

@@ -5,8 +5,8 @@ import {
     verifyAuthorAvatarSignature
 } from "../../src/security/author-field-signature.js";
 
-// Mock plebbit instance helper
-function createMockPlebbit(overrides: {
+// Mock PKC client helper.
+function createMockCommunityClient(overrides: {
     chainProviders?: Record<string, { urls: string[]; chainId?: number }>;
     resolveAuthorAddress?: (opts: { address: string }) => Promise<string>;
     verifyMessage?: (opts: { address: string; message: string; signature: string }) => Promise<boolean>;
@@ -36,7 +36,7 @@ function createMockPlebbit(overrides: {
 describe("verifyAuthorWalletSignature", () => {
     describe("with valid EVM address wallet", () => {
         it("should return valid for correct signature", async () => {
-            const mockPlebbit = createMockPlebbit({
+            const mockCommunityClient = createMockCommunityClient({
                 verifyMessage: vi.fn().mockResolvedValue(true)
             });
 
@@ -49,15 +49,15 @@ describe("verifyAuthorWalletSignature", () => {
                 chainTicker: "eth",
                 authorAddress: "12D3KooWTestAuthor",
                 publicationSignaturePublicKey: "testPublicKey",
-                plebbit: mockPlebbit
+                pkc: mockCommunityClient
             });
 
             expect(result.valid).toBe(true);
-            expect(mockPlebbit._domainResolver._createViemClientIfNeeded).toHaveBeenCalledWith("eth", "https://eth.example.com");
+            expect(mockCommunityClient._domainResolver._createViemClientIfNeeded).toHaveBeenCalledWith("eth", "https://eth.example.com");
         });
 
         it("should return invalid for incorrect signature", async () => {
-            const mockPlebbit = createMockPlebbit({
+            const mockCommunityClient = createMockCommunityClient({
                 verifyMessage: vi.fn().mockResolvedValue(false)
             });
 
@@ -70,7 +70,7 @@ describe("verifyAuthorWalletSignature", () => {
                 chainTicker: "eth",
                 authorAddress: "12D3KooWTestAuthor",
                 publicationSignaturePublicKey: "testPublicKey",
-                plebbit: mockPlebbit
+                pkc: mockCommunityClient
             });
 
             expect(result.valid).toBe(false);
@@ -79,7 +79,7 @@ describe("verifyAuthorWalletSignature", () => {
 
         it("should verify correct message format (property order matters)", async () => {
             const mockVerifyMessage = vi.fn().mockResolvedValue(true);
-            const mockPlebbit = createMockPlebbit({
+            const mockCommunityClient = createMockCommunityClient({
                 verifyMessage: mockVerifyMessage
             });
 
@@ -92,14 +92,15 @@ describe("verifyAuthorWalletSignature", () => {
                 chainTicker: "eth",
                 authorAddress: "12D3KooWTestAuthor",
                 publicationSignaturePublicKey: "testPublicKey",
-                plebbit: mockPlebbit
+                pkc: mockCommunityClient
             });
 
             // Verify the message was constructed with correct property order
             expect(mockVerifyMessage).toHaveBeenCalledWith({
                 address: "0x742d35Cc6634C0532925a3b844Bc9e7595f42d11",
                 message: JSON.stringify({
-                    domainSeparator: "plebbit-author-wallet",
+                    // Legacy protocol constant preserved until the source-side PKC rename lands.
+                    domainSeparator: "pkc-author-wallet",
                     authorAddress: "12D3KooWTestAuthor",
                     timestamp: 1234567890
                 }),
@@ -109,15 +110,15 @@ describe("verifyAuthorWalletSignature", () => {
     });
 
     describe("with domain wallet address (ENS)", () => {
-        // Note: These tests use a real ed25519 public key to avoid getPlebbitAddressFromPublicKey validation errors
-        // The public key "2LHRqj0Zs35CA0Gks70qWM1C0IY0HZYR0oUlGO/X4u4=" produces plebbit address starting with "12D3KooW..."
+        // Note: These tests use a real ed25519 public key to avoid address-derivation validation errors.
+        // The public key "2LHRqj0Zs35CA0Gks70qWM1C0IY0HZYR0oUlGO/X4u4=" produces a Bitsocial address starting with "12D3KooW..."
         const realPublicKeyBase64 = "2LHRqj0Zs35CA0Gks70qWM1C0IY0HZYR0oUlGO/X4u4=";
 
-        it("should verify via plebbit-author-address resolution for domain addresses", async () => {
-            // This test verifies that domain addresses trigger the plebbit-author-address resolution path
-            // and that the result is compared against the derived plebbit address from the public key
+        it("should verify via PKC author-address resolution for domain addresses", async () => {
+            // This test verifies that domain addresses trigger the author-address resolution path
+            // and that the result is compared against the derived PKC address from the public key
             const mockResolveAuthorAddress = vi.fn().mockResolvedValue("12D3KooWNvSZnPi3RrhrTwEY4LuuBeB6K6facKUCJcyWG1kChVkD");
-            const mockPlebbit = createMockPlebbit({
+            const mockCommunityClient = createMockCommunityClient({
                 resolveAuthorAddress: mockResolveAuthorAddress
             });
 
@@ -130,7 +131,7 @@ describe("verifyAuthorWalletSignature", () => {
                 chainTicker: "eth",
                 authorAddress: "12D3KooWTestAuthor",
                 publicationSignaturePublicKey: realPublicKeyBase64,
-                plebbit: mockPlebbit
+                pkc: mockCommunityClient
             });
 
             // The function should have called resolveAuthorAddress for the domain
@@ -139,8 +140,8 @@ describe("verifyAuthorWalletSignature", () => {
             // (though it may fail if the addresses don't match - that's fine for this test)
         });
 
-        it("should reject if plebbit-author-address does not match publication signer", async () => {
-            const mockPlebbit = createMockPlebbit({
+        it("should reject if the author-address TXT record does not match the publication signer", async () => {
+            const mockCommunityClient = createMockCommunityClient({
                 resolveAuthorAddress: vi.fn().mockResolvedValue("12D3KooWDifferentAddress")
             });
 
@@ -153,17 +154,17 @@ describe("verifyAuthorWalletSignature", () => {
                 chainTicker: "eth",
                 authorAddress: "12D3KooWTestAuthor",
                 publicationSignaturePublicKey: realPublicKeyBase64,
-                plebbit: mockPlebbit
+                pkc: mockCommunityClient
             });
 
             expect(result.valid).toBe(false);
-            expect((result as { valid: false; reason: string }).reason).toContain("plebbit-author-address");
+            expect((result as { valid: false; reason: string }).reason).toContain("pkc-author-address");
         });
     });
 
     describe("with missing chain provider", () => {
         it("should skip verification and return valid if chain provider not configured", async () => {
-            const mockPlebbit = createMockPlebbit({
+            const mockCommunityClient = createMockCommunityClient({
                 chainProviders: {} // No providers
             });
 
@@ -176,7 +177,7 @@ describe("verifyAuthorWalletSignature", () => {
                 chainTicker: "polygon", // Not configured
                 authorAddress: "12D3KooWTestAuthor",
                 publicationSignaturePublicKey: "testPublicKey",
-                plebbit: mockPlebbit
+                pkc: mockCommunityClient
             });
 
             expect(result.valid).toBe(true);
@@ -184,7 +185,7 @@ describe("verifyAuthorWalletSignature", () => {
 
         it("should log a warning when chain provider is missing", async () => {
             const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-            const mockPlebbit = createMockPlebbit({
+            const mockCommunityClient = createMockCommunityClient({
                 chainProviders: {} // No providers
             });
 
@@ -197,7 +198,7 @@ describe("verifyAuthorWalletSignature", () => {
                 chainTicker: "polygon",
                 authorAddress: "12D3KooWTestAuthor",
                 publicationSignaturePublicKey: "testPublicKey",
-                plebbit: mockPlebbit
+                pkc: mockCommunityClient
             });
 
             expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("wallet on chain 'polygon'"));
@@ -208,7 +209,7 @@ describe("verifyAuthorWalletSignature", () => {
 
     describe("error handling", () => {
         it("should handle verifyMessage throwing an error", async () => {
-            const mockPlebbit = createMockPlebbit({
+            const mockCommunityClient = createMockCommunityClient({
                 verifyMessage: vi.fn().mockRejectedValue(new Error("Network error"))
             });
 
@@ -221,7 +222,7 @@ describe("verifyAuthorWalletSignature", () => {
                 chainTicker: "eth",
                 authorAddress: "12D3KooWTestAuthor",
                 publicationSignaturePublicKey: "testPublicKey",
-                plebbit: mockPlebbit
+                pkc: mockCommunityClient
             });
 
             expect(result.valid).toBe(false);
@@ -233,33 +234,33 @@ describe("verifyAuthorWalletSignature", () => {
 
 describe("verifyAuthorWallets", () => {
     it("should return valid when wallets is undefined", async () => {
-        const mockPlebbit = createMockPlebbit({});
+        const mockCommunityClient = createMockCommunityClient({});
 
         const result = await verifyAuthorWallets({
             wallets: undefined,
             authorAddress: "12D3KooWTestAuthor",
             publicationSignaturePublicKey: "testPublicKey",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(result.valid).toBe(true);
     });
 
     it("should return valid when wallets is empty object", async () => {
-        const mockPlebbit = createMockPlebbit({});
+        const mockCommunityClient = createMockCommunityClient({});
 
         const result = await verifyAuthorWallets({
             wallets: {},
             authorAddress: "12D3KooWTestAuthor",
             publicationSignaturePublicKey: "testPublicKey",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(result.valid).toBe(true);
     });
 
     it("should verify all wallets and return valid if all pass", async () => {
-        const mockPlebbit = createMockPlebbit({
+        const mockCommunityClient = createMockCommunityClient({
             chainProviders: {
                 eth: { urls: ["https://eth.example.com"], chainId: 1 },
                 polygon: { urls: ["https://polygon.example.com"], chainId: 137 }
@@ -282,7 +283,7 @@ describe("verifyAuthorWallets", () => {
             },
             authorAddress: "12D3KooWTestAuthor",
             publicationSignaturePublicKey: "testPublicKey",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(result.valid).toBe(true);
@@ -294,7 +295,7 @@ describe("verifyAuthorWallets", () => {
             .mockResolvedValueOnce(true) // First wallet passes
             .mockResolvedValueOnce(false); // Second wallet fails
 
-        const mockPlebbit = createMockPlebbit({
+        const mockCommunityClient = createMockCommunityClient({
             chainProviders: {
                 eth: { urls: ["https://eth.example.com"], chainId: 1 },
                 polygon: { urls: ["https://polygon.example.com"], chainId: 137 }
@@ -317,7 +318,7 @@ describe("verifyAuthorWallets", () => {
             },
             authorAddress: "12D3KooWTestAuthor",
             publicationSignaturePublicKey: "testPublicKey",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(result.valid).toBe(false);
@@ -326,12 +327,12 @@ describe("verifyAuthorWallets", () => {
 
 describe("verifyAuthorAvatarSignature", () => {
     it("should return valid when avatar is undefined", async () => {
-        const mockPlebbit = createMockPlebbit({});
+        const mockCommunityClient = createMockCommunityClient({});
 
         const result = await verifyAuthorAvatarSignature({
             avatar: undefined,
             authorAddress: "12D3KooWTestAuthor",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(result.valid).toBe(true);
@@ -341,7 +342,7 @@ describe("verifyAuthorAvatarSignature", () => {
         const mockReadContract = vi.fn().mockResolvedValue("0xCurrentOwner");
         const mockVerifyMessage = vi.fn().mockResolvedValue(true);
 
-        const mockPlebbit = createMockPlebbit({
+        const mockCommunityClient = createMockCommunityClient({
             readContract: mockReadContract,
             verifyMessage: mockVerifyMessage
         });
@@ -355,7 +356,7 @@ describe("verifyAuthorAvatarSignature", () => {
                 signature: { signature: "0xavatarSig", type: "eip-191" }
             },
             authorAddress: "12D3KooWTestAuthor",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(result.valid).toBe(true);
@@ -372,7 +373,8 @@ describe("verifyAuthorAvatarSignature", () => {
         expect(mockVerifyMessage).toHaveBeenCalledWith({
             address: "0xCurrentOwner",
             message: JSON.stringify({
-                domainSeparator: "plebbit-author-avatar",
+                // Legacy protocol constant preserved until the source-side PKC rename lands.
+                domainSeparator: "pkc-author-avatar",
                 authorAddress: "12D3KooWTestAuthor",
                 timestamp: 1234567890,
                 tokenAddress: "0xNFTContract",
@@ -383,7 +385,7 @@ describe("verifyAuthorAvatarSignature", () => {
     });
 
     it("should return invalid if signer is not the current NFT owner", async () => {
-        const mockPlebbit = createMockPlebbit({
+        const mockCommunityClient = createMockCommunityClient({
             readContract: vi.fn().mockResolvedValue("0xDifferentOwner"),
             verifyMessage: vi.fn().mockResolvedValue(false) // Signature doesn't match current owner
         });
@@ -397,7 +399,7 @@ describe("verifyAuthorAvatarSignature", () => {
                 signature: { signature: "0xoldOwnerSig", type: "eip-191" }
             },
             authorAddress: "12D3KooWTestAuthor",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(result.valid).toBe(false);
@@ -405,7 +407,7 @@ describe("verifyAuthorAvatarSignature", () => {
     });
 
     it("should skip verification and return valid if chain provider is not configured for avatar chain", async () => {
-        const mockPlebbit = createMockPlebbit({
+        const mockCommunityClient = createMockCommunityClient({
             chainProviders: {} // No providers
         });
 
@@ -418,7 +420,7 @@ describe("verifyAuthorAvatarSignature", () => {
                 signature: { signature: "0xsig", type: "eip-191" }
             },
             authorAddress: "12D3KooWTestAuthor",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(result.valid).toBe(true);
@@ -426,7 +428,7 @@ describe("verifyAuthorAvatarSignature", () => {
 
     it("should log a warning when avatar chain provider is missing", async () => {
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const mockPlebbit = createMockPlebbit({
+        const mockCommunityClient = createMockCommunityClient({
             chainProviders: {} // No providers
         });
 
@@ -439,7 +441,7 @@ describe("verifyAuthorAvatarSignature", () => {
                 signature: { signature: "0xsig", type: "eip-191" }
             },
             authorAddress: "12D3KooWTestAuthor",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("avatar on chain 'polygon'"));
@@ -448,7 +450,7 @@ describe("verifyAuthorAvatarSignature", () => {
     });
 
     it("should return invalid if NFT contract call fails", async () => {
-        const mockPlebbit = createMockPlebbit({
+        const mockCommunityClient = createMockCommunityClient({
             readContract: vi.fn().mockRejectedValue(new Error("Contract not found"))
         });
 
@@ -461,7 +463,7 @@ describe("verifyAuthorAvatarSignature", () => {
                 signature: { signature: "0xsig", type: "eip-191" }
             },
             authorAddress: "12D3KooWTestAuthor",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         expect(result.valid).toBe(false);
@@ -470,7 +472,7 @@ describe("verifyAuthorAvatarSignature", () => {
 
     it("should convert tokenId to string in signed message", async () => {
         const mockVerifyMessage = vi.fn().mockResolvedValue(true);
-        const mockPlebbit = createMockPlebbit({
+        const mockCommunityClient = createMockCommunityClient({
             readContract: vi.fn().mockResolvedValue("0xOwner"),
             verifyMessage: mockVerifyMessage
         });
@@ -484,7 +486,7 @@ describe("verifyAuthorAvatarSignature", () => {
                 signature: { signature: "0xsig", type: "eip-191" }
             },
             authorAddress: "12D3KooWTestAuthor",
-            plebbit: mockPlebbit
+            pkc: mockCommunityClient
         });
 
         // Verify tokenId is a string in the message

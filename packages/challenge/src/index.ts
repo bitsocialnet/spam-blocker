@@ -3,16 +3,16 @@ import type {
     ChallengeInput,
     ChallengeResultInput,
     GetChallengeArgs
-} from "@plebbit/plebbit-js/dist/node/subplebbit/types.js";
-import { signBufferEd25519 } from "./plebbit-js-signer.js";
+} from "@pkcprotocol/pkc-js/dist/node/community/types.js";
+import { signBufferEd25519 } from "./pkc-js-signer.js";
 import type { EvaluateResponse, VerifyResponse } from "@bitsocial/spam-blocker-shared";
 import { EvaluateResponseSchema, VerifyResponseSchema } from "@bitsocial/spam-blocker-shared";
 import { createOptionsSchema, type ParsedOptions } from "./schema.js";
 import * as cborg from "cborg";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
-import Logger from "@plebbit/plebbit-logger";
+import Logger from "@pkc/pkc-logger";
 
-const log = Logger("plebbit-js:subplebbit:challenge:bitsocial-spam-blocker");
+const log = Logger("bitsocial:community:challenge:spam-blocker");
 
 const DEFAULT_SERVER_URL = "https://spamblocker.bitsocial.net/api/v1";
 
@@ -21,7 +21,7 @@ const optionInputs = [
         option: "serverUrl",
         label: "Server URL",
         default: DEFAULT_SERVER_URL,
-        description: "URL of the BitsocialSpamBlocker server",
+        description: "URL of the Bitsocial Spam Blocker server",
         placeholder: "https://spamblocker.bitsocial.net/api/v1"
     },
     {
@@ -86,7 +86,7 @@ const OptionsSchema = createOptionsSchema(optionInputs);
 
 const type: ChallengeInput["type"] = "url/iframe";
 
-const description: ChallengeFileInput["description"] = "Validate publications using BitsocialSpamBlocker.";
+const description: ChallengeFileInput["description"] = "Validate publications using Bitsocial Spam Blocker.";
 
 const parseOptions = (settings: GetChallengeArgs["challengeSettings"]): ParsedOptions => {
     const parsed = OptionsSchema.safeParse(settings?.options);
@@ -102,7 +102,7 @@ const createRequestSignature = async (
     signer: { privateKey?: string; publicKey?: string; type?: string }
 ) => {
     if (!signer.privateKey || !signer.publicKey || !signer.type) {
-        throw new Error("Subplebbit signer is missing required fields");
+        throw new Error("Community signer is missing required fields");
     }
     // Sign the CBOR-encoded payload directly
     const encoded = cborg.encode(propsToSign);
@@ -140,12 +140,12 @@ const postCbor = async (url: string, body: unknown): Promise<unknown> => {
     if (!response.ok) {
         const details = responseBody !== undefined ? `: ${JSON.stringify(responseBody)}` : "";
         log.error(`POST ${url} failed with status ${response.status}${details}`);
-        throw new Error(`BitsocialSpamBlocker server error (${response.status})${details}`);
+        throw new Error(`Bitsocial Spam Blocker server error (${response.status})${details}`);
     }
 
     if (responseBody === undefined) {
         log.error(`POST ${url} returned invalid JSON`);
-        throw new Error("Invalid JSON response from BitsocialSpamBlocker server");
+        throw new Error("Invalid JSON response from Bitsocial Spam Blocker server");
     }
 
     return responseBody;
@@ -157,7 +157,7 @@ const parseWithSchema = <T>(schema: { parse: (data: unknown) => T }, data: unkno
     } catch (error) {
         const message = error instanceof Error ? error.message : "";
         const suffix = message ? `: ${message}` : "";
-        throw new Error(`Invalid ${context} response from BitsocialSpamBlocker server${suffix}`);
+        throw new Error(`Invalid ${context} response from Bitsocial Spam Blocker server${suffix}`);
     }
 };
 
@@ -198,8 +198,8 @@ const getPostChallengeRejection = (verifyResponse: VerifyResponse, options: Pars
 };
 
 const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | ChallengeResultInput> => {
-    const { challengeSettings, challengeRequestMessage, subplebbit } = args;
-    log("getChallenge called for subplebbit %s", subplebbit?.address);
+    const { challengeSettings, challengeRequestMessage, community } = args;
+    log("getChallenge called for community %s", community?.address);
     log.trace("getChallenge args: challengeSettings=%o, challengeRequestMessage=%o", challengeSettings, challengeRequestMessage);
 
     const options = parseOptions(challengeSettings);
@@ -210,11 +210,11 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
         options.autoRejectThreshold
     );
 
-    const signer = subplebbit?.signer;
+    const signer = community?.signer;
 
     if (!signer) {
-        log.error("Subplebbit signer is missing");
-        throw new Error("Subplebbit signer is required to call BitsocialSpamBlocker");
+        log.error("Community signer is missing");
+        throw new Error("Community signer is required to call Bitsocial Spam Blocker");
     }
     log.trace("Signer publicKey: %s", signer.publicKey);
 
@@ -260,7 +260,7 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
         return {
             success: false,
             // TODO find a better error message
-            error: `Rejected by BitsocialSpamBlocker (riskScore ${formatRiskScore(riskScore)}).${explanation}`
+            error: `Rejected by Bitsocial Spam Blocker (riskScore ${formatRiskScore(riskScore)}).${explanation}`
         };
     }
 
@@ -323,7 +323,7 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
     return { challenge: challengeUrl, verify, type };
 };
 
-function ChallengeFileFactory(subplebbitChallengeSettings: GetChallengeArgs["challengeSettings"]): ChallengeFileInput {
+function ChallengeFileFactory(_communityChallengeSettings: GetChallengeArgs["challengeSettings"]): ChallengeFileInput {
     return { getChallenge, optionInputs, type, description };
 }
 

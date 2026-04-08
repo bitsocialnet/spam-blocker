@@ -1,7 +1,7 @@
 /**
  * Network-wide risk factors based on indexed data.
  * These factors use data from the indexer to assess author history
- * across multiple subplebbits.
+ * across multiple communities.
  */
 
 import type { RiskContext, RiskFactor } from "../types.js";
@@ -39,7 +39,7 @@ export function calculateNetworkBanHistory(ctx: RiskContext, weight: number): Ri
     }
 
     const activeBans = stats.banCount;
-    const distinctSubs = stats.distinctSubplebbitsPostedTo;
+    const distinctSubs = stats.distinctCommunitiesPostedTo;
     const cleanSubs = Math.max(0, distinctSubs - activeBans);
 
     // Component 1: Ban severity
@@ -62,9 +62,9 @@ export function calculateNetworkBanHistory(ctx: RiskContext, weight: number): Ri
 
     let explanation: string;
     if (activeBans === 0) {
-        explanation = `No active bans across ${distinctSubs} indexed subplebbit${distinctSubs !== 1 ? "s" : ""}`;
+        explanation = `No active bans across ${distinctSubs} indexed community${distinctSubs !== 1 ? "s" : ""}`;
     } else {
-        explanation = `Banned in ${activeBans}/${distinctSubs} indexed subplebbit${distinctSubs !== 1 ? "s" : ""} (severity=${banSeverity.toFixed(2)}, trustPenalty=${trustPenalty.toFixed(2)})`;
+        explanation = `Banned in ${activeBans}/${distinctSubs} indexed community${distinctSubs !== 1 ? "s" : ""} (severity=${banSeverity.toFixed(2)}, trustPenalty=${trustPenalty.toFixed(2)})`;
     }
 
     return {

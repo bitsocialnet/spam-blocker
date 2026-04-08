@@ -6,7 +6,7 @@
         "resolvePackageJsonExports": false,
         "baseUrl": ".",
         "paths": {
-            "@plebbit/plebbit-js/dist/node/*": ["../../node_modules/@plebbit/plebbit-js/dist/node/*"]
+            "@pkcprotocol/pkc-js/dist/node/*": ["../../node_modules/@pkcprotocol/pkc-js/dist/node/*"]
         }
     },
     "include": ["src"]

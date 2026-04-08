@@ -1,5 +1,5 @@
 /**
- * Check if a subplebbit address is a domain (not an IPNS address).
+ * Check if a community address is a domain (not an IPNS address).
  *
  * Domain addresses cost money to acquire, making them resistant to sybil attacks.
  * IPNS addresses are free to create (just generate an ed25519 keypair).
@@ -10,6 +10,6 @@
  * - "example.com" → true (DNS domain)
  * - "12D3KooWExample..." → false (IPNS address)
  */
-export function isDomainSubplebbitAddress(address: string): boolean {
+export function isDomainCommunityAddress(address: string): boolean {
     return address.includes(".");
 }

@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { SpamDetectionDatabase } from "../../src/db/index.js";
-import { SubplebbitIndexer } from "../../src/indexer/workers/subplebbit-indexer.js";
+import { CommunityIndexer } from "../../src/indexer/community-indexer.js";
 import { IndexerQueries } from "../../src/indexer/db/queries.js";
 import type { Database } from "better-sqlite3";
 
 /**
- * Creates a mock subplebbit that emits "update" events.
+ * Creates a mock community that emits "update" events.
  */
-function createMockSubplebbit(overrides: {
+function createMockCommunity(overrides: {
     address: string;
     updatedAt?: number;
     postsPageCidNew?: string;
@@ -58,33 +58,33 @@ function createMockSubplebbit(overrides: {
     } as any;
 }
 
-describe("ModQueue wiring in SubplebbitIndexer", () => {
+describe("ModQueue wiring in CommunityIndexer", () => {
     let spamDb: SpamDetectionDatabase;
     let db: Database;
-    let onSubplebbitUpdateFn: ReturnType<typeof vi.fn>;
+    let onCommunityUpdateFn: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
         spamDb = new SpamDetectionDatabase({ path: ":memory:" });
         db = spamDb.getDb();
-        onSubplebbitUpdateFn = vi.fn().mockResolvedValue(undefined);
+        onCommunityUpdateFn = vi.fn().mockResolvedValue(undefined);
     });
 
     afterEach(() => {
         spamDb.close();
     });
 
-    function seedSubplebbit(address: string) {
+    function seedCommunity(address: string) {
         db.prepare(
-            `INSERT INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+            `INSERT INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled)
              VALUES (?, 'manual', ?, 1)`
         ).run(address, Date.now());
     }
 
-    it("should call onSubplebbitUpdate when modQueue pageCid changes", async () => {
+    it("should call onCommunityUpdate when modQueue pageCid changes", async () => {
         const address = "test-sub.eth";
-        seedSubplebbit(address);
+        seedCommunity(address);
 
-        const mockSub = createMockSubplebbit({
+        const mockSub = createMockCommunity({
             address,
             updatedAt: 1000,
             postsPageCidNew: "QmPosts1",
@@ -92,18 +92,18 @@ describe("ModQueue wiring in SubplebbitIndexer", () => {
             updateCid: "QmUpdate1"
         });
 
-        const mockPlebbit = {
-            getSubplebbit: vi.fn().mockResolvedValue(mockSub)
+        const mockPKC = {
+            getCommunity: vi.fn().mockResolvedValue(mockSub)
         } as any;
 
-        const indexer = new SubplebbitIndexer(mockPlebbit, db, {
-            onSubplebbitUpdate: onSubplebbitUpdateFn
+        const indexer = new CommunityIndexer(mockPKC, db, {
+            onCommunityUpdate: onCommunityUpdateFn
         });
 
         // Subscribe with initial cached state (no previous modQueue pageCid)
-        await indexer.subscribeToSubplebbit(address, {
+        await indexer.subscribeToCommunity(address, {
             lastPostsPageCidNew: "QmPosts1", // same, so posts won't trigger
-            lastSubplebbitUpdatedAt: null,
+            lastCommunityUpdatedAt: null,
             lastModQueuePendingApprovalPageCid: null // different from QmModQueue1 → should trigger
         });
 
@@ -113,15 +113,15 @@ describe("ModQueue wiring in SubplebbitIndexer", () => {
         // Give async handlers time to run
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-        expect(onSubplebbitUpdateFn).toHaveBeenCalledTimes(1);
-        expect(onSubplebbitUpdateFn).toHaveBeenCalledWith(mockSub);
+        expect(onCommunityUpdateFn).toHaveBeenCalledTimes(1);
+        expect(onCommunityUpdateFn).toHaveBeenCalledWith(mockSub);
     });
 
-    it("should NOT call onSubplebbitUpdate when modQueue pageCid is unchanged", async () => {
+    it("should NOT call onCommunityUpdate when modQueue pageCid is unchanged", async () => {
         const address = "test-sub2.eth";
-        seedSubplebbit(address);
+        seedCommunity(address);
 
-        const mockSub = createMockSubplebbit({
+        const mockSub = createMockCommunity({
             address,
             updatedAt: 2000,
             postsPageCidNew: "QmPosts1",
@@ -129,32 +129,32 @@ describe("ModQueue wiring in SubplebbitIndexer", () => {
             updateCid: "QmUpdate1"
         });
 
-        const mockPlebbit = {
-            getSubplebbit: vi.fn().mockResolvedValue(mockSub)
+        const mockPKC = {
+            getCommunity: vi.fn().mockResolvedValue(mockSub)
         } as any;
 
-        const indexer = new SubplebbitIndexer(mockPlebbit, db, {
-            onSubplebbitUpdate: onSubplebbitUpdateFn
+        const indexer = new CommunityIndexer(mockPKC, db, {
+            onCommunityUpdate: onCommunityUpdateFn
         });
 
         // Subscribe with cached state matching current modQueue pageCid
-        await indexer.subscribeToSubplebbit(address, {
+        await indexer.subscribeToCommunity(address, {
             lastPostsPageCidNew: "QmPosts1",
-            lastSubplebbitUpdatedAt: null,
+            lastCommunityUpdatedAt: null,
             lastModQueuePendingApprovalPageCid: "QmModQueue1" // same → should NOT trigger
         });
 
         mockSub._emit("update");
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-        expect(onSubplebbitUpdateFn).not.toHaveBeenCalled();
+        expect(onCommunityUpdateFn).not.toHaveBeenCalled();
     });
 
-    it("should call onSubplebbitUpdate when modQueue pageCid changes even if posts unchanged", async () => {
+    it("should call onCommunityUpdate when modQueue pageCid changes even if posts unchanged", async () => {
         const address = "test-sub3.eth";
-        seedSubplebbit(address);
+        seedCommunity(address);
 
-        const mockSub = createMockSubplebbit({
+        const mockSub = createMockCommunity({
             address,
             updatedAt: 3000,
             postsPageCidNew: "QmPosts1",
@@ -162,68 +162,68 @@ describe("ModQueue wiring in SubplebbitIndexer", () => {
             updateCid: "QmUpdate1"
         });
 
-        const mockPlebbit = {
-            getSubplebbit: vi.fn().mockResolvedValue(mockSub)
+        const mockPKC = {
+            getCommunity: vi.fn().mockResolvedValue(mockSub)
         } as any;
 
-        const indexer = new SubplebbitIndexer(mockPlebbit, db, {
-            onSubplebbitUpdate: onSubplebbitUpdateFn
+        const indexer = new CommunityIndexer(mockPKC, db, {
+            onCommunityUpdate: onCommunityUpdateFn
         });
 
         // Posts pageCid same (no posts fetch), but modQueue changed
-        await indexer.subscribeToSubplebbit(address, {
+        await indexer.subscribeToCommunity(address, {
             lastPostsPageCidNew: "QmPosts1",
-            lastSubplebbitUpdatedAt: null,
+            lastCommunityUpdatedAt: null,
             lastModQueuePendingApprovalPageCid: "QmModQueueOld"
         });
 
         mockSub._emit("update");
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-        expect(onSubplebbitUpdateFn).toHaveBeenCalledTimes(1);
+        expect(onCommunityUpdateFn).toHaveBeenCalledTimes(1);
 
         // Verify cache markers were updated in DB
         const queries = new IndexerQueries(db);
-        const sub = queries.getIndexedSubplebbit(address);
+        const sub = queries.getIndexedCommunity(address);
         expect(sub?.lastModQueuePendingApprovalPageCid).toBe("QmModQueueNew");
-        expect(sub?.lastSubplebbitUpdatedAt).toBe(3000);
+        expect(sub?.lastCommunityUpdatedAt).toBe(3000);
     });
 
     it("should persist lastModQueuePendingApprovalPageCid in cache markers", async () => {
         const address = "test-sub4.eth";
-        seedSubplebbit(address);
+        seedCommunity(address);
 
         const queries = new IndexerQueries(db);
 
         // Update cache markers with modQueue pageCid
-        queries.updateSubplebbitCacheMarkers({
+        queries.updateCommunityCacheMarkers({
             address,
             lastPostsPageCidNew: "QmPosts1",
-            lastSubplebbitUpdatedAt: 5000,
+            lastCommunityUpdatedAt: 5000,
             lastUpdateCid: "QmUpdate1",
             lastModQueuePendingApprovalPageCid: "QmModQueue123"
         });
 
-        const sub = queries.getIndexedSubplebbit(address);
+        const sub = queries.getIndexedCommunity(address);
         expect(sub?.lastModQueuePendingApprovalPageCid).toBe("QmModQueue123");
     });
 
     it("should restore lastModQueuePendingApprovalPageCid from DB on startup", async () => {
         const address = "test-sub5.eth";
-        seedSubplebbit(address);
+        seedCommunity(address);
 
         // Set up cache markers in DB
         const queries = new IndexerQueries(db);
-        queries.updateSubplebbitCacheMarkers({
+        queries.updateCommunityCacheMarkers({
             address,
             lastPostsPageCidNew: "QmPosts1",
-            lastSubplebbitUpdatedAt: 5000,
+            lastCommunityUpdatedAt: 5000,
             lastUpdateCid: "QmUpdate1",
             lastModQueuePendingApprovalPageCid: "QmModQueueCached"
         });
 
-        // Verify getEnabledSubplebbits returns the field
-        const subs = queries.getEnabledSubplebbits();
+        // Verify getEnabledCommunities returns the field
+        const subs = queries.getEnabledCommunities();
         const sub = subs.find((s) => s.address === address);
         expect(sub?.lastModQueuePendingApprovalPageCid).toBe("QmModQueueCached");
     });

@@ -8,7 +8,7 @@ export const SCHEMA_SQL = `
 -- Internal timestamps (completedAt, expiresAt, receivedChallengeRequestAt, authorAccessedIframeAt) are in milliseconds
 CREATE TABLE IF NOT EXISTS challengeSessions (
   sessionId TEXT PRIMARY KEY,
-  subplebbitPublicKey TEXT,
+  communityPublicKey TEXT,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'failed')),
   completedAt INTEGER,
   expiresAt INTEGER NOT NULL,
@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_challengeSessions_expiresAt ON challengeSessions(
 CREATE TABLE IF NOT EXISTS comments (
   sessionId TEXT PRIMARY KEY,
   author TEXT NOT NULL,
-  subplebbitAddress TEXT NOT NULL,
+  communityAddress TEXT NOT NULL,
   parentCid TEXT,
   content TEXT,
   link TEXT,
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS comments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_comments_author ON comments(author);
-CREATE INDEX IF NOT EXISTS idx_comments_subplebbitAddress ON comments(subplebbitAddress);
+CREATE INDEX IF NOT EXISTS idx_comments_communityAddress ON comments(communityAddress);
 CREATE INDEX IF NOT EXISTS idx_comments_timestamp ON comments(timestamp);
 
 -- Votes table - stores vote publications
@@ -57,7 +57,7 @@ CREATE INDEX IF NOT EXISTS idx_comments_timestamp ON comments(timestamp);
 CREATE TABLE IF NOT EXISTS votes (
   sessionId TEXT PRIMARY KEY,
   author TEXT NOT NULL,
-  subplebbitAddress TEXT NOT NULL,
+  communityAddress TEXT NOT NULL,
   commentCid TEXT NOT NULL,
   signature TEXT NOT NULL,
   protocolVersion TEXT NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS iframeIpRecords (
 
 CREATE INDEX IF NOT EXISTS idx_iframeIpRecords_ipAddress ON iframeIpRecords(ipAddress);
 
--- Evaluate caller IPs table - stores IPs of subplebbit servers calling /evaluate
+-- Evaluate caller IPs table - stores IPs of community servers calling /evaluate
 -- Note: timestamp is internal (milliseconds)
 CREATE TABLE IF NOT EXISTS evaluateCallerIps (
   sessionId TEXT PRIMARY KEY,
@@ -101,29 +101,29 @@ CREATE INDEX IF NOT EXISTS idx_evaluateCallerIps_ipAddress ON evaluateCallerIps(
 -- INDEXER TABLES
 -- ============================================================================
 
--- Tracked subplebbits
--- Note: discoveredAt is internal (milliseconds), lastSubplebbitUpdatedAt is from subplebbit (seconds)
-CREATE TABLE IF NOT EXISTS indexed_subplebbits (
+-- Tracked communities
+-- Note: discoveredAt is internal (milliseconds), lastCommunityUpdatedAt is from community (seconds)
+CREATE TABLE IF NOT EXISTS indexed_communities (
     address TEXT PRIMARY KEY,
     publicKey TEXT,
     discoveredVia TEXT NOT NULL,  -- 'evaluate_api' | 'previous_comment_cid' | 'manual'
     discoveredAt INTEGER NOT NULL,
     indexingEnabled INTEGER DEFAULT 1,
     lastPostsPageCidNew TEXT,        -- To detect changes (pageCids.new)
-    lastSubplebbitUpdatedAt INTEGER, -- subplebbit.updatedAt - skip if unchanged (seconds from protocol)
-    lastUpdateCid TEXT,              -- subplebbit.updateCid - IPFS CID of SubplebbitUpdate record
+    lastCommunityUpdatedAt INTEGER, -- community.updatedAt - skip if unchanged (seconds from protocol)
+    lastUpdateCid TEXT,              -- community.updateCid - IPFS CID of CommunityUpdate record
     lastModQueuePendingApprovalPageCid TEXT,  -- To detect modQueue changes (modQueue.pageCids.pendingApproval)
     consecutiveErrors INTEGER DEFAULT 0,
     lastError TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_indexed_subplebbits_enabled ON indexed_subplebbits(indexingEnabled);
+CREATE INDEX IF NOT EXISTS idx_indexed_communities_enabled ON indexed_communities(indexingEnabled);
 
 -- CommentIpfs data (immutable, from comment.raw.comment)
 -- Note: timestamp is from publication (seconds), fetchedAt is internal (milliseconds)
 CREATE TABLE IF NOT EXISTS indexed_comments_ipfs (
     cid TEXT PRIMARY KEY,
-    subplebbitAddress TEXT NOT NULL,
+    communityAddress TEXT NOT NULL,
     author TEXT NOT NULL,                  -- JSON: full author object
     signature TEXT NOT NULL,               -- JSON: full signature (publicKey inside)
     parentCid TEXT,                        -- null = post, set = reply
@@ -135,21 +135,21 @@ CREATE TABLE IF NOT EXISTS indexed_comments_ipfs (
     protocolVersion TEXT,
     pseudonymityMode TEXT,
     fetchedAt INTEGER NOT NULL,
-    FOREIGN KEY (subplebbitAddress) REFERENCES indexed_subplebbits(address)
+    FOREIGN KEY (communityAddress) REFERENCES indexed_communities(address)
 );
 
 CREATE INDEX IF NOT EXISTS idx_comments_ipfs_author_pubkey ON indexed_comments_ipfs(
     (json_extract(signature, '$.publicKey'))
 );
-CREATE INDEX IF NOT EXISTS idx_comments_ipfs_sub ON indexed_comments_ipfs(subplebbitAddress);
+CREATE INDEX IF NOT EXISTS idx_comments_ipfs_sub ON indexed_comments_ipfs(communityAddress);
 
 -- CommentUpdate data (mutable, from comment.raw.commentUpdate)
--- Note: author only has subplebbit data, NOT author.address
+-- Note: author only has community data, NOT author.address
 -- Note: signature is from sub, not needed
 -- Note: updatedAt is from protocol (seconds), fetchedAt/lastFetchFailedAt are internal (milliseconds)
 CREATE TABLE IF NOT EXISTS indexed_comments_update (
     cid TEXT PRIMARY KEY,
-    author TEXT,                           -- JSON: author.subplebbit data only
+    author TEXT,                           -- JSON: author.community data only
     upvoteCount INTEGER,
     downvoteCount INTEGER,
     replyCount INTEGER,
@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS indexed_comments_update (
     lastFetchFailedAt INTEGER,
     fetchFailureCount INTEGER DEFAULT 0,   -- reset to 0 on success
     purged INTEGER DEFAULT 0,              -- 1 = confirmed purged (irreversible hard-delete)
-    seenAtSubplebbitUpdatedAt INTEGER,             -- subplebbit.updatedAt when this CID was last seen in pages (seconds, protocol time)
+    seenAtCommunityUpdatedAt INTEGER,             -- community.updatedAt when this CID was last seen in pages (seconds, protocol time)
     FOREIGN KEY (cid) REFERENCES indexed_comments_ipfs(cid)
 );
 
@@ -176,7 +176,7 @@ CREATE INDEX IF NOT EXISTS idx_comments_update_purged ON indexed_comments_update
 -- Note: timestamp is from publication (seconds), firstSeenAt is internal (milliseconds)
 CREATE TABLE IF NOT EXISTS modqueue_comments_ipfs (
     cid TEXT PRIMARY KEY,
-    subplebbitAddress TEXT NOT NULL,
+    communityAddress TEXT NOT NULL,
     author TEXT NOT NULL,                  -- JSON: full author object
     signature TEXT NOT NULL,               -- JSON: full signature (publicKey inside)
     parentCid TEXT,
@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS modqueue_comments_ipfs (
     protocolVersion TEXT,
     pseudonymityMode TEXT,
     firstSeenAt INTEGER NOT NULL,
-    FOREIGN KEY (subplebbitAddress) REFERENCES indexed_subplebbits(address)
+    FOREIGN KEY (communityAddress) REFERENCES indexed_communities(address)
 );
 
 CREATE INDEX IF NOT EXISTS idx_modqueue_ipfs_author ON modqueue_comments_ipfs(
@@ -196,11 +196,11 @@ CREATE INDEX IF NOT EXISTS idx_modqueue_ipfs_author ON modqueue_comments_ipfs(
 );
 
 -- ModQueue CommentUpdate (CommentUpdateForChallengeVerification)
--- Note: signature is from sub, not needed. author only has subplebbit data.
+-- Note: signature is from sub, not needed. author only has community data.
 -- Note: lastSeenAt and resolvedAt are internal (milliseconds)
 CREATE TABLE IF NOT EXISTS modqueue_comments_update (
     cid TEXT PRIMARY KEY,
-    author TEXT,                           -- JSON: author.subplebbit data only
+    author TEXT,                           -- JSON: author.community data only
     protocolVersion TEXT,
     number INTEGER,
     postNumber INTEGER,

@@ -3,14 +3,14 @@ import path from "path";
 import { createRequire } from "module";
 
 const require = createRequire(import.meta.url);
-const plebbitEntry = require.resolve("@plebbit/plebbit-js");
-const plebbitRoot = path.resolve(path.dirname(plebbitEntry), "..", "..");
+const pkcEntry = require.resolve("@pkcprotocol/pkc-js");
+const pkcRoot = path.resolve(path.dirname(pkcEntry), "..", "..");
 
 export default defineConfig({
     test: {
         setupFiles: ["tests/setup.ts"],
         alias: {
-            "@plebbit/plebbit-js/dist/node": path.join(plebbitRoot, "dist/node")
+            "@pkcprotocol/pkc-js/dist/node": path.join(pkcRoot, "dist/node")
         }
     }
 });

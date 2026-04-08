@@ -1,63 +1,59 @@
-import { verifyCommentPubsubMessage, verifyVote } from "@plebbit/plebbit-js/dist/node/signer/signatures.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
-import type Plebbit from "@plebbit/plebbit-js";
+import { verifyCommentPubsubMessage, verifyVote } from "@pkcprotocol/pkc-js/dist/node/signer/signatures.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
+import type PKC from "@pkcprotocol/pkc-js";
 import { verifyAuthorWallets, verifyAuthorAvatarSignature } from "./author-field-signature.js";
 
-type PlebbitInstance = Awaited<ReturnType<typeof Plebbit>>;
+type PkcInstance = Awaited<ReturnType<typeof PKC>>;
 
 /**
  * Get the publication and its signature from a challenge request
  */
-function getPublicationFromChallengeRequest(challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor) {
+function getPublicationFromChallengeRequest(challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor) {
     if (challengeRequest.comment) return challengeRequest.comment;
     if (challengeRequest.vote) return challengeRequest.vote;
     return undefined;
 }
 
 /**
- * Strip author.subplebbit before signature verification.
- * The subplebbit adds author.subplebbit to the challenge request AFTER the author signs
+ * Strip author.community before signature verification.
+ * The community adds author.community to the challenge request AFTER the author signs
  * the publication. Since author is a signed property, the extra field would cause
  * verification to fail because the CBOR bytes differ from what was originally signed.
  */
-function stripSubplebbitAuthorForVerification<T extends { author: { subplebbit?: unknown } }>(publication: T): T {
-    const { subplebbit: _, ...authorWithoutSubplebbit } = publication.author;
-    return { ...publication, author: authorWithoutSubplebbit } as T;
+function stripCommunityAuthorForVerification<T extends { author: { community?: unknown } }>(publication: T): T {
+    const { community: _, ...authorWithoutCommunity } = publication.author;
+    return { ...publication, author: authorWithoutCommunity } as T;
 }
 
 /**
- * Verify a publication's signature using plebbit-js verify functions.
+ * Verify a publication's signature using pkc-js verify functions.
  * Also verifies author.wallets and author.avatar signatures if present.
  */
 export async function verifyPublicationSignature({
     challengeRequest,
-    plebbit
+    pkc
 }: {
-    challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
-    plebbit: PlebbitInstance;
+    challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
+    pkc: PkcInstance;
 }) {
-    const clientsManager = plebbit._clientsManager;
-    const resolveAuthorAddresses = true;
-    const overrideAuthorAddressIfInvalid = false;
-
+    const clientsManager = pkc._clientsManager;
+    const resolveAuthorNames = pkc.resolveAuthorNames;
     // First verify the main publication signature
-    // Strip author.subplebbit before verification since it's added by the subplebbit
+    // Strip author.community before verification since it's added by the community
     // after the author signs the publication
     let publicationVerificationResult: { valid: boolean; reason?: string };
 
     if (challengeRequest.comment) {
         publicationVerificationResult = await verifyCommentPubsubMessage({
-            comment: stripSubplebbitAuthorForVerification(challengeRequest.comment),
-            resolveAuthorAddresses,
-            clientsManager,
-            overrideAuthorAddressIfInvalid
+            comment: stripCommunityAuthorForVerification(challengeRequest.comment),
+            resolveAuthorNames,
+            clientsManager
         });
     } else if (challengeRequest.vote) {
         publicationVerificationResult = await verifyVote({
-            vote: stripSubplebbitAuthorForVerification(challengeRequest.vote),
-            resolveAuthorAddresses,
-            clientsManager,
-            overrideAuthorAddressIfInvalid
+            vote: stripCommunityAuthorForVerification(challengeRequest.vote),
+            resolveAuthorNames,
+            clientsManager
         });
     } else {
         return { valid: false, reason: "Unknown publication type" };
@@ -82,7 +78,7 @@ export async function verifyPublicationSignature({
         wallets: author.wallets,
         authorAddress: author.address,
         publicationSignaturePublicKey,
-        plebbit
+        pkc
     });
 
     if (!walletsResult.valid) {
@@ -93,7 +89,7 @@ export async function verifyPublicationSignature({
     const avatarResult = await verifyAuthorAvatarSignature({
         avatar: author.avatar,
         authorAddress: author.address,
-        plebbit
+        pkc
     });
 
     if (!avatarResult.valid) {

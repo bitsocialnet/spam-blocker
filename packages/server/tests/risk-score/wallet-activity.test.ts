@@ -3,7 +3,7 @@ import { calculateWalletActivity } from "../../src/risk-score/factors/wallet-act
 import { SpamDetectionDatabase } from "../../src/db/index.js";
 import { CombinedDataService } from "../../src/risk-score/combined-data-service.js";
 import type { RiskContext } from "../../src/risk-score/types.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 
 // Helper to create a mock challenge request
 function createMockChallengeRequest({
@@ -12,10 +12,10 @@ function createMockChallengeRequest({
 }: {
     authorPublicKey: string;
     wallets?: Record<string, { address: string; timestamp: number; signature: { signature: string; type: string } }>;
-}): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+}): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     const author: Record<string, unknown> = {
         address: "12D3KooWTestAuthor",
-        subplebbit: { postScore: 0, replyScore: 0 }
+        community: { postScore: 0, replyScore: 0 }
     };
 
     if (wallets) {
@@ -25,7 +25,7 @@ function createMockChallengeRequest({
     return {
         comment: {
             author,
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: Math.floor(Date.now() / 1000),
             protocolVersion: "1",
             content: "test content",
@@ -33,14 +33,14 @@ function createMockChallengeRequest({
                 publicKey: authorPublicKey,
                 signature: "mock-sig",
                 type: "ed25519",
-                signedPropertyNames: ["author", "subplebbitAddress", "timestamp", "protocolVersion", "content"]
+                signedPropertyNames: ["author", "communityAddress", "timestamp", "protocolVersion", "content"]
             }
         }
-    } as unknown as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as unknown as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 // Helper to create RiskContext
-function createContext(db: SpamDetectionDatabase, challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor): RiskContext {
+function createContext(db: SpamDetectionDatabase, challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor): RiskContext {
     return {
         challengeRequest,
         now: Math.floor(Date.now() / 1000),
@@ -55,7 +55,7 @@ function seedPublicationWithWallet(db: SpamDetectionDatabase, authorPublicKey: s
     const sessionId = `seed-${Math.random().toString(36).slice(2)}`;
     db.insertChallengeSession({
         sessionId,
-        subplebbitPublicKey: "test-subplebbit-pubkey",
+        communityPublicKey: "test-community-pubkey",
         expiresAt: Date.now() + 3600000
     });
     db.insertComment({
@@ -71,7 +71,7 @@ function seedPublicationWithWallet(db: SpamDetectionDatabase, authorPublicKey: s
                     }
                 }
             },
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             signature: { publicKey: authorPublicKey, signature: `sig-${sessionId}`, type: "ed25519" },
             protocolVersion: "1",
             content: "test",

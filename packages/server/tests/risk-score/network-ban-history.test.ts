@@ -3,7 +3,7 @@ import { calculateNetworkBanHistory } from "../../src/risk-score/factors/network
 import { SpamDetectionDatabase } from "../../src/db/index.js";
 import { CombinedDataService } from "../../src/risk-score/combined-data-service.js";
 import type { RiskContext } from "../../src/risk-score/types.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 
 const baseTimestamp = Math.floor(Date.now() / 1000);
 const authorPublicKey = "test-ban-author-pk";
@@ -15,21 +15,21 @@ const baseSignature = {
     signedPropertyNames: ["author"]
 };
 
-function createMockChallengeRequest(): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+function createMockChallengeRequest(): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     return {
         comment: {
             author: { address: "12D3KooWTestAddress" },
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: baseSignature,
             content: "Test content"
         }
-    } as unknown as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as unknown as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 /**
- * Helper: seed indexed comments across N distinct subplebbits for the author.
+ * Helper: seed indexed comments across N distinct communities for the author.
  * This creates the "posting history" that the factor uses.
  */
 function seedDistinctSubs(db: SpamDetectionDatabase, count: number): void {
@@ -42,14 +42,14 @@ function seedDistinctSubs(db: SpamDetectionDatabase, count: number): void {
 
         dbRaw
             .prepare(
-                `INSERT OR IGNORE INTO indexed_subplebbits (address, discoveredVia, discoveredAt, indexingEnabled)
+                `INSERT OR IGNORE INTO indexed_communities (address, discoveredVia, discoveredAt, indexingEnabled)
                  VALUES (?, 'manual', ?, 1)`
             )
             .run(subAddr, nowMs);
 
         dbRaw
             .prepare(
-                `INSERT INTO indexed_comments_ipfs (cid, subplebbitAddress, author, signature, timestamp, fetchedAt, protocolVersion)
+                `INSERT INTO indexed_comments_ipfs (cid, communityAddress, author, signature, timestamp, fetchedAt, protocolVersion)
                  VALUES (?, ?, ?, ?, ?, ?, '1')`
             )
             .run(
@@ -72,7 +72,7 @@ function seedDistinctSubs(db: SpamDetectionDatabase, count: number): void {
 }
 
 /**
- * Helper: seed active bans for the author in specific subplebbits.
+ * Helper: seed active bans for the author in specific communities.
  * The ban is set to expire in the future (active ban).
  * banSubIndices: which sub-N.eth to ban in (must already be seeded via seedDistinctSubs).
  */
@@ -86,12 +86,12 @@ function seedActiveBans(db: SpamDetectionDatabase, banSubIndices: number[]): voi
         // Update the existing comment update to include a ban
         dbRaw
             .prepare(`UPDATE indexed_comments_update SET author = ? WHERE cid = ?`)
-            .run(JSON.stringify({ subplebbit: { banExpiresAt: futureExpiry } }), cid);
+            .run(JSON.stringify({ community: { banExpiresAt: futureExpiry } }), cid);
     }
 }
 
 /**
- * Helper: seed an expired ban for the author in a specific subplebbit.
+ * Helper: seed an expired ban for the author in a specific community.
  */
 function seedExpiredBan(db: SpamDetectionDatabase, subIndex: number): void {
     const dbRaw = db.getDb();
@@ -100,7 +100,7 @@ function seedExpiredBan(db: SpamDetectionDatabase, subIndex: number): void {
     const cid = `QmSub${subIndex}`;
     dbRaw
         .prepare(`UPDATE indexed_comments_update SET author = ? WHERE cid = ?`)
-        .run(JSON.stringify({ subplebbit: { banExpiresAt: pastExpiry } }), cid);
+        .run(JSON.stringify({ community: { banExpiresAt: pastExpiry } }), cid);
 }
 
 describe("calculateNetworkBanHistory", () => {

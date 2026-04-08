@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { calculateRiskScore } from "../../src/risk-score/index.js";
 import { SpamDetectionDatabase } from "../../src/db/index.js";
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 
 const baseTimestamp = Math.floor(Date.now() / 1000);
 const baseSignature = {
@@ -14,7 +14,7 @@ const baseSignature = {
 function createMockAuthor() {
     return {
         address: "12D3KooWTestAddress",
-        subplebbit: {
+        community: {
             postScore: 0,
             replyScore: 0,
             firstCommentTimestamp: baseTimestamp - 86400,
@@ -23,37 +23,37 @@ function createMockAuthor() {
     };
 }
 
-function createMockCommentRequest(author: ReturnType<typeof createMockAuthor>): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+function createMockCommentRequest(author: ReturnType<typeof createMockAuthor>): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     return {
         challengeRequestId: { bytes: new Uint8Array() },
         acceptedChallengeTypes: ["turnstile"],
         encrypted: {} as never,
         comment: {
             author,
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: baseSignature,
             content: "Test content"
         }
-    } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
-function createMockVoteRequest(author: ReturnType<typeof createMockAuthor>): DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor {
+function createMockVoteRequest(author: ReturnType<typeof createMockAuthor>): DecryptedChallengeRequestMessageTypeWithCommunityAuthor {
     return {
         challengeRequestId: { bytes: new Uint8Array() },
         acceptedChallengeTypes: ["turnstile"],
         encrypted: {} as never,
         vote: {
             author,
-            subplebbitAddress: "test-sub.eth",
+            communityAddress: "test-sub.eth",
             timestamp: baseTimestamp,
             protocolVersion: "1",
             signature: baseSignature,
             commentCid: "QmCommentCid",
             vote: 1
         }
-    } as DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    } as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 }
 
 describe("weight redistribution", () => {

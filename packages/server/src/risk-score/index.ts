@@ -1,4 +1,4 @@
-import type { DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor } from "@plebbit/plebbit-js/dist/node/pubsub-messages/types.js";
+import type { DecryptedChallengeRequestMessageTypeWithCommunityAuthor } from "@pkcprotocol/pkc-js/dist/node/pubsub-messages/types.js";
 import type { SpamDetectionDatabase } from "../db/index.js";
 import type { RiskContext, RiskFactor, RiskFactorName, RiskScoreResult, WeightConfig } from "./types.js";
 import { WEIGHTS_NO_IP, WEIGHTS_WITH_IP } from "./types.js";
@@ -26,7 +26,7 @@ export * from "./factors/index.js";
  */
 export interface CalculateRiskScoreOptions {
     /** The full decrypted challenge request being evaluated */
-    challengeRequest: DecryptedChallengeRequestMessageTypeWithSubplebbitAuthor;
+    challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
     /** Database access for querying historical data */
     db: SpamDetectionDatabase;
     /** Optional IP intelligence data (if available from iframe access) */
