@@ -72,13 +72,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@bitsocial/spam-blocker-challenge@workspace:packages/challenge"
   dependencies:
-    "@bitsocial/spam-blocker-shared": "workspace:*"
     "@noble/ed25519": "npm:1.7.5"
     "@pkc/pkc-logger": "https://github.com/pkcprotocol/pkc-logger.git"
     "@pkcprotocol/pkc-js": "https://github.com/pkcprotocol/pkc-js.git#e63026e6cd33df5af3a3b5e6473b1e364d89fbdb"
     cborg: "npm:4.3.2"
     esbuild: "npm:0.27.2"
     i18n-iso-countries: "npm:7.14.0"
+    multiformats: "npm:9.9.0"
     typescript: "npm:6.0.2"
     uint8arrays: "npm:5.1.0"
     vitest: "npm:4.0.16"
@@ -7810,17 +7810,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"multiformats@npm:9.9.0, multiformats@npm:^9.4.2, multiformats@npm:^9.4.5":
+  version: 9.9.0
+  resolution: "multiformats@npm:9.9.0"
+  checksum: 10c0/1fdb34fd2fb085142665e8bd402570659b50a5fae5994027e1df3add9e1ce1283ed1e0c2584a5c63ac0a58e871b8ee9665c4a99ca36ce71032617449d48aa975
+  languageName: node
+  linkType: hard
+
 "multiformats@npm:^13.0.0, multiformats@npm:^13.0.1, multiformats@npm:^13.1.0, multiformats@npm:^13.2.2, multiformats@npm:^13.3.1, multiformats@npm:^13.3.6, multiformats@npm:^13.3.7, multiformats@npm:^13.4.0, multiformats@npm:^13.4.1":
   version: 13.4.2
   resolution: "multiformats@npm:13.4.2"
   checksum: 10c0/b7be09b8bf8198d601c8f8c9a358b9a6aca5a14d61239a84f88d8266322e4e7c3015fe7bdf88b589b9993a4abb752defabb932719d1b457a53277e264c4cee11
-  languageName: node
-  linkType: hard
-
-"multiformats@npm:^9.4.2, multiformats@npm:^9.4.5":
-  version: 9.9.0
-  resolution: "multiformats@npm:9.9.0"
-  checksum: 10c0/1fdb34fd2fb085142665e8bd402570659b50a5fae5994027e1df3add9e1ce1283ed1e0c2584a5c63ac0a58e871b8ee9665c4a99ca36ce71032617449d48aa975
   languageName: node
   linkType: hard
 

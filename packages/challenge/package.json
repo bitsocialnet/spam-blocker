@@ -36,11 +36,11 @@
         "@pkcprotocol/pkc-js": "https://github.com/pkcprotocol/pkc-js.git#e63026e6cd33df5af3a3b5e6473b1e364d89fbdb",
         "cborg": "4.3.2",
         "i18n-iso-countries": "7.14.0",
+        "multiformats": "9.9.0",
         "uint8arrays": "5.1.0",
         "zod": "4.3.5"
     },
     "devDependencies": {
-        "@bitsocial/spam-blocker-shared": "workspace:*",
         "esbuild": "0.27.2",
         "typescript": "6.0.2",
         "vitest": "4.0.16"

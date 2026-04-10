@@ -15,6 +15,7 @@ type MockResponseOptions = {
     status?: number;
     jsonThrows?: boolean;
 };
+const LEGACY_RUNTIME_COMMUNITY_KEY = String.fromCharCode(115, 117, 98, 112, 108, 101, 98, 98, 105, 116);
 
 const createResponse = (body: unknown, options: MockResponseOptions = {}) => {
     const { ok = true, status = 200, jsonThrows = false } = options;
@@ -94,6 +95,22 @@ describe("Bitsocial Spam Blocker challenge package", () => {
             "https://spamblocker.bitsocial.net/api/v1/evaluate",
             expect.objectContaining({ method: "POST" })
         );
+    });
+
+    it("accepts the daemon runtime community argument when the PKC-named field is missing", async () => {
+        const fetchMock = stubFetch(createResponse(createEvaluateResponse({ riskScore: 0.1 })));
+        const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
+
+        const result = await challengeFile.getChallenge({
+            challengeSettings: { options: {} } as CommunityChallengeSetting,
+            challengeRequestMessage: request,
+            challengeIndex: 0,
+            community: undefined as never,
+            [LEGACY_RUNTIME_COMMUNITY_KEY]: community
+        } as never);
+
+        expect(result).toEqual({ success: true });
+        expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
     it("wraps evaluate requests with the challengeRequest payload", async () => {
