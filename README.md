@@ -636,9 +636,10 @@ These settings are configured on the HTTP server, not in the challenge package:
 ## Verification Plan
 
 1. Build the public packages with `corepack yarn build`
-2. Run the challenge-package tests with `corepack yarn test`
-3. Integrate the challenge package with a server instance that implements the API contract documented in this README
-4. Verify end-to-end flow against a local or hosted private server deployment
+2. Type-check the public packages with `corepack yarn type-check`
+3. Run the challenge-package tests with `corepack yarn test`
+4. Integrate the challenge package with a server instance that implements the API contract documented in this README
+5. Verify end-to-end flow against a local or hosted private server deployment
 
 ## Reference Files
 
