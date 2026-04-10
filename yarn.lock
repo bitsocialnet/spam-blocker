@@ -86,7 +86,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@bitsocial/spam-blocker-shared@workspace:*, @bitsocial/spam-blocker-shared@workspace:packages/shared":
+"@bitsocial/spam-blocker-shared@workspace:packages/shared":
   version: 0.0.0-use.local
   resolution: "@bitsocial/spam-blocker-shared@workspace:packages/shared"
   dependencies:
