@@ -2,6 +2,7 @@
     "name": "@bitsocial/spam-blocker-shared",
     "version": "0.0.0",
     "description": "Shared types for BitsocialSpamBlocker",
+    "license": "MIT",
     "type": "module",
     "engines": {
         "node": ">=22"

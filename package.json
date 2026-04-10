@@ -1,6 +1,7 @@
 {
     "name": "bitsocial-spam-blocker",
     "private": true,
+    "license": "UNLICENSED",
     "type": "module",
     "packageManager": "yarn@4.13.0",
     "engines": {
@@ -10,14 +11,13 @@
         "packages/*"
     ],
     "scripts": {
-        "build": "yarn workspace @bitsocial/spam-blocker-shared build && yarn workspace @bitsocial/spam-blocker-server build && yarn workspace @bitsocial/spam-blocker-challenge build",
-        "test": "yarn workspace @bitsocial/spam-blocker-server test && yarn workspace @bitsocial/spam-blocker-challenge test",
-        "type-check": "yarn workspace @bitsocial/spam-blocker-shared type-check && yarn workspace @bitsocial/spam-blocker-server type-check && yarn workspace @bitsocial/spam-blocker-challenge type-check",
+        "build": "yarn workspace @bitsocial/spam-blocker-shared build && yarn workspace @bitsocial/spam-blocker-challenge build",
+        "test": "yarn workspace @bitsocial/spam-blocker-challenge test",
+        "type-check": "yarn workspace @bitsocial/spam-blocker-shared type-check && yarn workspace @bitsocial/spam-blocker-challenge type-check",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "prepare": "husky",
         "commit": "cz",
-        "release:server": "cd packages/server && HUSKY=0 release-it --config .release-it.json",
         "release:challenge": "cd packages/challenge && HUSKY=0 release-it --config .release-it.json"
     },
     "devDependencies": {

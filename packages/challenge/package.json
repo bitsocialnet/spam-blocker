@@ -2,6 +2,7 @@
     "name": "@bitsocial/spam-blocker-challenge",
     "version": "0.0.0",
     "description": "Bitsocial Spam Blocker challenge implementation for PKC",
+    "license": "GPL-3.0-or-later",
     "type": "module",
     "engines": {
         "node": ">=22"
