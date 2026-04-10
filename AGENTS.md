@@ -95,11 +95,11 @@ packages/
 
 Consult these only when the task touches their domain:
 
-| Topic                      | Location                                                 |
-| -------------------------- | -------------------------------------------------------- |
-| Hooks setup                | `docs/agent-playbooks/hooks-setup.md`                    |
-| Skills and tools           | `docs/agent-playbooks/skills-and-tools.md`               |
-| Bug investigation workflow | `docs/agent-playbooks/bug-investigation.md`              |
-| Long-running task handoff  | `docs/agent-playbooks/long-running-agent-workflow.md`    |
-| Known surprises log        | `docs/agent-playbooks/known-surprises.md`                |
-| Full API spec              | `README.md`                                              |
+| Topic                      | Location                                              |
+| -------------------------- | ----------------------------------------------------- |
+| Hooks setup                | `docs/agent-playbooks/hooks-setup.md`                 |
+| Skills and tools           | `docs/agent-playbooks/skills-and-tools.md`            |
+| Bug investigation workflow | `docs/agent-playbooks/bug-investigation.md`           |
+| Long-running task handoff  | `docs/agent-playbooks/long-running-agent-workflow.md` |
+| Known surprises log        | `docs/agent-playbooks/known-surprises.md`             |
+| Full API spec              | `README.md`                                           |
