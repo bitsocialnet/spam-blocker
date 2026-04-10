@@ -60,7 +60,7 @@ export function calculateKarma(ctx: RiskContext, weight: number): RiskFactor {
     const author = getAuthorFromChallengeRequest(ctx.challengeRequest);
     const authorPublicKey = getAuthorPublicKeyFromChallengeRequest(ctx.challengeRequest);
     // Get current request's karma from the community author (TRUSTED)
-    const communityAuthor = author.community;
+    const communityAuthor = author.community ?? (author as { subplebbit?: typeof author.community }).subplebbit;
     const currentPostScore = communityAuthor?.postScore ?? 0;
     const currentReplyScore = communityAuthor?.replyScore ?? 0;
     const currentSubKarma = currentPostScore + currentReplyScore;

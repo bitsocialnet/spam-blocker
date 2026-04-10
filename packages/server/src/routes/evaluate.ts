@@ -23,6 +23,7 @@ import { determineChallengeTier, type ChallengeTierConfig } from "../risk-score/
 import { IndexerQueries } from "../indexer/db/queries.js";
 import type { Indexer } from "../indexer/index.js";
 import { getClientIp } from "../utils/ip.js";
+import { getPKCAddressFromPublicKey } from "../pkc-js-signer.js";
 
 const CHALLENGE_EXPIRY_MS = 3600 * 1000; // 1 hour in milliseconds
 const MAX_REQUEST_SKEW_SECONDS = 5 * 60;
@@ -73,7 +74,6 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
                 throw error;
             }
 
-            const { challengeRequest } = parseResult.data as EvaluateRequest;
             const { signature, timestamp } = parseResult.data as EvaluateRequest;
 
             // Use raw challengeRequest from request.body for signature verification
@@ -92,11 +92,11 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             await verifySignedRequest({ challengeRequest: rawChallengeRequest, timestamp }, signature);
 
             // Extract publication to get communityAddress for validation
+            const typedChallengeRequest = rawChallengeRequest as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
+
             let publication;
             try {
-                publication = derivePublicationFromChallengeRequest(
-                    challengeRequest as DecryptedChallengeRequestMessageTypeWithCommunityAuthor
-                );
+                publication = derivePublicationFromChallengeRequest(typedChallengeRequest);
             } catch (error) {
                 const invalidError = new Error("Invalid request body: missing publication");
                 (invalidError as { statusCode?: number }).statusCode = 400;
@@ -104,8 +104,6 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             }
 
             // Validate publication type - only accept user-generated content (posts, replies, votes)
-            const typedChallengeRequest = challengeRequest as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
-
             // Reject community-level actions - these are inherently authorized by the community's trust model
             if (typedChallengeRequest.commentEdit || typedChallengeRequest.commentModeration || typedChallengeRequest.communityEdit) {
                 const error = new Error(
@@ -157,8 +155,21 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
             // Verify the request signature matches the resolved community public key
             let resolvedPublicKey: string;
             try {
-                resolvedPublicKey = await resolveCommunityPublicKey(communityAddress, pkc);
+                if (communityAddress.includes(".")) {
+                    resolvedPublicKey = await resolveCommunityPublicKey(communityAddress, pkc);
+                } else {
+                    const derivedCommunityAddress = await getPKCAddressFromPublicKey(communityPublicKeyFromRequestBody);
+                    if (derivedCommunityAddress !== communityAddress) {
+                        const mismatchError = new Error("Request signature does not match community");
+                        (mismatchError as { statusCode?: number }).statusCode = 401;
+                        throw mismatchError;
+                    }
+                    resolvedPublicKey = communityPublicKeyFromRequestBody;
+                }
             } catch (error) {
+                if (error instanceof Error && error.message === "Request signature does not match community") {
+                    throw error;
+                }
                 const resolveError = new Error("Unable to resolve community address");
                 (resolveError as { statusCode?: number }).statusCode = 401;
                 throw resolveError;
@@ -241,7 +252,7 @@ export function registerEvaluateRoute(fastify: FastifyInstance, options: Evaluat
 
             // Calculate risk score using the risk-score module
             const riskScoreResult = calculateRiskScore({
-                challengeRequest: challengeRequest as DecryptedChallengeRequestMessageTypeWithCommunityAuthor,
+                challengeRequest: typedChallengeRequest,
                 db,
                 walletTransactionCounts,
                 enabledOAuthProviders,

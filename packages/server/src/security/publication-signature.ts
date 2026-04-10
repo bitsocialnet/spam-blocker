@@ -15,14 +15,14 @@ function getPublicationFromChallengeRequest(challengeRequest: DecryptedChallenge
 }
 
 /**
- * Strip author.community before signature verification.
- * The community adds author.community to the challenge request AFTER the author signs
+ * Strip community-added author metadata before signature verification.
+ * The community adds this data to the challenge request AFTER the author signs
  * the publication. Since author is a signed property, the extra field would cause
  * verification to fail because the CBOR bytes differ from what was originally signed.
  */
-function stripCommunityAuthorForVerification<T extends { author: { community?: unknown } }>(publication: T): T {
-    const { community: _, ...authorWithoutCommunity } = publication.author;
-    return { ...publication, author: authorWithoutCommunity } as T;
+function stripCommunityAuthorForVerification<T extends { author: { community?: unknown; subplebbit?: unknown } }>(publication: T): T {
+    const { community: _, subplebbit: __, ...authorWithoutCommunityMetadata } = publication.author;
+    return { ...publication, author: authorWithoutCommunityMetadata } as T;
 }
 
 /**

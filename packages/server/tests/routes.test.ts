@@ -30,6 +30,10 @@ const CommentSignedPropertyNames = [
     "postCid"
 ];
 
+const LegacyCommentSignedPropertyNames = CommentSignedPropertyNames.map((propertyName) =>
+    propertyName === "communityAddress" ? "subplebbitAddress" : propertyName
+);
+
 const VoteSignedPropertyNames = ["timestamp", "communityAddress", "author", "protocolVersion", "commentCid", "vote"];
 
 // Helper to create a properly signed publication signature (JSON format for publications)
@@ -74,6 +78,7 @@ let testPublicKey = "";
 let alternatePublicKey = "";
 let authorPublicKey = "";
 let authorPKCAddress = ""; // Derived from author's public key (B58 format)
+let testCommunityAddress = "";
 
 let testSigner = {
     privateKey: testPrivateKey,
@@ -95,6 +100,7 @@ beforeAll(async () => {
     testPublicKey = await getPublicKeyFromPrivateKey(testPrivateKey);
     alternatePublicKey = await getPublicKeyFromPrivateKey(alternatePrivateKey);
     authorPublicKey = await getPublicKeyFromPrivateKey(authorPrivateKey);
+    testCommunityAddress = await getPKCAddressFromPublicKey(testPublicKey);
     // Derive the pkc address from the author's public key (B58 peer ID format)
     authorPKCAddress = await getPKCAddressFromPublicKey(authorPublicKey);
     testSigner = {
@@ -149,6 +155,8 @@ const createEvaluatePayload = async ({
     omitCommunityAuthor = false,
     omitAuthorAddress = false,
     omitCommunityAddress = false,
+    useLegacyCommunityField = false,
+    useLegacyCommunityAuthorField = false,
     signer = testSigner,
     publicationSigner = authorSigner
 }: {
@@ -158,6 +166,8 @@ const createEvaluatePayload = async ({
     omitCommunityAuthor?: boolean;
     omitAuthorAddress?: boolean;
     omitCommunityAddress?: boolean;
+    useLegacyCommunityField?: boolean;
+    useLegacyCommunityAuthorField?: boolean;
     signer?: typeof testSigner;
     publicationSigner?: typeof authorSigner;
 } = {}) => {
@@ -175,15 +185,16 @@ const createEvaluatePayload = async ({
     // Build comment without signature first (no author.community)
     const commentWithoutSignature: Record<string, unknown> = {
         author: authorForSigning,
-        communityAddress: "test-sub.eth",
         timestamp: baseTimestamp,
         protocolVersion: "1",
         content: "Hello world",
+        ...(useLegacyCommunityField ? { subplebbitAddress: "test-sub.eth" } : { communityAddress: "test-sub.eth" }),
         ...commentOverrides
     };
 
     if (omitCommunityAddress) {
         delete commentWithoutSignature.communityAddress;
+        delete commentWithoutSignature.subplebbitAddress;
     }
 
     // Sign the publication properly (unless commentOverrides already has a signature)
@@ -191,16 +202,32 @@ const createEvaluatePayload = async ({
     if (commentOverrides.signature) {
         publicationSignature = commentOverrides.signature;
     } else {
-        publicationSignature = await signPublication(commentWithoutSignature, publicationSigner, CommentSignedPropertyNames);
+        publicationSignature = await signPublication(
+            commentWithoutSignature,
+            publicationSigner,
+            useLegacyCommunityField ? LegacyCommentSignedPropertyNames : CommentSignedPropertyNames
+        );
     }
 
     // After signing, add author.community (matches production flow where
     // the community adds this field after the author signs)
     let finalAuthor: Record<string, unknown> = { ...authorForSigning };
     if (!omitCommunityAuthor) {
-        finalAuthor.community = {
-            ...baseCommunityAuthor,
-            ...communityOverrides
+        finalAuthor = {
+            ...finalAuthor,
+            ...(useLegacyCommunityAuthorField
+                ? {
+                      subplebbit: {
+                          ...baseCommunityAuthor,
+                          ...communityOverrides
+                      }
+                  }
+                : {
+                      community: {
+                          ...baseCommunityAuthor,
+                          ...communityOverrides
+                      }
+                  })
         };
     }
 
@@ -391,6 +418,27 @@ describe("API Routes", () => {
         it("should accept publications without author.address in the PKC wire format", async () => {
             const payload = await createEvaluatePayload({
                 omitAuthorAddress: true
+            });
+
+            const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
+
+            expect(response.statusCode).toBe(200);
+        });
+
+        it("should accept publications signed with the legacy subplebbitAddress field", async () => {
+            const payload = await createEvaluatePayload({
+                useLegacyCommunityField: true
+            });
+
+            const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
+
+            expect(response.statusCode).toBe(200);
+        });
+
+        it("should accept publications with the legacy author.subplebbit field", async () => {
+            const payload = await createEvaluatePayload({
+                useLegacyCommunityField: true,
+                useLegacyCommunityAuthorField: true
             });
 
             const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
@@ -1036,7 +1084,7 @@ describe("allowNonDomainCommunities config", () => {
     });
 
     it("should accept IPNS-addressed community when allowNonDomainCommunities is true", async () => {
-        const getCommunity = vi.fn().mockResolvedValue({ signature: { publicKey: testSigner.publicKey } });
+        const getCommunity = vi.fn().mockRejectedValue(new Error("Should not resolve IPNS community"));
         setPkcLoaderForTest(async () => ({
             getCommunity,
             destroy: vi.fn().mockResolvedValue(undefined)
@@ -1052,12 +1100,13 @@ describe("allowNonDomainCommunities config", () => {
         await server.fastify.ready();
 
         const payload = await createEvaluatePayload({
-            commentOverrides: { communityAddress: "12D3KooWIPNSCommunity" }
+            commentOverrides: { communityAddress: testCommunityAddress }
         });
 
         const response = await injectCbor(server.fastify, "POST", "/api/v1/evaluate", payload);
 
         expect(response.statusCode).toBe(200);
+        expect(getCommunity).not.toHaveBeenCalled();
         const body = response.json();
         expect(body.riskScore).toBeDefined();
         expect(body.sessionId).toBeDefined();

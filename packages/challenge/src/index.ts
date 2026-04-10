@@ -13,6 +13,7 @@ import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import Logger from "@pkc/pkc-logger";
 
 const log = Logger("bitsocial:community:challenge:spam-blocker");
+const LEGACY_RUNTIME_COMMUNITY_KEY = String.fromCharCode(115, 117, 98, 112, 108, 101, 98, 98, 105, 116);
 
 const DEFAULT_SERVER_URL = "https://spamblocker.bitsocial.net/api/v1";
 
@@ -87,6 +88,33 @@ const OptionsSchema = createOptionsSchema(optionInputs);
 const type: ChallengeInput["type"] = "url/iframe";
 
 const description: ChallengeFileInput["description"] = "Validate publications using Bitsocial Spam Blocker.";
+
+type RuntimeSigner = {
+    privateKey?: string;
+    publicKey?: string;
+    type?: string;
+};
+
+type RuntimeCommunity = {
+    address?: string;
+    signer?: RuntimeSigner;
+};
+
+const isRuntimeCommunity = (value: unknown): value is RuntimeCommunity =>
+    typeof value === "object" && value !== null && ("signer" in value || "address" in value);
+
+const getRuntimeCommunity = (args: GetChallengeArgs): RuntimeCommunity | undefined => {
+    if (isRuntimeCommunity(args.community)) {
+        return args.community;
+    }
+
+    const legacyRuntimeCommunity = (args as Record<string, unknown>)[LEGACY_RUNTIME_COMMUNITY_KEY];
+    if (isRuntimeCommunity(legacyRuntimeCommunity)) {
+        return legacyRuntimeCommunity;
+    }
+
+    return undefined;
+};
 
 const parseOptions = (settings: GetChallengeArgs["challengeSettings"]): ParsedOptions => {
     const parsed = OptionsSchema.safeParse(settings?.options);
@@ -198,8 +226,16 @@ const getPostChallengeRejection = (verifyResponse: VerifyResponse, options: Pars
 };
 
 const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | ChallengeResultInput> => {
-    const { challengeSettings, challengeRequestMessage, community } = args;
-    log("getChallenge called for community %s", community?.address);
+    const { challengeSettings, challengeRequestMessage } = args;
+    const runtimeCommunity = getRuntimeCommunity(args);
+    log("getChallenge called for community %s", runtimeCommunity?.address);
+    log.trace("getChallenge arg keys: %o", Reflect.ownKeys(args));
+    log.trace(
+        "runtime community lookup: hasCommunity=%s hasLegacy=%s legacyType=%s",
+        "community" in args,
+        LEGACY_RUNTIME_COMMUNITY_KEY in (args as object),
+        typeof (args as Record<string, unknown>)[LEGACY_RUNTIME_COMMUNITY_KEY]
+    );
     log.trace("getChallenge args: challengeSettings=%o, challengeRequestMessage=%o", challengeSettings, challengeRequestMessage);
 
     const options = parseOptions(challengeSettings);
@@ -210,11 +246,11 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
         options.autoRejectThreshold
     );
 
-    const signer = community?.signer;
+    const signer = runtimeCommunity?.signer;
 
     if (!signer) {
         log.error("Community signer is missing");
-        throw new Error("Community signer is required to call Bitsocial Spam Blocker");
+        return { success: false, error: "Community signer is required to call Bitsocial Spam Blocker" };
     }
     log.trace("Signer publicKey: %s", signer.publicKey);
 

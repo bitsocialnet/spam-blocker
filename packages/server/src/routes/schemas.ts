@@ -42,7 +42,8 @@ const ChallengeRequestWithCommunityAuthorSchema = DecryptedChallengeRequestSchem
 
     // author.community is optional - it only exists for authors who have previously
     // published in this community. New authors won't have this field.
-    const communityAuthor = publication.author?.community;
+    // The legacy daemon still uses author.subplebbit for the same runtime-only metadata.
+    const communityAuthor = publication.author?.community ?? (publication.author as { subplebbit?: unknown } | undefined)?.subplebbit;
     if (communityAuthor) {
         const communityResult = CommunityAuthorSchema.safeParse(communityAuthor);
         if (!communityResult.success) {
