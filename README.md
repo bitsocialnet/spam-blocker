@@ -2,19 +2,28 @@
 
 ## Overview
 
-A centralized spam detection service that evaluates publications and provides risk scores to help communities filter spam. Consists of:
+A centralized spam detection service that evaluates publications and provides risk scores to help communities filter spam. This public workspace contains the integration packages:
 
-1. **HTTP Server** (`@bitsocial/spam-blocker-server`) - Risk assessment and challenge server
-2. **Challenge Package** (`@bitsocial/spam-blocker-challenge`) - package for community integration
+1. **Challenge Package** (`@bitsocial/spam-blocker-challenge`) - package for community integration
+2. **Shared Package** (`@bitsocial/spam-blocker-shared`) - shared schemas and response types used by the public integration surface
+
+## Licensing
+
+This monorepo uses package-specific licensing:
+
+- `packages/challenge`: `GPL-3.0-or-later`. This is the public challenge package for community integrations.
+- `packages/shared`: `MIT`. This is the permissive shared-types package intended to be reused by both private services and public integrations.
+
+The hosted Bitsocial spam blocker server implementation now lives in a separate private repository and is not included here. The repo root is marked `UNLICENSED` so the workspace metadata does not imply a single open-source license for the whole repository.
 
 ## Development Workflow
 
 Repo-specific AI workflow guidance lives in:
 
-- [`AGENTS.md`](/Users/Tommaso/Desktop/bitsocial/spam-blocker/AGENTS.md)
-- [`CLAUDE.md`](/Users/Tommaso/Desktop/bitsocial/spam-blocker/CLAUDE.md)
-- [`docs/agent-playbooks/hooks-setup.md`](/Users/Tommaso/Desktop/bitsocial/spam-blocker/docs/agent-playbooks/hooks-setup.md)
-- [`docs/agent-playbooks/skills-and-tools.md`](/Users/Tommaso/Desktop/bitsocial/spam-blocker/docs/agent-playbooks/skills-and-tools.md)
+- [`AGENTS.md`](./AGENTS.md)
+- [`CLAUDE.md`](./CLAUDE.md)
+- [`docs/agent-playbooks/hooks-setup.md`](./docs/agent-playbooks/hooks-setup.md)
+- [`docs/agent-playbooks/skills-and-tools.md`](./docs/agent-playbooks/skills-and-tools.md)
 
 The repo is intended to be worked with Corepack-managed Yarn and repo-managed agent hooks. See the playbooks for the recommended setup and verification flow.
 
@@ -26,8 +35,8 @@ Quick setup for a fresh machine:
 
 **Important:**
 
-- The HTTP server must import and use schemas from `pkc-js` to validate incoming challenge requests. This ensures type compatibility with `DecryptedChallengeRequestMessageTypeWithcommunityAuthor`.
-- The HTTP server must verify that the publication in the ChallengeRequest is correctly signed by the author.
+- `packages/shared` defines the public response schemas used by the challenge package and by hosted server integrations.
+- The hosted server implementation is private; this README documents the public integration contract exposed to the challenge package.
 
 ## Repository Structure
 
@@ -37,19 +46,6 @@ bitsocial-spam-blocker/
 ├── tsconfig.base.json
 ├── docs/                           # Agent playbooks and workflow notes
 ├── packages/
-│   ├── server/                     # HTTP server (Fastify + better-sqlite3)
-│   │   ├── src/
-│   │   │   ├── index.ts            # Entry point
-│   │   │   ├── routes/             # API endpoints
-│   │   │   ├── risk-score/         # Risk scoring factors and calculation
-│   │   │   ├── challenges/         # CAPTCHA providers (Turnstile, etc.)
-│   │   │   ├── challenge-iframes/  # Generated HTML iframes for challenges
-│   │   │   ├── oauth/              # OAuth provider configuration (arctic)
-│   │   │   ├── ip-intel/           # IP intelligence (ipapi.is)
-│   │   │   ├── security/           # Signature verification
-│   │   │   ├── db/                 # better-sqlite3 (no ORM)
-│   │   │   └── indexer/            # Background network indexer
-│   │   └── scripts/                # Scenario generation, etc.
 │   ├── challenge/                  # package for community owners
 │   │   └── src/
 │   │       └── index.ts            # ChallengeFileFactory
@@ -335,9 +331,7 @@ The challenge flow uses **server-side state tracking** - no tokens are passed fr
 
 The risk score is a value between 0.0 and 1.0 that indicates the likelihood a publication is spam or malicious. It's calculated as a weighted combination of multiple factors including account age, karma, author reputation, content analysis, velocity, and IP intelligence.
 
-For detailed documentation on how risk scoring works, including all factors, weights, and scoring logic, see:
-
-**[Risk Scoring Documentation](packages/server/src/risk-score/RISK_SCORING.md)**
+Detailed risk-scoring implementation notes live with the private server codebase. This public repo documents the exposed API contract and the public challenge/shared packages.
 
 ## Indexer
 
@@ -349,9 +343,7 @@ The server includes a background indexer that crawls the Bitsocial network to bu
 - Detects bans/removals by monitoring CommentUpdate availability
 - Provides network-wide author reputation data for risk scoring
 
-For detailed documentation on the indexer architecture and implementation, see:
-
-**[Indexer Documentation](packages/server/src/indexer/README.md)**
+Indexer implementation details live with the private server codebase.
 
 **Tier Thresholds (configurable per community via challenge options):**
 
@@ -631,7 +623,7 @@ These settings are configured on the HTTP server, not in the challenge package:
 - IP intelligence lookups are sent to ipapi.is when enabled
 - OAuth identity (provider:userId) is stored server-side but never shared with communities
 - All data is visible to the server operator
-- Open source for auditability
+- Public integration contract documented here; hosted implementation is private
 - Explanation field shows reasoning for scores
 
 ## Known Limitations
@@ -641,36 +633,13 @@ These settings are configured on the HTTP server, not in the challenge package:
 - IP intelligence fields are optional and may be removed from the engine response in the future; challenge code only applies IP filtering options when they are present
 - IP-based options are intentionally rejection-only; we do not support IP-derived auto-approval (e.g., a country whitelist), because it is easy to game and can be used to flood a community
 
-## Implementation Steps
-
-1. **Setup monorepo** with Yarn workspaces, TypeScript, ESM
-2. **Implement shared types** package
-3. **Build server**:
-    - Fastify setup with routes
-    - better-sqlite3 database
-    - Import pkc-js schemas for validation
-    - Risk scoring with weighted factors
-    - Ed25519 request signature verification
-    - Turnstile integration
-    - OAuth providers (arctic)
-    - Challenge iframe generation (CAPTCHA-first with score-based OAuth gating)
-    - IP intelligence (ipapi.is)
-    - Background network indexer
-4. **Build challenge package**:
-    - ChallengeFileFactory implementation
-    - HTTP client for server communication
-5. **Testing**: Unit tests, integration tests with bitsocial-js
-6. **Documentation**: README, API docs, risk score scenarios, agent playbooks
-
 ## Verification Plan
 
-1. Run server locally: `cd packages/server && DATABASE_PATH=spam_detection.db corepack yarn dev`
-2. Test /evaluate endpoint with `{ challengeRequest: DecryptedChallengeRequestMessageTypeWithcommunityAuthor }`
-3. Test iframe flow using challengeUrl from /evaluate response
-4. Test /challenge/verify with valid and invalid tokens
-5. Test post-challenge filtering (country blacklist, VPN blocking, etc.)
-6. Integrate challenge package with local pkc-js community
-7. Verify full end-to-end flow
+1. Build the public packages with `corepack yarn build`
+2. Type-check the public packages with `corepack yarn type-check`
+3. Run the challenge-package tests with `corepack yarn test`
+4. Integrate the challenge package with a server instance that implements the API contract documented in this README
+5. Verify end-to-end flow against a local or hosted private server deployment
 
 ## Reference Files
 

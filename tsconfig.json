@@ -1,4 +1,4 @@
 {
     "files": [],
-    "references": [{ "path": "./packages/shared" }, { "path": "./packages/server" }, { "path": "./packages/challenge" }]
+    "references": [{ "path": "./packages/shared" }, { "path": "./packages/challenge" }]
 }

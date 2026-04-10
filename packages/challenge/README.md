@@ -43,3 +43,7 @@ Then add or edit the `challenges` array in your community settings to include th
     - **Above `autoRejectThreshold`**: The publication is automatically rejected.
     - **Between thresholds**: The user is presented with an interactive challenge (iframe). Upon completion, the server's `/challenge/verify` endpoint confirms whether the user passed.
 4. After challenge verification, additional IP-based policies (country, VPN, proxy, Tor, datacenter blocking) are applied if configured.
+
+## License
+
+`@bitsocial/spam-blocker-challenge` is licensed under `GPL-3.0-or-later`. See [`LICENSE`](./LICENSE).
