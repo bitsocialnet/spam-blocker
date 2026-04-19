@@ -10,7 +10,7 @@ import { EvaluateResponseSchema, VerifyResponseSchema } from "@bitsocial/spam-bl
 import { createOptionsSchema, type ParsedOptions } from "./schema.js";
 import * as cborg from "cborg";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
-import Logger from "@pkc/pkc-logger";
+import Logger from "@pkcprotocol/pkc-logger";
 
 const log = Logger("bitsocial:community:challenge:spam-blocker");
 const LEGACY_RUNTIME_COMMUNITY_KEY = String.fromCharCode(115, 117, 98, 112, 108, 101, 98, 98, 105, 116);

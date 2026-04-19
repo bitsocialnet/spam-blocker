@@ -20,7 +20,6 @@ jobs:
             - uses: actions/setup-node@v4
               with:
                   node-version: 22
-                  registry-url: https://registry.npmjs.org
 
             - run: corepack enable
 
@@ -51,8 +50,9 @@ jobs:
             - name: Release challenge
               if: steps.challenge-changes.outputs.has_changes == 'true'
               working-directory: packages/challenge
-              run: corepack yarn exec release-it --ci --config .release-it.json
+              run: |
+                  RELEASE_IT=$(corepack yarn --cwd ../.. bin release-it)
+                  "$RELEASE_IT" --ci --config .release-it.json
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   HUSKY: "0"

@@ -1,7 +1,15 @@
 {
     "name": "@bitsocial/spam-blocker-challenge",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "description": "Bitsocial Spam Blocker challenge implementation for PKC",
+    "keywords": [
+        "bitsocial",
+        "pkc",
+        "challenge",
+        "spam",
+        "moderation"
+    ],
+    "author": "Bitsocial Labs",
     "license": "GPL-3.0-or-later",
     "type": "module",
     "engines": {
@@ -15,6 +23,11 @@
     ],
     "publishConfig": {
         "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/bitsocialnet/spam-blocker.git",
+        "directory": "packages/challenge"
     },
     "exports": {
         ".": {
@@ -32,8 +45,8 @@
     },
     "dependencies": {
         "@noble/ed25519": "1.7.5",
-        "@pkc/pkc-logger": "https://github.com/pkcprotocol/pkc-logger.git",
-        "@pkcprotocol/pkc-js": "https://github.com/pkcprotocol/pkc-js.git#e63026e6cd33df5af3a3b5e6473b1e364d89fbdb",
+        "@pkcprotocol/pkc-js": "0.0.18",
+        "@pkcprotocol/pkc-logger": "0.1.0",
         "cborg": "4.3.2",
         "i18n-iso-countries": "7.14.0",
         "multiformats": "9.9.0",
@@ -44,5 +57,6 @@
         "esbuild": "0.27.2",
         "typescript": "6.0.2",
         "vitest": "4.0.16"
-    }
+    },
+    "packageManager": "yarn@4.13.0"
 }

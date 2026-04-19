@@ -1,0 +1,58 @@
+name: Publish @bitsocial/spam-blocker-challenge to npm
+
+on:
+    push:
+        tags:
+            - "challenge-v*"
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22.14.0"
+                  registry-url: "https://registry.npmjs.org"
+
+            - run: corepack enable
+
+            - name: Upgrade npm for trusted publishing
+              run: npm install -g npm@11
+
+            - name: Install dependencies
+              run: corepack yarn install --immutable
+
+            - name: Build
+              run: corepack yarn build
+
+            - name: Type-check
+              run: corepack yarn type-check
+
+            - name: Test challenge
+              run: corepack yarn workspace @bitsocial/spam-blocker-challenge test
+
+            - name: Check if version already published
+              id: check_version
+              run: |
+                  PACKAGE_VERSION=$(node -p "require('./packages/challenge/package.json').version")
+                  if npm view @bitsocial/spam-blocker-challenge@$PACKAGE_VERSION version 2>/dev/null; then
+                    echo "Version $PACKAGE_VERSION already exists on npm, skipping publish"
+                    echo "exists=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "Version $PACKAGE_VERSION not found on npm, will publish"
+                    echo "exists=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Publish to npm
+              if: steps.check_version.outputs.exists == 'false'
+              working-directory: packages/challenge
+              run: npm publish --access public --provenance

@@ -37,7 +37,7 @@
         }
     },
     "dependencies": {
-        "@pkcprotocol/pkc-js": "https://github.com/pkcprotocol/pkc-js.git#e63026e6cd33df5af3a3b5e6473b1e364d89fbdb"
+        "@pkcprotocol/pkc-js": "0.0.18"
     },
     "overrides": {
         "@pkcprotocol/pkc-js": "$@pkcprotocol/pkc-js",
