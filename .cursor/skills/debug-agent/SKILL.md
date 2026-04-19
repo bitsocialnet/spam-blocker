@@ -1,10 +1,10 @@
 ---
 name: debug-agent
 description: >-
-  Systematic evidence-based debugging using runtime logs. Generates hypotheses,
-  instruments code with NDJSON logs, guides reproduction, analyzes log evidence,
-  and iterates until root cause is proven with cited log lines. Use when the
-  user reports a bug, unexpected behavior, or asks to debug an issue.
+    Systematic evidence-based debugging using runtime logs. Generates hypotheses,
+    instruments code with NDJSON logs, guides reproduction, analyzes log evidence,
+    and iterates until root cause is proven with cited log lines. Use when the
+    user reports a bug, unexpected behavior, or asks to debug an issue.
 ---
 
 # Debug Mode
@@ -19,10 +19,10 @@ They guess based on code alone. You **cannot** and **must NOT** fix bugs this wa
 1. **Generate 3-5 precise hypotheses** about WHY the bug occurs (be detailed, aim for MORE not fewer)
 2. **Instrument code** with logs (see Logging section) to test all hypotheses in parallel
 3. **Reproduce the bug.**
-   - **If a failing test already exists**: run it directly.
-   - **If reproduction is straightforward** (e.g., a single CLI command, a curl request, a simple script): write and run an ad hoc reproduction script yourself. Tailor it to the runtime — Playwright/Puppeteer for browser bugs, a Node/Python/shell script for backend bugs, etc.
-   - **Otherwise**: ask the user to reproduce it. Provide clear, numbered steps. Remind them to restart apps/services if instrumented files are cached or bundled. Offer: "If you'd like me to write a reproduction script instead, let me know."
-   - Once the user confirms a reproduction pathway (manual or automated), reuse it for all subsequent iterations without re-asking.
+    - **If a failing test already exists**: run it directly.
+    - **If reproduction is straightforward** (e.g., a single CLI command, a curl request, a simple script): write and run an ad hoc reproduction script yourself. Tailor it to the runtime — Playwright/Puppeteer for browser bugs, a Node/Python/shell script for backend bugs, etc.
+    - **Otherwise**: ask the user to reproduce it. Provide clear, numbered steps. Remind them to restart apps/services if instrumented files are cached or bundled. Offer: "If you'd like me to write a reproduction script instead, let me know."
+    - Once the user confirms a reproduction pathway (manual or automated), reuse it for all subsequent iterations without re-asking.
 4. **Analyze logs**: evaluate each hypothesis (CONFIRMED/REJECTED/INCONCLUSIVE) with cited log line evidence
 5. **Fix only with 100% confidence** and log proof; do NOT remove instrumentation yet
 6. **Verify with logs**: ask user to run again, compare before/after logs with cited entries
@@ -52,10 +52,10 @@ The command prints a single JSON line to stdout and exits:
 
 ```json
 {
-  "sessionId": "a1b2c3",
-  "port": 54321,
-  "endpoint": "http://127.0.0.1:54321/ingest/a1b2c3",
-  "logPath": "/tmp/debug-agent/debug-a1b2c3.log"
+    "sessionId": "a1b2c3",
+    "port": 54321,
+    "endpoint": "http://127.0.0.1:54321/ingest/a1b2c3",
+    "logPath": "/tmp/debug-agent/debug-a1b2c3.log"
 }
 ```
 
@@ -81,14 +81,14 @@ Example log entry:
 
 ```json
 {
-  "sessionId": "a1b2c3",
-  "id": "log_1733456789_abc",
-  "timestamp": 1733456789000,
-  "location": "test.js:42",
-  "message": "User score",
-  "data": { "userId": 5, "score": 85 },
-  "runId": "run1",
-  "hypothesisId": "A"
+    "sessionId": "a1b2c3",
+    "id": "log_1733456789_abc",
+    "timestamp": 1733456789000,
+    "location": "test.js:42",
+    "message": "User score",
+    "data": { "userId": 5, "score": 85 },
+    "runId": "run1",
+    "hypothesisId": "A"
 }
 ```
 
@@ -103,24 +103,24 @@ fetch('ENDPOINT',{method:'POST',headers:{'Content-Type':'application/json'},body
 - In **non-JavaScript languages** (Python, Go, Rust, Java, C, C++, Ruby), instrument by opening the **log path** in append mode using standard library file I/O, writing a single NDJSON line with your payload, and then closing the file. Keep these snippets as tiny and compact as possible (ideally one line, or just a few).
 
 - Decide how many instrumentation logs to insert based on the complexity of the code under investigation and the hypotheses you are testing. A single well-placed log may be enough when the issue is highly localized; complex multi-step flows may need more. Aim for the minimum number that can confirm or reject ALL your hypotheses. Guidelines:
-  - At least 1 log is required; never skip instrumentation entirely
-  - Do not exceed 10 logs — if you think you need more, narrow your hypotheses first
-  - Typical range is 2-6 logs, but use your judgment
+    - At least 1 log is required; never skip instrumentation entirely
+    - Do not exceed 10 logs — if you think you need more, narrow your hypotheses first
+    - Typical range is 2-6 logs, but use your judgment
 
 - Choose log placements from these categories as relevant to your hypotheses:
-  - Function entry with parameters
-  - Function exit with return values
-  - Values BEFORE critical operations
-  - Values AFTER critical operations
-  - Branch execution paths (which if/else executed)
-  - Suspected error/edge case values
-  - State mutations and intermediate values
+    - Function entry with parameters
+    - Function exit with return values
+    - Values BEFORE critical operations
+    - Values AFTER critical operations
+    - Branch execution paths (which if/else executed)
+    - Suspected error/edge case values
+    - State mutations and intermediate values
 
 - Each log must map to at least one hypothesis (include `hypothesisId` in payload).
 - Use this payload structure: `{sessionId, runId, hypothesisId, location, message, data, timestamp}`
 - **REQUIRED:** Wrap EACH debug log in a collapsible code region:
-  - Use language-appropriate region syntax (e.g., `// #region debug log`, `// #endregion` for JS/TS)
-  - This keeps the editor clean by auto-folding debug instrumentation
+    - Use language-appropriate region syntax (e.g., `// #region debug log`, `// #endregion` for JS/TS)
+    - This keeps the editor clean by auto-folding debug instrumentation
 - **FORBIDDEN:** Logging secrets (tokens, passwords, API keys, PII)
 
 ### STEP 3: Clear previous log file before each run (MANDATORY)
