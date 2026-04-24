@@ -2,17 +2,41 @@
 
 A Bitsocial challenge plugin that protects communities from spam by evaluating publication risk scores and optionally presenting an interactive challenge to users.
 
-## Installation
+## Using Spam Blocker In Your Community
 
-Install the challenge using the Bitsocial CLI:
+Community owners add the spam blocker challenge to their community settings. When enabled, every publication is evaluated by the Bitsocial Spam Blocker server. Low-risk publications are accepted, high-risk publications are rejected, and medium-risk publications get an iframe challenge.
+
+First install the challenge on the Bitsocial server:
 
 ```bash
 bitsocial challenge install @bitsocial/spam-blocker-challenge
 ```
 
+Then set it on your community with one command:
+
+```bash
+bitsocial community edit your-community.bso '--settings.challenges[0].name' @bitsocial/spam-blocker-challenge
+```
+
+That uses the hosted Bitsocial Spam Blocker server and the default thresholds.
+
+To customize thresholds or IP-based rejection rules, pass options in the same command:
+
+```bash
+bitsocial community edit your-community.bso \
+  '--settings.challenges[0].name' @bitsocial/spam-blocker-challenge \
+  '--settings.challenges[0].options.autoAcceptThreshold' '0.2' \
+  '--settings.challenges[0].options.autoRejectThreshold' '0.8' \
+  '--settings.challenges[0].options.countryBlacklist' 'RU,CN,KP' \
+  '--settings.challenges[0].options.blockVpn' 'true' \
+  '--settings.challenges[0].options.blockTor' 'true'
+```
+
+All option values should be strings.
+
 ## Configuration
 
-Configure the challenge for your community using the CLI:
+You can also open your community settings interactively:
 
 ```bash
 bitsocial community edit
