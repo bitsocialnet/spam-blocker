@@ -1,6 +1,6 @@
 {
     "name": "@bitsocial/spam-blocker-challenge",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Bitsocial Spam Blocker challenge implementation for PKC",
     "keywords": [
         "bitsocial",
