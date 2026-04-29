@@ -4,7 +4,7 @@ A Bitsocial challenge plugin that protects communities from spam by evaluating p
 
 ## Using Spam Blocker In Your Community
 
-Community owners add the spam blocker challenge to their community settings. When enabled, every publication is evaluated by the Bitsocial Spam Blocker server. Low-risk publications are accepted, high-risk publications are rejected, and medium-risk publications get an iframe challenge.
+Community owners add the spam blocker challenge to their community settings. When enabled, user-generated publications are evaluated by the Bitsocial Spam Blocker server. Low-risk publications are accepted, high-risk publications are rejected, and medium-risk publications get an iframe challenge. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted locally because they do not require spam detection.
 
 First install the challenge on the Bitsocial server:
 
@@ -60,13 +60,14 @@ Then add or edit the `challenges` array in your community settings to include th
 
 ## How It Works
 
-1. When a user publishes to a community, the challenge sends the publication to the spam blocker server's `/evaluate` endpoint.
+1. When a user publishes a post, reply, or vote to a community, the challenge sends the publication to the spam blocker server's `/evaluate` endpoint.
 2. The server returns a **risk score** between 0 and 1.
 3. Based on the configured thresholds:
     - **Below `autoAcceptThreshold`**: The publication is automatically accepted.
     - **Above `autoRejectThreshold`**: The publication is automatically rejected.
     - **Between thresholds**: The user is presented with an interactive challenge (iframe). Upon completion, the server's `/challenge/verify` endpoint confirms whether the user passed.
 4. After challenge verification, additional IP-based policies (country, VPN, proxy, Tor, datacenter blocking) are applied if configured.
+5. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted without calling `/evaluate`.
 
 ## License
 

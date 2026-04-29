@@ -396,7 +396,7 @@ An opt-in pre-check that hard-rejects publications (HTTP 429) when an author exc
 | vote          | 10     | 200     |
 | **aggregate** | **40** | **250** |
 
-Check order: per-type hourly → per-type daily → aggregate hourly → aggregate daily. Only user-generated content (posts, replies, votes) is rate-limited. community-level actions (commentEdit, commentModeration, communityEdit) are rejected by the evaluate endpoint since they don't require spam detection.
+Check order: per-type hourly → per-type daily → aggregate hourly → aggregate daily. Only user-generated content (posts, replies, votes) is rate-limited. The challenge package accepts community-level actions (commentEdit, commentModeration, communityEdit) without calling the evaluate endpoint since they don't require spam detection.
 
 ## Challenge Verification
 
@@ -547,7 +547,7 @@ field from its internal database of author history, so new authors won't have it
 
 **Post-challenge filtering:** After a user completes a challenge, the `/verify` response includes IP intelligence data. The challenge code uses the above options to reject publications even after successful challenge completion (e.g., if the user is from a blacklisted country or using a VPN).
 
-**Error Handling:** If the server is unreachable, the challenge code throws an error (does not silently accept or reject). This ensures the community owner is notified of issues.
+**Error Handling:** If the server is unreachable, the challenge code returns a failed challenge result instead of silently accepting or rejecting user-generated content. Community-level actions are accepted locally without contacting the server.
 
 **Privacy of options:** The `options` object (including `serverUrl` and all threshold/filtering settings) is **not** exposed in the public `community.challenges` IPFS record. bitsocial-js strips `options` when computing the public `communityChallenge` from `communityChallengeSetting`, so only `type`, `description`, and `exclude` are published. This means the server URL, thresholds, and filtering rules remain private to the community operator.
 
@@ -611,7 +611,7 @@ These settings are configured on the HTTP server, not in the challenge package:
 - **Primary Challenge Provider:** Cloudflare Turnstile (free, privacy-friendly)
 - **Challenge Model:** CAPTCHA-first with score-based OAuth gating (CAPTCHA always required; OAuth only if score remains too high after adjustment)
 - **OAuth Library:** Arctic (lightweight, supports many providers)
-- **Error Handling:** Always throw on server errors (no silent failures)
+- **Error Handling:** Return failed challenge results on server errors (no silent failures)
 - **IP Storage:** Raw IPs stored (not hashed) for accurate analysis
 - **IP Intelligence:** ipapi.is (external HTTP API, best-effort, works without API key)
 - **Ephemeral Sessions:** Challenge sessions auto-purge after 1 hour

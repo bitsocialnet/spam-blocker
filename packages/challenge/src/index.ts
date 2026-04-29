@@ -100,6 +100,11 @@ type RuntimeCommunity = {
     signer?: RuntimeSigner;
 };
 
+const communityLevelActionKeys = ["commentEdit", "commentModeration", "communityEdit"] as const;
+
+const isCommunityLevelActionRequest = (challengeRequestMessage: GetChallengeArgs["challengeRequestMessage"]) =>
+    communityLevelActionKeys.some((key) => Boolean(challengeRequestMessage[key]));
+
 const isRuntimeCommunity = (value: unknown): value is RuntimeCommunity =>
     typeof value === "object" && value !== null && ("signer" in value || "address" in value);
 
@@ -237,6 +242,11 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
         typeof (args as Record<string, unknown>)[LEGACY_RUNTIME_COMMUNITY_KEY]
     );
     log.trace("getChallenge args: challengeSettings=%o, challengeRequestMessage=%o", challengeSettings, challengeRequestMessage);
+
+    if (isCommunityLevelActionRequest(challengeRequestMessage)) {
+        log("Auto-accepting community-level action without spam evaluation");
+        return { success: true };
+    }
 
     const options = parseOptions(challengeSettings);
     log(

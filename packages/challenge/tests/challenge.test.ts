@@ -142,6 +142,25 @@ describe("Bitsocial Spam Blocker challenge package", () => {
         );
     });
 
+    it.each(["commentEdit", "commentModeration", "communityEdit"] as const)(
+        "auto-accepts %s requests without spam evaluation",
+        async (publicationType) => {
+            const fetchMock = vi.fn();
+            vi.stubGlobal("fetch", fetchMock);
+            const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
+
+            const result = await challengeFile.getChallenge({
+                challengeSettings: { options: {} } as CommunityChallengeSetting,
+                challengeRequestMessage: { [publicationType]: {} } as unknown as DecryptedChallengeRequestMessageTypeWithCommunityAuthor,
+                challengeIndex: 0,
+                community
+            });
+
+            expect(result).toEqual({ success: true });
+            expect(fetchMock).not.toHaveBeenCalled();
+        }
+    );
+
     it("auto-rejects when riskScore meets the reject threshold", async () => {
         const fetchMock = stubFetch(createResponse(createEvaluateResponse({ riskScore: 0.8, explanation: "Too risky" })));
         const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
