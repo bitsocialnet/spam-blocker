@@ -1,6 +1,7 @@
 name: Publish @bitsocial/spam-blocker-challenge to npm
 
 on:
+    workflow_dispatch:
     push:
         tags:
             - "challenge-v*"
