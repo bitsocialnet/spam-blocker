@@ -39,7 +39,7 @@ jobs:
                   if [ -z "$LAST_TAG" ]; then
                     echo "has_changes=true" >> "$GITHUB_OUTPUT"
                   else
-                    CHANGES=$(git diff --name-only "$LAST_TAG"..HEAD -- packages/challenge/ packages/shared/)
+                    CHANGES=$(git diff --name-only "$LAST_TAG"..HEAD -- packages/challenge/ packages/shared/ | grep -v '^packages/challenge/CHANGELOG.md$' || true)
                     if [ -n "$CHANGES" ]; then
                       echo "has_changes=true" >> "$GITHUB_OUTPUT"
                     else
