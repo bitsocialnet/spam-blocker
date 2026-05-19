@@ -1,6 +1,6 @@
 ---
 name: code-quality
-model: composer-2
+model: composer-2.5-fast
 description: Code quality specialist that runs build, type-check, test, and formatting checks, then fixes any issues found.
 ---
 

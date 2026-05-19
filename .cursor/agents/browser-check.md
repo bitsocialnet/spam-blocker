@@ -1,6 +1,6 @@
 ---
 name: browser-check
-model: composer-2
+model: composer-2.5-fast
 description: Verifies local server routes in the browser using playwright-cli.
 ---
 

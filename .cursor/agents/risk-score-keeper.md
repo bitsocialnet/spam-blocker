@@ -1,6 +1,6 @@
 ---
 name: risk-score-keeper
-model: composer-2
+model: composer-2.5-fast
 description: Maintains risk scoring changes and scenario regeneration for the server.
 ---
 

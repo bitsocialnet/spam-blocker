@@ -1,6 +1,6 @@
 ---
 name: plan-implementer
-model: composer-2
+model: composer-2.5-fast
 description: Implements assigned backend tasks from a parent plan. Receives specific tasks from the parent agent, implements them sequentially, verifies with a build check, and reports back.
 ---
 
