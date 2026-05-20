@@ -12,6 +12,7 @@
     ],
     "scripts": {
         "build": "yarn workspace @bitsocial/spam-blocker-shared build && yarn workspace @bitsocial/spam-blocker-challenge build",
+        "llms:generate": "node scripts/generate-llms-files.mjs",
         "test": "yarn workspace @bitsocial/spam-blocker-challenge test",
         "type-check": "yarn workspace @bitsocial/spam-blocker-shared type-check && yarn workspace @bitsocial/spam-blocker-challenge type-check",
         "format": "prettier --write .",

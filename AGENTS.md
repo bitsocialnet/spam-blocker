@@ -29,6 +29,21 @@ Public integration surface for the Bitsocial spam blocker. This repo contains th
 - Clean up only artifacts created by the current change, such as newly unused imports or dead helper code.
 - For non-trivial work, define success criteria and verify them with the narrowest reliable checks before marking the task complete.
 
+## LLM Knowledge Base Policy
+
+Use compiled context for orientation, not as source of truth.
+
+Source of truth:
+
+- Code, tests, package manifests, docs, and runtime/live evidence when relevant.
+
+Compiled context:
+
+- `AGENTS.md`, directory-specific `AGENTS.md` files, `CLAUDE.md`, and repo-managed `.codex/`, `.cursor/`, and `.claude/` workflow files.
+- `docs/agent-playbooks/**`, `docs/agent-runs/**`, `docs/agent-playbooks/known-surprises.md`, and tracked `llms.txt` / `llms-full.txt` files when present.
+
+Agents may use compiled context to navigate quickly, but must verify against source files before making behavioral claims or edits. External code graph, RAG, MCP, or wiki tools are optional local accelerators unless the developer explicitly asks to make one part of the committed workflow.
+
 ## Task Router
 
 | Situation                                  | Action                                                                                                                     |
@@ -39,6 +54,7 @@ Public integration surface for the Bitsocial spam blocker. This repo contains th
 | New feature added                          | Add vitest coverage                                                                                                        |
 | Shared schema changed                      | Keep it in `packages/shared`                                                                                               |
 | README drifts from implementation          | Update `README.md`                                                                                                         |
+| Public docs or AI context changed          | Run `corepack yarn llms:generate`; inspect and commit any resulting changes to `llms*.txt` so LLM indexes stay current     |
 | Hidden AI workflow files change            | Keep the repo-managed AI workflow surfaces aligned                                                                         |
 | Long-running or multi-session task started | Track state under `docs/agent-runs/<slug>/` using the long-running workflow playbook                                       |
 | GitHub operation needed                    | Use `gh` CLI, not GitHub MCP                                                                                               |
