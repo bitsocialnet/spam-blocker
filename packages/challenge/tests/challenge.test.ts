@@ -424,13 +424,15 @@ describe("Bitsocial Spam Blocker challenge package", () => {
         const pkcJsChallengesPath = path.join(pkcJsDir, "runtime/node/community/challenges/index.js");
         const { getCommunityChallengeFromCommunityChallengeSettings } = await import(pathToFileURL(pkcJsChallengesPath).href);
 
-        const publicChallenge = await getCommunityChallengeFromCommunityChallengeSettings({
-            path: challengePath,
-            options: {
-                serverUrl: "https://secret-server.example.com/api/v1",
-                autoAcceptThreshold: "0.3",
-                autoRejectThreshold: "0.9",
-                countryBlacklist: "RU,CN"
+        const { communityChallenge: publicChallenge } = await getCommunityChallengeFromCommunityChallengeSettings({
+            communityChallengeSettings: {
+                path: challengePath,
+                options: {
+                    serverUrl: "https://secret-server.example.com/api/v1",
+                    autoAcceptThreshold: "0.3",
+                    autoRejectThreshold: "0.9",
+                    countryBlacklist: "RU,CN"
+                }
             }
         });
 

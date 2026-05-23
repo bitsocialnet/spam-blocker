@@ -1,30 +1,30 @@
 {
-  "title": "Bitsocial Spam Blocker",
-  "summary": "Bitsocial Spam Blocker provides the public challenge package and shared schemas for Bitsocial spam risk checks.",
-  "repoUrl": "https://github.com/bitsocialnet/spam-blocker",
-  "llmsUrl": "https://github.com/bitsocialnet/spam-blocker/blob/master/llms.txt",
-  "llmsFullUrl": "https://github.com/bitsocialnet/spam-blocker/blob/master/llms-full.txt",
-  "shortOutputs": ["llms.txt"],
-  "fullOutputs": ["llms-full.txt"],
-  "links": [
-    ["Repository", "https://github.com/bitsocialnet/spam-blocker"],
-    ["Challenge package", "https://www.npmjs.com/package/@bitsocial/spam-blocker-challenge"],
-    ["Bitsocial protocol", "https://bitsocial.net"]
-  ],
-  "notes": [
-    "This repo contains public integration code; hosted private server behavior lives outside this repository.",
-    "packages/shared owns shared schemas and packages/challenge owns the PKC challenge integration.",
-    "Generated llms files are compiled context for AI contributors, not runtime authority."
-  ],
-  "docs": [
-    "README.md",
-    "AGENTS.md",
-    "packages/challenge/README.md",
-    "packages/shared/README.md",
-    "docs/agent-playbooks/known-surprises.md",
-    "docs/agent-playbooks/long-running-agent-workflow.md",
-    "docs/agent-playbooks/bug-investigation.md",
-    "docs/agent-playbooks/skills-and-tools.md"
-  ],
-  "optionalDocs": ["packages/challenge/CHANGELOG.md"]
+    "title": "Bitsocial Spam Blocker",
+    "summary": "Bitsocial Spam Blocker provides the public challenge package and shared schemas for Bitsocial spam risk checks.",
+    "repoUrl": "https://github.com/bitsocialnet/spam-blocker",
+    "llmsUrl": "https://github.com/bitsocialnet/spam-blocker/blob/master/llms.txt",
+    "llmsFullUrl": "https://github.com/bitsocialnet/spam-blocker/blob/master/llms-full.txt",
+    "shortOutputs": ["llms.txt"],
+    "fullOutputs": ["llms-full.txt"],
+    "links": [
+        ["Repository", "https://github.com/bitsocialnet/spam-blocker"],
+        ["Challenge package", "https://www.npmjs.com/package/@bitsocial/spam-blocker-challenge"],
+        ["Bitsocial protocol", "https://bitsocial.net"]
+    ],
+    "notes": [
+        "This repo contains public integration code; hosted private server behavior lives outside this repository.",
+        "packages/shared owns shared schemas and packages/challenge owns the PKC challenge integration.",
+        "Generated llms files are compiled context for AI contributors, not runtime authority."
+    ],
+    "docs": [
+        "README.md",
+        "AGENTS.md",
+        "packages/challenge/README.md",
+        "packages/shared/README.md",
+        "docs/agent-playbooks/known-surprises.md",
+        "docs/agent-playbooks/long-running-agent-workflow.md",
+        "docs/agent-playbooks/bug-investigation.md",
+        "docs/agent-playbooks/skills-and-tools.md"
+    ],
+    "optionalDocs": ["packages/challenge/CHANGELOG.md"]
 }

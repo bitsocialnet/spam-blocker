@@ -197,15 +197,8 @@ const parseWithSchema = <T>(schema: { parse: (data: unknown) => T }, data: unkno
 
 const toBase64Url = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64url");
 
-const createLazyChallengeUrl = ({
-    serverUrl,
-    sessionId,
-    payload
-}: {
-    serverUrl: string;
-    sessionId: string;
-    payload: unknown;
-}) => `${serverUrl}/iframe/${encodeURIComponent(sessionId)}/lazy#payload=${toBase64Url(cborg.encode(payload))}`;
+const createLazyChallengeUrl = ({ serverUrl, sessionId, payload }: { serverUrl: string; sessionId: string; payload: unknown }) =>
+    `${serverUrl}/iframe/${encodeURIComponent(sessionId)}/lazy#payload=${toBase64Url(cborg.encode(payload))}`;
 
 const formatRiskScore = (riskScore: number) => {
     if (!Number.isFinite(riskScore)) return String(riskScore);
