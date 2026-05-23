@@ -26,6 +26,26 @@ export const IsoCountryCodeSchema = z
         message: "Unknown ISO 3166-1 alpha-2 country code"
     });
 
+export const EvaluationOptionsSchema = z
+    .object({
+        autoAcceptThreshold: UnitIntervalSchema.optional(),
+        autoRejectThreshold: UnitIntervalSchema.optional()
+    })
+    .strict()
+    .superRefine((value, ctx) => {
+        if (
+            value.autoAcceptThreshold !== undefined &&
+            value.autoRejectThreshold !== undefined &&
+            value.autoAcceptThreshold > value.autoRejectThreshold
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "autoAcceptThreshold must be less than or equal to autoRejectThreshold",
+                path: ["autoAcceptThreshold"]
+            });
+        }
+    });
+
 export const EvaluateResponseSchema = z.object({
     riskScore: UnitIntervalSchema,
     explanation: z.string().optional(),
@@ -45,5 +65,6 @@ export const VerifyResponseSchema = z.object({
     ipTypeEstimation: z.string().optional()
 });
 
+export type EvaluationOptions = z.infer<typeof EvaluationOptionsSchema>;
 export type EvaluateResponse = z.infer<typeof EvaluateResponseSchema>;
 export type VerifyResponse = z.infer<typeof VerifyResponseSchema>;

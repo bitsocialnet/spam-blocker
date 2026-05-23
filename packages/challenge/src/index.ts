@@ -5,11 +5,12 @@ import type {
     GetChallengeArgs
 } from "@pkcprotocol/pkc-js/dist/node/community/types.js";
 import { signBufferEd25519 } from "./pkc-js-signer.js";
-import type { EvaluateResponse, VerifyResponse } from "@bitsocial/spam-blocker-shared";
-import { EvaluateResponseSchema, VerifyResponseSchema } from "@bitsocial/spam-blocker-shared";
+import type { EvaluationOptions, VerifyResponse } from "@bitsocial/spam-blocker-shared";
+import { VerifyResponseSchema } from "@bitsocial/spam-blocker-shared";
 import { createOptionsSchema, type ParsedOptions } from "./schema.js";
 import * as cborg from "cborg";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import { randomUUID } from "node:crypto";
 import Logger from "@pkcprotocol/pkc-logger";
 
 const log = Logger("bitsocial:community:challenge:spam-blocker");
@@ -194,6 +195,18 @@ const parseWithSchema = <T>(schema: { parse: (data: unknown) => T }, data: unkno
     }
 };
 
+const toBase64Url = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64url");
+
+const createLazyChallengeUrl = ({
+    serverUrl,
+    sessionId,
+    payload
+}: {
+    serverUrl: string;
+    sessionId: string;
+    payload: unknown;
+}) => `${serverUrl}/iframe/${encodeURIComponent(sessionId)}/lazy#payload=${toBase64Url(cborg.encode(payload))}`;
+
 const formatRiskScore = (riskScore: number) => {
     if (!Number.isFinite(riskScore)) return String(riskScore);
     return riskScore.toFixed(2);
@@ -264,55 +277,28 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
     }
     log.trace("Signer publicKey: %s", signer.publicKey);
 
+    const sessionId = randomUUID();
     const evaluateTimestamp = Math.floor(Date.now() / 1000);
+    const evaluationOptions: EvaluationOptions = {
+        autoAcceptThreshold: options.autoAcceptThreshold,
+        autoRejectThreshold: options.autoRejectThreshold
+    };
     const evaluatePropsToSign = {
         challengeRequest: challengeRequestMessage,
+        sessionId,
+        evaluationOptions,
         timestamp: evaluateTimestamp
     };
-    log("Calling /evaluate endpoint at %s", `${options.serverUrl}/evaluate`);
     const evaluateSignature = await createRequestSignature(evaluatePropsToSign, signer);
-
-    let evaluateResponse: EvaluateResponse;
-    try {
-        evaluateResponse = parseWithSchema<EvaluateResponse>(
-            EvaluateResponseSchema,
-            await postCbor(`${options.serverUrl}/evaluate`, {
-                ...evaluatePropsToSign,
-                signature: evaluateSignature
-            }),
-            "evaluate"
-        );
-    } catch (error) {
-        const message = error instanceof Error ? error.message : "Unknown error";
-        log.error("Failed to evaluate publication: %s", message);
-        return { success: false, error: message };
-    }
-    const riskScore = evaluateResponse.riskScore;
-    log(
-        "Evaluate response: riskScore=%s, sessionId=%s, explanation=%s",
-        formatRiskScore(riskScore),
-        evaluateResponse.sessionId,
-        evaluateResponse.explanation
-    );
-
-    if (riskScore < options.autoAcceptThreshold) {
-        log("Auto-accepting publication (riskScore %s < autoAcceptThreshold %s)", formatRiskScore(riskScore), options.autoAcceptThreshold);
-        return { success: true };
-    }
-
-    if (riskScore >= options.autoRejectThreshold) {
-        const explanation = evaluateResponse.explanation ? ` ${evaluateResponse.explanation}` : "";
-        log("Auto-rejecting publication (riskScore %s >= autoRejectThreshold %s)", formatRiskScore(riskScore), options.autoRejectThreshold);
-        return {
-            success: false,
-            // TODO find a better error message
-            error: `Rejected by Bitsocial Spam Blocker (riskScore ${formatRiskScore(riskScore)}).${explanation}`
-        };
-    }
-
-    const sessionId = evaluateResponse.sessionId;
-    const challengeUrl = evaluateResponse.challengeUrl;
-    log("Returning challenge to user: sessionId=%s, challengeUrl=%s", sessionId, challengeUrl);
+    const challengeUrl = createLazyChallengeUrl({
+        serverUrl: options.serverUrl,
+        sessionId,
+        payload: {
+            ...evaluatePropsToSign,
+            signature: evaluateSignature
+        }
+    });
+    log("Returning lazy challenge to user: sessionId=%s, challengeUrl=%s", sessionId, challengeUrl);
 
     // Server tracks challenge completion state - no token needed from user
     const verify = async (_answer: string): Promise<ChallengeResultInput> => {
