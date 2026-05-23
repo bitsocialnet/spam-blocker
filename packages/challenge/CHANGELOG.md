@@ -1,5 +1,12 @@
 # Changelog
 
+## <small>0.1.4 (2026-05-23)</small>
+
+* test(challenge): align lazy iframe coverage with locked pkc-js ([850ad6f](https://github.com/bitsocialnet/spam-blocker/commit/850ad6f))
+* fix(challenge): defer spam blocker evaluation until iframe open ([f4eb457](https://github.com/bitsocialnet/spam-blocker/commit/f4eb457))
+* docs(agents): add generated LLM context workflow ([5b5345b](https://github.com/bitsocialnet/spam-blocker/commit/5b5345b))
+* chore(cursor agents): use composer-2.5-fast model ([a2a3162](https://github.com/bitsocialnet/spam-blocker/commit/a2a3162))
+
 ## <small>0.1.3 (2026-05-08)</small>
 
 - fix(challenge): trim runtime dependencies ([ea03c82](https://github.com/bitsocialnet/spam-blocker/commit/ea03c82))
