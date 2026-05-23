@@ -61,6 +61,8 @@ Evaluate publication risk. The server tracks author history internally, so no co
 
 Requests are signed by the community signer to prevent abuse (e.g., someone unrelated to the community querying the engine to doxx users). The server validates the request signature and ensures the signer matches the community (for domain addresses, the server resolves the community via `bitsocial.getCommunity` and compares `community.signature.publicKey`). Resolved community public keys are cached in-memory for 12 hours to reduce repeated lookups. The HTTP server initializes a single shared bitsocial instance and only destroys it when the server shuts down.
 
+The public challenge package does not call this endpoint from `getChallenge()`. It returns `/api/v1/iframe/:sessionId/lazy#payload=...` instead. The signed payload is stored in the URL fragment, which is not sent on the initial iframe GET; the lazy iframe posts it to `/evaluate` only after the user opens the iframe.
+
 **Request Format:** `Content-Type: application/cbor`
 
 The request body is CBOR-encoded (not JSON). This preserves `Uint8Array` types during transmission and ensures signature verification works correctly.
@@ -73,12 +75,17 @@ The request body is CBOR-encoded (not JSON). This preserves `Uint8Array` types d
 // The signature is created by CBOR-encoding the signed properties, then signing with Ed25519
 {
     challengeRequest: DecryptedChallengeRequestMessageTypeWithcommunityAuthor;
+    sessionId?: string; // Optional client-generated ID for consent-gated lazy iframes
+    evaluationOptions?: {
+        autoAcceptThreshold?: number;
+        autoRejectThreshold?: number;
+    };
     timestamp: number; // Unix timestamp (seconds)
     signature: {
         signature: Uint8Array; // Ed25519 signature of CBOR-encoded signed properties
         publicKey: Uint8Array; // 32-byte Ed25519 public key
         type: "ed25519";
-        signedPropertyNames: ["challengeRequest", "timestamp"];
+        signedPropertyNames: Array<"challengeRequest" | "sessionId" | "evaluationOptions" | "timestamp">;
     }
 }
 ```
@@ -90,14 +97,13 @@ The request body is CBOR-encoded (not JSON). This preserves `Uint8Array` types d
   riskScore: number; // 0.0 to 1.0
   explanation?: string; // Human-readable reasoning for the score
 
-  // Pre-generated challenge URL - community can use this if it decides to challenge
   sessionId: string;
   challengeUrl: string; // Full URL: https://spamblocker.bitsocial.net/api/v1/iframe/{sessionId}
   challengeExpiresAt?: number; // Unix timestamp, 1 hour from creation
 }
 ```
 
-The response always includes a pre-generated `challengeUrl`. If the community decides to challenge based on `riskScore`, it can immediately send the URL to the user without making a second request. If the challenge is not used, the session auto-purges after 1 hour.
+The response always includes the concrete challenge session URL. For the public challenge package's lazy iframe flow, low-risk and high-risk sessions are handled inside the lazy iframe without redirecting to the full challenge UI. Medium-risk sessions redirect to `challengeUrl`.
 
 ### POST /api/v1/challenge/verify
 
@@ -137,6 +143,10 @@ Called by the community's challenge code to verify that the user completed the i
   ipTypeEstimation?: string;   // "residential" | "vpn" | "proxy" | "tor" | "datacenter" | "unknown"
 }
 ```
+
+### GET /api/v1/iframe/:sessionId/lazy
+
+Serves the consent-gated bootstrap iframe used by the public challenge package. This route does not create a challenge session by itself. After the iframe opens, its script reads the signed CBOR payload from the URL fragment, posts it to `/api/v1/evaluate`, then either completes/fails immediately or redirects to `/api/v1/iframe/:sessionId`.
 
 ### GET /api/v1/iframe/:sessionId
 
@@ -213,118 +223,53 @@ The challenge flow uses **server-side state tracking** - no tokens are passed fr
 **OAuth is the primary challenge.** The iframe shows OAuth sign-in buttons first. CAPTCHA is available as a fallback for users without social accounts. After the user completes verification, the server adjusts the risk score. If the adjusted score is below the pass threshold, the session completes. For high-risk users, additional verification (second OAuth from a different provider, or CAPTCHA) may be required.
 
 ```
-/evaluate → riskScore
-  │
-  ├─ < autoAcceptThreshold → auto_accept (pass immediately, no challenge)
-  ├─ ≥ autoRejectThreshold → auto_reject (fail immediately)
-  └─ between → create session (store riskScore), return challengeUrl
-        │
-        ▼
+getChallenge() -> lazy iframe URL (no spam blocker server request)
+  |
+  v
+User opens iframe -> lazy iframe posts signed payload to /evaluate -> riskScore
+  |
+  ├─ < autoAcceptThreshold -> auto_accept (verify succeeds immediately)
+  ├─ >= autoRejectThreshold -> auto_reject (verify fails immediately)
+  └─ between -> create session (store riskScore), return challengeUrl
+        |
+        v
   Iframe serves OAuth buttons (primary) + optional CAPTCHA fallback link
-        │
-        ├─ User signs in via OAuth → callback applies score adjustment
-        │     │
-        │     ├─ riskScore × oauthMultiplier < passThreshold?
-        │     │     YES → mark "completed" ──────────────────────────> /verify → success
-        │     │
-        │     └─    NO  → mark oauthCompleted, session stays "pending"
-        │                  Iframe shows "need more" view
-        │                  │
-        │                  ├─ User signs in with 2nd OAuth (different provider)
-        │                  │     → riskScore × oauthMult × 2ndOauthMult < threshold?
-        │                  │       YES → completed ──────────────────> /verify → success
-        │                  │
-        │                  └─ User completes CAPTCHA
-        │                        → riskScore × oauthMult × captchaMult < threshold?
-        │                          YES → completed ──────────────────> /verify → success
-        │
-        └─ User clicks "I don't have a social account" → CAPTCHA fallback
-              │
-              ├─ riskScore × captchaMultiplier < passThreshold?
-              │     YES → mark "completed" ──────────────────────────> /verify → success
-              │
-              └─    NO  → mark captchaCompleted, return { oauthRequired: true }
+        |
+        ├─ User signs in via OAuth -> callback applies score adjustment
+        |     |
+        |     ├─ riskScore x oauthMultiplier < passThreshold?
+        |     |     YES -> mark "completed" -------------------------> /verify -> success
+        |     |
+        |     └─    NO -> mark oauthCompleted, session stays "pending"
+        |                 Iframe shows "need more" view
+        |                 |
+        |                 ├─ User signs in with 2nd OAuth (different provider)
+        |                 |     -> riskScore x oauthMult x 2ndOauthMult < threshold?
+        |                 |       YES -> completed ------------------> /verify -> success
+        |                 |
+        |                 └─ User completes CAPTCHA
+        |                       -> riskScore x oauthMult x captchaMult < threshold?
+        |                         YES -> completed ------------------> /verify -> success
+        |
+        └─ User clicks "I don't have a social account" -> CAPTCHA fallback
+              |
+              ├─ riskScore x captchaMultiplier < passThreshold?
+              |     YES -> mark "completed" -------------------------> /verify -> success
+              |
+              └─    NO -> mark captchaCompleted, return { oauthRequired: true }
                            Iframe redirects back to OAuth view
 ```
 
 ```
-┌─────────────────┐       ┌──────────────────┐       ┌────────────────┐
-│   Bitsocial       │     │ Spam Blocker     │       │   OAuth /      │
-│   Client        │       │     Server       │       │   Turnstile    │
-└────────┬────────┘       └────────┬─────────┘       └───────┬────────┘
-         │                         │                          │
-         │  1. ChallengeRequest    │                          │
-         │  (to community)        │                          │
-         │─────────────────────────>                          │
-         │                         │                          │
-         │  2. community calls /evaluate │                          │
-         │                         │                          │
-         │  3. riskScore +         │                          │
-         │     sessionId +         │                          │
-         │     challengeUrl        │                          │
-         │<─────────────────────────                          │
-         │                         │                          │
-         │  4. If challenge needed,│                          │
-         │     community sends           │                          │
-         │     challengeUrl to     │                          │
-         │     client              │                          │
-         │                         │                          │
-         │  5. Client loads iframe │                          │
-         │─────────────────────────────────────────────────────>
-         │                         │                          │
-         │  6. Iframe shows OAuth  │                          │
-         │     buttons (primary)   │                          │
-         │     + CAPTCHA fallback  │                          │
-         │                         │                          │
-         │  7. User signs in via   │                          │
-         │     OAuth provider      │                          │
-         │      ───────────────────────────────────────────────>
-         │                         │                          │
-         │  8. OAuth callback      │                          │
-         │     applies score       │                          │
-         │     adjustment          │                          │
-         │                         │                          │
-         │  9a. If score passes    │                          │
-         │      → session done     │                          │
-         │  9b. If needs more      │                          │
-         │      → show 2nd OAuth   │                          │
-         │      or CAPTCHA option  │                          │
-         │      ───────────────────────────────────────────────>
-         │                         │                          │
-         │  10. (If more needed)   │                          │
-         │      User completes     │                          │
-         │      2nd OAuth or       │                          │
-         │      CAPTCHA            │                          │
-         │      → session done     │                          │
-         │                         │                          │
-         │  11. Iframe shows       │                          │
-         │     "click done"        │                          │
-         │<─────────────────────────                          │
-         │                         │                          │
-         │  12. User clicks "done" │                          │
-         │      button in client   │                          │
-         │      (outside iframe)   │                          │
-         │                         │                          │
-         │  13. Client sends       │                          │
-         │      ChallengeAnswer    │                          │
-         │      with empty string  │                          │
-         │─────────────────────────>                          │
-         │                         │                          │
-         │  14. community's verify("")   │                          │
-         │      calls /verify      │                          │
-         │      with sessionId     │                          │
-         │                         │                          │
-         │  15. success: true +    │                          │
-         │      IP intelligence    │                          │
-         │<─────────────────────────                          │
-         │                         │                          │
-         │  16. community applies        │                          │
-         │      post-challenge     │                          │
-         │      filters            │                          │
-         │                         │                          │
-         │  17. Publication        │                          │
-         │      accepted/rejected  │                          │
-         └─────────────────────────┘                          │
+1. Client sends ChallengeRequest to the community.
+2. Community challenge code returns a lazy spam blocker iframe URL with a signed payload in the URL fragment.
+3. Client asks the user before opening the iframe.
+4. After the user opens the iframe, the iframe posts the signed payload to /evaluate.
+5. /evaluate creates the session and either completes, fails, or returns the full challengeUrl.
+6. Medium-risk sessions redirect to /iframe/:sessionId for OAuth and/or CAPTCHA.
+7. When done, the iframe posts a ChallengeAnswer with an empty string.
+8. Community verify("") calls /challenge/verify with the pre-generated sessionId.
+9. The community applies post-challenge IP filters and accepts or rejects the publication.
 ```
 
 ## Risk Score
@@ -347,10 +292,10 @@ Indexer implementation details live with the private server codebase.
 
 **Tier Thresholds (configurable per community via challenge options):**
 
-- `riskScore < autoAcceptThreshold` → Auto-accept (no challenge)
+- `riskScore < autoAcceptThreshold` → Complete after iframe evaluation (no OAuth/CAPTCHA)
 - `autoAcceptThreshold <= riskScore < oauthSufficientThreshold` → One OAuth is sufficient (`oauth_sufficient`)
 - `oauthSufficientThreshold <= riskScore < autoRejectThreshold` → OAuth + more needed (`oauth_plus_more`)
-- `riskScore >= autoRejectThreshold` → Auto-reject
+- `riskScore >= autoRejectThreshold` → Reject after iframe evaluation
 
 **Score Adjustment (configurable on server):**
 
@@ -536,8 +481,8 @@ field from its internal database of author history, so new authors won't have it
 | Option                | Default                                    | Description                                                                    |
 | --------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
 | `serverUrl`           | `https://spamblocker.bitsocial.net/api/v1` | URL of the BitsocialSpamBlocker server (must be http/https)                    |
-| `autoAcceptThreshold` | `0.2`                                      | Auto-accept publications below this risk score                                 |
-| `autoRejectThreshold` | `0.8`                                      | Auto-reject publications above this risk score                                 |
+| `autoAcceptThreshold` | `0.2`                                      | Complete verification after iframe evaluation when risk is below this score    |
+| `autoRejectThreshold` | `0.8`                                      | Reject after iframe evaluation when risk is above this score                   |
 | `countryBlacklist`    | `""`                                       | Comma-separated ISO 3166-1 alpha-2 country codes to block (e.g., `"RU,CN,KP"`) |
 | `maxIpRisk`           | `1.0`                                      | Reject if ipRisk from /verify exceeds this threshold                           |
 | `blockVpn`            | `false`                                    | Reject publications from VPN IPs (`true`/`false` only)                         |
@@ -571,9 +516,9 @@ These settings are configured on the HTTP server, not in the challenge package:
 
 **Challenge tier thresholds:**
 
-- `AUTO_ACCEPT_THRESHOLD`: Auto-accept below this score (default: 0.2)
+- `AUTO_ACCEPT_THRESHOLD`: Complete immediately after evaluation below this score (default: 0.2)
 - `OAUTH_SUFFICIENT_THRESHOLD`: Scores between autoAccept and this pass with one OAuth (default: 0.4)
-- `AUTO_REJECT_THRESHOLD`: Auto-reject at or above this score (default: 0.8)
+- `AUTO_REJECT_THRESHOLD`: Reject immediately after evaluation at or above this score (default: 0.8)
 
 **Score adjustment (OAuth-first model):**
 

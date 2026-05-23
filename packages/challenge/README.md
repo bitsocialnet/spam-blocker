@@ -4,7 +4,7 @@ A Bitsocial challenge plugin that protects communities from spam by evaluating p
 
 ## Using Spam Blocker In Your Community
 
-Community owners add the spam blocker challenge to their community settings. When enabled, user-generated publications are evaluated by the Bitsocial Spam Blocker server. Low-risk publications are accepted, high-risk publications are rejected, and medium-risk publications get an iframe challenge. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted locally because they do not require spam detection.
+Community owners add the spam blocker challenge to their community settings. When enabled, user-generated publications return a consent-gated iframe URL. The Bitsocial Spam Blocker server evaluates the publication only after the user opens that iframe. Low-risk publications complete immediately after evaluation, high-risk publications are rejected, and medium-risk publications continue into an interactive iframe challenge. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted locally because they do not require spam detection.
 
 First install the challenge on the Bitsocial server:
 
@@ -49,8 +49,8 @@ Then add or edit the `challenges` array in your community settings to include th
 | Option                | Default                                    | Description                                                                 |
 | --------------------- | ------------------------------------------ | --------------------------------------------------------------------------- |
 | `serverUrl`           | `https://spamblocker.bitsocial.net/api/v1` | URL of the Bitsocial spam blocker server                                    |
-| `autoAcceptThreshold` | `0.2`                                      | Auto-accept publications with a risk score below this value                 |
-| `autoRejectThreshold` | `0.8`                                      | Auto-reject publications with a risk score above this value                 |
+| `autoAcceptThreshold` | `0.2`                                      | Complete verification after iframe evaluation when risk is below this value |
+| `autoRejectThreshold` | `0.8`                                      | Reject after iframe evaluation when risk is above this value                |
 | `countryBlacklist`    | _(empty)_                                  | Comma-separated ISO 3166-1 alpha-2 country codes to block (e.g. `RU,CN,KP`) |
 | `maxIpRisk`           | `1.0`                                      | Reject if IP risk score exceeds this threshold (estimation only)            |
 | `blockVpn`            | `false`                                    | Reject publications from VPN IPs (estimation only)                          |
@@ -60,14 +60,15 @@ Then add or edit the `challenges` array in your community settings to include th
 
 ## How It Works
 
-1. When a user publishes a post, reply, or vote to a community, the challenge sends the publication to the spam blocker server's `/evaluate` endpoint.
-2. The server returns a **risk score** between 0 and 1.
-3. Based on the configured thresholds:
-    - **Below `autoAcceptThreshold`**: The publication is automatically accepted.
-    - **Above `autoRejectThreshold`**: The publication is automatically rejected.
-    - **Between thresholds**: The user is presented with an interactive challenge (iframe). Upon completion, the server's `/challenge/verify` endpoint confirms whether the user passed.
-4. After challenge verification, additional IP-based policies (country, VPN, proxy, Tor, datacenter blocking) are applied if configured.
-5. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted without calling `/evaluate`.
+1. When a user publishes a post, reply, or vote to a community, the challenge signs the publication locally and returns a lazy iframe URL. `getChallenge()` does not call `/evaluate`.
+2. The Bitsocial client asks the user before opening the spam blocker iframe.
+3. After the user opens the iframe, the iframe sends the signed payload to `/evaluate`. This is the first spam blocker server evaluation request for the publication.
+4. The server returns a **risk score** between 0 and 1:
+    - **Below `autoAcceptThreshold`**: Verification completes immediately.
+    - **Above `autoRejectThreshold`**: Verification fails immediately.
+    - **Between thresholds**: The iframe presents OAuth and/or CAPTCHA verification.
+5. After challenge verification, the server's `/challenge/verify` endpoint confirms whether the user passed. Additional IP-based policies (country, VPN, proxy, Tor, datacenter blocking) are applied if configured.
+6. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted without calling `/evaluate`.
 
 ## License
 
