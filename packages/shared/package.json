@@ -1,7 +1,8 @@
 {
     "name": "@bitsocial/spam-blocker-shared",
-    "version": "0.0.0",
-    "description": "Shared types for BitsocialSpamBlocker",
+    "version": "0.1.0",
+    "description": "Shared types and schemas for bitsocial/spam-blocker",
+    "author": "Bitsocial Forge",
     "license": "MIT",
     "type": "module",
     "engines": {
