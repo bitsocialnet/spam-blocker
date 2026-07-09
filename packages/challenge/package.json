@@ -54,8 +54,8 @@
     "devDependencies": {
         "@pkcprotocol/pkc-js": "0.0.30",
         "esbuild": "0.27.2",
-        "typescript": "6.0.2",
+        "typescript": "7.0.2",
         "vitest": "4.0.16"
     },
-    "packageManager": "yarn@4.13.0"
+    "packageManager": "yarn@4.17.1"
 }
