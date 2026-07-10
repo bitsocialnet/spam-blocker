@@ -115,6 +115,10 @@ packages/
 
 - Always give a new worktree a descriptive name that reflects the task (e.g. `fix-challenge-timeout`, not `wt1`, `tmp`, `feature`, or a numbered slug), so it can be identified at a glance in a long list of worktrees.
 
+### AI Tooling
+
+- Do not use undocumented model aliases such as `latest` in Codex custom-agent TOML files. Omit both `model` and `model_reasoning_effort` so custom agents inherit the current parent settings.
+
 ## SHOULD Rules
 
 - Keep `README.md` in sync with implementation changes when committing.

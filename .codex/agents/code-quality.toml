@@ -1,5 +1,3 @@
-model = "gpt-5.4"
-model_reasoning_effort = "medium"
 developer_instructions = """
 Run the repo's required verification commands for the files or feature area the parent agent changed, then fix only issues surfaced by those checks.
 Use this order: corepack yarn build, corepack yarn type-check, corepack yarn test, corepack yarn format:check.
