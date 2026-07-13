@@ -678,7 +678,7 @@ Agents may use compiled context to navigate quickly, but must verify against sou
 
 | Situation                                  | Action                                                                                                                     |
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| Bug reported                               | Reproduce with a test first, then fix                                                                                      |
+| Bug reported                               | Apply the Testing rules below before editing                                                                               |
 | `package.json` changed                     | Run `corepack yarn install` to keep `yarn.lock` in sync                                                                    |
 | Code changed                               | Run `corepack yarn build` for all packages                                                                                 |
 | New feature added                          | Add vitest coverage                                                                                                        |
@@ -724,8 +724,11 @@ packages/
 
 ### Testing
 
+- A bug fix requires either a reproduction of the reported behavior or conclusive source/runtime evidence that identifies both the defect and the correct fix with equivalent certainty.
+- If the bug cannot be reproduced and the evidence is not conclusive, do not guess or make speculative changes. Report what was checked, say that the bug was not reproduced, and ask for the missing reproduction details when useful.
+- When proceeding from conclusive evidence without a reproduction, explain why the evidence is sufficient and add a targeted regression test when practical.
 - Add vitest tests for every new feature.
-- Reproduce bugs with a test case first, then fix the code, then verify the test passes.
+- When a bug is reproduced in a test, confirm the test fails before the fix and passes afterward.
 
 ### Dependencies & Types
 
