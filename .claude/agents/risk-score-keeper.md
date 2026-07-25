@@ -1,6 +1,5 @@
 ---
 name: risk-score-keeper
-model: sonnet
 description: Maintains risk scoring changes and scenario regeneration for the server.
 ---
 

@@ -1,6 +1,5 @@
 ---
 name: plan-implementer
-model: sonnet
 description: Implements assigned backend tasks from a parent plan.
 ---
 
