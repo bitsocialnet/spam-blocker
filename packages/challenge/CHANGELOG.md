@@ -1,5 +1,17 @@
 # Changelog
 
+## <small>0.1.5 (2026-07-28)</small>
+
+* ci: add .prettierignore for generated files ([48defb6](https://github.com/bitsocialnet/spam-blocker/commit/48defb6))
+* ci: gate CI on prettier config changes ([78bae12](https://github.com/bitsocialnet/spam-blocker/commit/78bae12))
+* chore: upgrade typescript to 7.0.2 ([ebb434b](https://github.com/bitsocialnet/spam-blocker/commit/ebb434b))
+* chore(agents): inherit session model for judgment-tier subagents ([90da333](https://github.com/bitsocialnet/spam-blocker/commit/90da333))
+* chore(codex agents): inherit parent model settings ([bdb66f3](https://github.com/bitsocialnet/spam-blocker/commit/bdb66f3))
+* chore(deps): add resolutions for vulnerable transitive deps ([6adfea5](https://github.com/bitsocialnet/spam-blocker/commit/6adfea5))
+* docs(agents): require evidence before bug fixes ([c93e2bb](https://github.com/bitsocialnet/spam-blocker/commit/c93e2bb))
+* Fix Codex hooks config schema ([2ffe161](https://github.com/bitsocialnet/spam-blocker/commit/2ffe161))
+* Update package.json ([b675e37](https://github.com/bitsocialnet/spam-blocker/commit/b675e37))
+
 ## <small>0.1.4 (2026-05-23)</small>
 
 * test(challenge): align lazy iframe coverage with locked pkc-js ([850ad6f](https://github.com/bitsocialnet/spam-blocker/commit/850ad6f))
