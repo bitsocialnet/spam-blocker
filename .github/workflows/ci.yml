@@ -9,6 +9,9 @@ on:
             - "yarn.lock"
             - ".github/**"
             - "README.md"
+            # format:check runs here, so its own config has to gate it too
+            - ".prettierrc.js"
+            - ".prettierignore"
     push:
         branches: [master]
         paths:
@@ -17,6 +20,9 @@ on:
             - "yarn.lock"
             - ".github/**"
             - "README.md"
+            # format:check runs here, so its own config has to gate it too
+            - ".prettierrc.js"
+            - ".prettierignore"
 
 jobs:
     ci:
