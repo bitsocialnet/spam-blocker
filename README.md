@@ -591,4 +591,4 @@ These settings are configured on the HTTP server, not in the challenge package:
 - bitsocial-js challenge example: `pkc-js/src/runtime/node/community/challenges/bitsocial-js-challenges/captcha-canvas-v3/index.ts`
 - bitsocial-js schemas: `pkc-js/src/community/schema.ts`
 - bitsocial-js challenge orchestration: `pkc-js/src/runtime/node/community/challenges/index.ts`
-- MintPass iframe challenge: https://github.com/bitsociallabs/mintpass/tree/master/challenge
+- MintPass iframe challenge: https://github.com/bitsocialnet/mintpass/tree/master/challenge
