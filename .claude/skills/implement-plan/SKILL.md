@@ -1,21 +1,18 @@
 ---
 name: implement-plan
-description: Orchestrates a multi-task implementation by delegating backend slices to plan-implementer subagents. Use when the user provides a plan and wants it executed in parallel where possible.
+description: Implement an approved plan, keeping small or coupled work local and delegating substantial independent slices when useful.
 ---
 
-# Implement Plan
+<!-- Generated from .agents/skills/implement-plan/SKILL.md; run yarn ai-workflow:sync. -->
 
-Use this skill when the work has already been broken into concrete tasks and the goal is to execute them with minimal context churn.
+# Implement a Plan
 
-## Workflow
+1. Read the plan and relevant source. Identify acceptance criteria, dependencies, and task boundaries. Resolve routine choices from context; ask only about ambiguity that materially changes the result.
+2. Execute small or tightly coupled changes directly. Delegate independent, substantial slices when parallel work or context isolation adds value. Use the harness's built-in worker/general-purpose role rather than requiring a custom implementation agent.
+3. Give each child the exact task, worktree, files it owns, constraints, acceptance criteria, and evidence to return. Tell children they share the checkout and must preserve others' edits. Never delegate overlapping writes concurrently.
+4. Use at most four workers by default. Continue useful independent work locally while they run. Queue dependencies until their inputs are ready.
+5. Assign one owner for heavyweight verification. Children may run focused lightweight checks; they do not each build, install dependencies, run a full suite, or start browsers.
+6. Integrate the changes, inspect the final diff, and run the required checks once for the final state. Browser checks, when relevant, use isolated sessions and sequential engines.
+7. Report completed work, verification, and any unresolved limitation. Retry failed slices with new evidence or a clearer assignment, not the same prompt indefinitely.
 
-1. Read the plan and split tasks by dependency.
-2. Group independent backend tasks into parallel batches, keeping file ownership disjoint.
-3. Delegate each batch to `plan-implementer` with exact file paths, acceptance criteria, and constraints.
-4. Verify the combined result with the repo's Yarn checks.
-
-## Notes
-
-- Keep the main context focused on orchestration.
-- Prefer small, reviewable slices.
-- For this repo, prioritize server, risk-score, DB, and workflow tasks over UI assumptions.
+Create persistent task state only when resumption or a handoff needs it; a short delegated task does not require a feature board or app server.

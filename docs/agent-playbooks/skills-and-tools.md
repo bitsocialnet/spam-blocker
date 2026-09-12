@@ -1,45 +1,22 @@
-# Skills and Tools
+# Skills and tools
 
-Use this playbook when setting up or updating agent skills for Bitsocial Spam Blocker.
+Shared source files avoid hand-maintained copies while preserving each app’s native discovery paths.
 
-## Repo-Local Skills
+| Content              | Edited source                                 | App-loaded output                                                                                                                 |
+| -------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Skills               | `.agents/skills/<name>/`                      | Codex and Cursor use this path; Claude uses generated `.claude/skills/<name>/` copies.                                            |
+| Custom agents        | `.agents/roles/<name>.md`                     | Generated `.codex/agents/<name>.toml`, `.cursor/agents/<name>.md`, and `.claude/agents/<name>.md`.                                |
+| Project instructions | `AGENTS.md` and scoped directory instructions | Codex/Cursor read AGENTS.md; `CLAUDE.md` imports `@AGENTS.md` for Claude. Existing nested CLAUDE.md imports remain where present. |
+| Hooks                | Shared formatter and native entrypoints       | `.codex/hooks.json`, `.cursor/hooks.json`, `.claude/settings.json`.                                                               |
 
-These skills should be mirrored across `.codex/`, `.cursor/`, and `.claude/` when the hidden workflow directories are present:
+`.agents/roles` is a repository-specific generator schema, not an app standard. Its supported fields are `name`, `description`, and optional `sandbox-mode`. No repository field selects models or reasoning effort; runtime invocation, configured defaults, or parent inheritance decide. This does not promise automatic selection of the best current model.
 
-- `implement-plan`
-- `find-skills`
-- `context7`
-- `readme`
-- `commit-format`
-- `issue-format`
-- `fix-merge-conflicts`
-- `refactor-pass`
-- `deslop`
-- `playwright-cli`
-- `risk-score-maintenance`
+Read-only roles map to Codex `sandbox_mode`, Cursor `readonly`, and Claude tool restrictions. These controls have different semantics; Claude's Bash availability is not an OS sandbox. Parent assignments still define scope.
 
-These are the repo-managed workflow skills. Keep their descriptions aligned across toolchains and keep them focused on Node, Fastify, SQLite, Vitest, and risk-score work.
+After editing sources, run `corepack yarn ai-workflow:sync`, `corepack yarn ai-workflow:check`, and `corepack yarn ai-workflow:test`. Review and commit generated outputs together. Sync does not silently delete obsolete files; remove obsolete task-owned outputs explicitly and let validation detect drift. Skills are portable copies, not symlinks.
 
-## External Default Installs
+Keep descriptions short and discriminating; place conditional procedures in linked references. Preserve domain-specific requirements rather than copying another product’s policy. Avoid compulsory agent chains, full tests for wording edits, unconditional external skill installs, and extra approval gates. Built-in worker/explorer roles handle general implementation; retained custom agents cover concrete independent review or domain tasks.
 
-These are the standard external installs for contributors who want the broader ecosystem tooling:
+Official references, checked 2026-09-12: [Codex skills](https://learn.chatgpt.com/docs/build-skills), [Codex subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents), [Cursor skills](https://cursor.com/docs/skills), [Cursor subagents](https://cursor.com/docs/subagents), [Cursor rules](https://cursor.com/docs/rules), [Claude skills](https://code.claude.com/docs/en/skills), [Claude subagents](https://code.claude.com/docs/en/sub-agents), and [Claude imports](https://code.claude.com/docs/en/memory). Cursor supports both shared and compatibility skill roots; its documentation does not establish deduplication behavior for identical skills discovered in both. Generator/schema checks are separate from live app discovery and delegation tests.
 
-```bash
-./scripts/install-default-agent-skills.sh
-```
-
-Equivalent manual commands:
-
-```bash
-npx -y skills add mcollina/skills@fastify-best-practices -g -y
-npx -y skills add pproenca/dot-skills@zod -g -y
-npx -y skills add pproenca/dot-skills@vitest -g -y
-npx -y skills add getsentry/skills@security-review -g -y
-```
-
-## Notes
-
-- Use `context7` for current library documentation when APIs may have changed.
-- Use `playwright-cli` for browser verification only when the task touches a browser-facing route or iframe.
-- Do not add 5chan-specific React, mobile, or translation skills to the default spam-blocker workflow.
-- Intentionally excluded 5chan-only skills: `translate`, `test-apk`, `profile-browsing`, `you-might-not-need-an-effect`, `vercel-react-best-practices`, and `inspect-elements`.
+Maintenance approach: [OpenAI’s guidance on skills and prompts for GPT-6 Astra](https://developers.openai.com/blog/rethinking-skills-and-prompts-for-gpt-6-astra). Keep useful guidance for other contributors and models while reducing redundant workflow instructions.

@@ -1,11 +1,10 @@
 ---
 name: issue-format
-description: Formats concise GitHub issue titles and descriptions. Use when turning a problem into a tracking issue.
+description: Format GitHub issue wording when an issue or wording suggestion is requested.
 ---
+
+<!-- Generated from .agents/skills/issue-format/SKILL.md; run yarn ai-workflow:sync. -->
 
 # Issue Format
 
-> **GitHub issue:**
->
-> - **Title:** `Short issue title`
-> - **Description:** Present-tense summary of the bug, limitation, or follow-up.
+Write a short problem-focused title and concise description of observable behavior, expected behavior, and useful reproduction evidence. Use existing project labels when creating an authorized issue. Formatting guidance does not authorize creating or sending one.

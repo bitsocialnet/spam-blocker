@@ -1,25 +1,7 @@
-# Long-Running Agent Workflow
+# Long-running work
 
-Use this playbook when a task spans multiple sessions, handoffs, or spawned agents.
+Use durable state only when a task needs resumption or handoff. Short tasks and ordinary delegation do not require a task board.
 
-## Recommended State
+Record scope, acceptance criteria, important decisions, file/branch ownership, completed checks, failures, and the next concrete step in `docs/agent-runs/<descriptive-slug>/progress.md` when shared tracked state is useful. Add a feature list only when multiple independent outcomes need tracking; templates live in `templates/`.
 
-Keep task state in a tracked location such as `docs/agent-runs/<slug>/`.
-
-Suggested files:
-
-- `feature-list.json`
-- `progress.md`
-
-## Workflow
-
-1. Break the work into a stable feature list.
-2. Record the current status before handing off.
-3. Keep each agent slice narrow and independently verifiable.
-4. Update progress after each meaningful milestone.
-5. Preserve any assumptions that future agents need to know.
-
-## Template Use
-
-- Use `docs/agent-playbooks/templates/feature-list.template.json` for the task list shape.
-- Use `docs/agent-playbooks/templates/progress.template.md` for the progress log.
+On resumption, inspect the current diff and relevant source before acting. Reuse verification for unchanged work and run only affected checks after new edits. Do not start a dev server or install dependencies solely to update the handoff.

@@ -1,17 +1,14 @@
 ---
 name: context7
-description: Retrieves up-to-date docs for libraries and frameworks. Use when checking current Fastify, Vitest, Zod, or Node APIs before coding.
+description: Retrieve library documentation with Context7 when the current task needs version-specific API guidance or a concrete documentation lookup.
 ---
+
+<!-- Generated from .agents/skills/context7/SKILL.md; run yarn ai-workflow:sync. -->
 
 # Context7
 
-Use Context7 when you need current API docs or examples instead of relying on memory.
+Use the installed dependency version and the API question to scope the lookup. Existing source and tests may already answer it; a normal coding task does not require a Context7 search merely because it uses a library.
 
-## Typical uses
+Use an available Context7 tool, or read [HTTP lookup](references/http-lookup.md) when calling the API directly. Select the matching library and version from the results; do not assume the first result or latest release matches this repository.
 
-- Fastify route and plugin APIs
-- Vitest test utilities
-- Zod schema patterns
-- Node.js runtime behavior
-
-Keep the lookup focused on the exact API or feature being used.
+Fetch only documentation relevant to the decision. Check returned examples against the installed API and link the underlying official documentation when reporting a claim. If Context7 is unavailable, use official docs or installed source instead of installing another integration or blocking unrelated work.

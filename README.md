@@ -29,13 +29,13 @@ Repo-specific AI workflow guidance lives in:
 - [`docs/agent-playbooks/hooks-setup.md`](./docs/agent-playbooks/hooks-setup.md)
 - [`docs/agent-playbooks/skills-and-tools.md`](./docs/agent-playbooks/skills-and-tools.md)
 
-The repo is intended to be worked with Corepack-managed Yarn and repo-managed agent hooks. See the playbooks for the recommended setup and verification flow.
+Use Corepack-managed Yarn. Shared skills and role sources live under `.agents/`; the workflow generator maintains native Codex, Cursor, and Claude outputs. Automatic hooks only format edited source files. See the playbooks for setup and checks selected by the change.
 
 Quick setup for a fresh machine:
 
 1. `corepack enable`
 2. `corepack yarn install`
-3. `./scripts/install-default-agent-skills.sh`
+3. `corepack yarn ai-workflow:check`
 
 **Important:**
 

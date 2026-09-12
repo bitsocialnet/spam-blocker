@@ -15,4 +15,3 @@ Use this playbook when the user reports a bug or a regression.
 - Prefer `git log --oneline -5 -- <file>` or `git blame` before editing.
 - Keep the investigation scoped to the reported behavior.
 - If a schema or DB behavior is implicated, confirm whether the on-disk database needs to be recreated.
-- If risk-score logic is involved, update the risk docs and scenarios before finishing.

@@ -1,15 +1,16 @@
 ---
 name: deslop
-description: Removes overengineered or noisy AI-generated code from recent backend changes. Use when a diff reads as too defensive or too abstract.
+description: Simplify unnecessary code in the requested diff when the user asks to deslop or clean up AI-generated code.
 ---
 
-# Deslop
+<!-- Generated from .agents/skills/deslop/SKILL.md; run yarn ai-workflow:sync. -->
 
-Scan recent edits for unnecessary abstractions, redundant guards, and comments that only restate the code.
+# Remove Unnecessary AI-Generated Code
 
-## Watch for
+Inspect the task-owned diff and nearby source/tests. Remove obvious restatements, avoidable casts, dead helpers, or speculative abstractions only where their purpose and behavior are understood. Preserve unrelated work.
 
-- Defensive checks on trusted paths
-- Wrapper functions that hide simple logic
-- Casts that bypass type issues instead of solving them
-- Comments that do not explain why the code exists
+Check history when a guard or workaround's purpose is unclear. Simplify defensive code only after verifying its input/error contract; retain boundary validation, accessibility, data-loss protection, and useful error handling. A one-caller helper can clarify a real boundary, and a repeated expression does not automatically need abstraction.
+
+Match nearby style without reformatting adjacent code. Preserve comments explaining constraints or tradeoffs. When evidence is insufficient, retain the code and report the uncertainty instead of inventing cleanup work.
+
+Verify affected behavior using `docs/agent-playbooks/verification.md`, reuse existing checks for unchanged code, and report the useful simplifications.

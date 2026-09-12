@@ -51,7 +51,10 @@
         "format:check": "prettier --check .",
         "prepare": "husky",
         "commit": "cz",
-        "release:challenge": "cd packages/challenge && HUSKY=0 release-it --config .release-it.json"
+        "release:challenge": "cd packages/challenge && HUSKY=0 release-it --config .release-it.json",
+        "ai-workflow:sync": "node scripts/sync-ai-workflow.mjs",
+        "ai-workflow:check": "node scripts/validate-ai-workflow.mjs",
+        "ai-workflow:test": "node --test scripts/__tests__/ai-workflow.node-test.mjs scripts/__tests__/agent-hooks.node-test.mjs"
     },
     "devDependencies": {
         "@commitlint/cli": "20.2.0",
@@ -61,8 +64,10 @@
         "commitizen": "4.2.5",
         "cz-conventional-changelog": "3.3.0",
         "husky": "9.1.7",
+        "js-yaml": "4.3.1",
         "prettier": "3.8.1",
         "release-it": "19.2.3",
+        "smol-toml": "1.6.1",
         "typescript": "7.0.2"
     },
     "config": {

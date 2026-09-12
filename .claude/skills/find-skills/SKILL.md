@@ -1,22 +1,18 @@
 ---
 name: find-skills
-description: Helps discover and install useful agent skills for this repo. Use when a user asks how to do a recurring task or asks whether a skill exists for Fastify, Vitest, Zod, security review, or similar backend workflows.
+description: Find reusable agent skills when the user requests a new skill or capability.
 ---
+
+<!-- Generated from .agents/skills/find-skills/SKILL.md; run yarn ai-workflow:sync. -->
 
 # Find Skills
 
-Use this skill to look for external skills that can improve the workflow for spam-blocker contributors.
+Use the capabilities already available for ordinary coding, debugging, documentation, and review requests. Do not start a skill search solely because the request mentions one of those domains.
 
-## Good search targets
+When the user asks for a new skill:
 
-- Fastify best practices
-- Vitest testing
-- Zod schemas and validation
-- Security review
-- SQLite or database workflows
-
-## Guidance
-
-- Prefer established skills from reputable sources.
-- Recommend only skills that clearly map to this repo's Node/Fastify/Vitest backend work.
-- Ignore React, mobile, and other client-only skills unless the task explicitly crosses that boundary.
+1. Check the current skill catalog for an existing match.
+2. Search the requested source or the skills ecosystem for the specific missing workflow. Prefer official, maintained sources and inspect instructions before recommending installation.
+3. Explain what useful capability the skill adds, its source, and any required tools. Avoid installing a duplicate of a repository-managed skill.
+4. Install only when requested, using the current harness's installer. Keep shared repository skills in the canonical source and regenerate compatibility outputs.
+5. If nothing suitable exists, perform the task with available tools when possible. Do not ask again for permission to do work the user already requested.
