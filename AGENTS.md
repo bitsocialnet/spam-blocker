@@ -56,6 +56,7 @@ Agents may use compiled context to navigate quickly, but must verify against sou
 | README drifts from implementation    | Update `README.md`                                                                                                     |
 | Public docs or AI context changed    | Run `corepack yarn llms:generate`; inspect and commit any resulting changes to `llms*.txt` so LLM indexes stay current |
 | AI workflow files changed            | Edit shared sources; run `ai-workflow:sync`, `ai-workflow:check`, and `ai-workflow:test`                               |
+| Bug fix or substantive review correction exposes a preventable mistake | Use [retro](.agents/skills/retro/SKILL.md) before finishing; preserve review-only scope. |
 | Durable resumption or handoff needed | Use `docs/agent-playbooks/long-running-agent-workflow.md`                                                              |
 | GitHub operation needed              | Use `gh` CLI, not GitHub MCP                                                                                           |
 | User-facing UI text                  | Use `Bitsocial` for product/network text and `PKC` / `pkc-js` for protocol-core names                                  |
