@@ -5,8 +5,8 @@ import type {
     GetChallengeArgs
 } from "@pkcprotocol/pkc-js/dist/node/community/types.js";
 import { signBufferEd25519 } from "./pkc-js-signer.js";
-import type { EvaluationOptions, VerifyResponse } from "@bitsocial/spam-blocker-shared";
-import { VerifyResponseSchema } from "@bitsocial/spam-blocker-shared";
+import type { EvaluateResponse, EvaluationOptions, VerifyResponse } from "@bitsocial/spam-blocker-shared";
+import { EvaluateResponseSchema, VerifyResponseSchema } from "@bitsocial/spam-blocker-shared";
 import { createOptionsSchema, type ParsedOptions } from "./schema.js";
 import * as cborg from "cborg";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
@@ -105,6 +105,17 @@ const communityLevelActionKeys = ["commentEdit", "commentModeration", "community
 
 const isCommunityLevelActionRequest = (challengeRequestMessage: GetChallengeArgs["challengeRequestMessage"]) =>
     communityLevelActionKeys.some((key) => Boolean(challengeRequestMessage[key]));
+
+const PRECHECK_SESSION_ID_REGEX = /^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+// A client that completed this board's pre-check sends the pre-check session id as this challenge's answer.
+const getPrecheckPass = ({
+    challengeRequestMessage,
+    challengeIndex
+}: Pick<GetChallengeArgs, "challengeRequestMessage" | "challengeIndex">) => {
+    const answer: unknown = challengeRequestMessage.challengeAnswers?.[challengeIndex];
+    return typeof answer === "string" && PRECHECK_SESSION_ID_REGEX.test(answer) ? answer : undefined;
+};
 
 const isRuntimeCommunity = (value: unknown): value is RuntimeCommunity =>
     typeof value === "object" && value !== null && ("signer" in value || "address" in value);
@@ -270,31 +281,28 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
     }
     log.trace("Signer publicKey: %s", signer.publicKey);
 
-    const sessionId = randomUUID();
-    const evaluateTimestamp = Math.floor(Date.now() / 1000);
     const evaluationOptions: EvaluationOptions = {
         autoAcceptThreshold: options.autoAcceptThreshold,
         autoRejectThreshold: options.autoRejectThreshold
     };
-    const evaluatePropsToSign = {
-        challengeRequest: challengeRequestMessage,
-        sessionId,
-        evaluationOptions,
-        timestamp: evaluateTimestamp
+
+    // Signed /evaluate payload; the lazy iframe posts the same payload when the user opens it.
+    const createEvaluateRequest = async ({ precheckSessionId }: { precheckSessionId?: string } = {}) => {
+        const sessionId = randomUUID();
+        const evaluateTimestamp = Math.floor(Date.now() / 1000);
+        const evaluatePropsToSign = {
+            challengeRequest: challengeRequestMessage,
+            sessionId,
+            evaluationOptions,
+            ...(precheckSessionId ? { precheckSessionId } : {}),
+            timestamp: evaluateTimestamp
+        };
+        const evaluateSignature = await createRequestSignature(evaluatePropsToSign, signer);
+        return { sessionId, payload: { ...evaluatePropsToSign, signature: evaluateSignature } };
     };
-    const evaluateSignature = await createRequestSignature(evaluatePropsToSign, signer);
-    const challengeUrl = createLazyChallengeUrl({
-        serverUrl: options.serverUrl,
-        sessionId,
-        payload: {
-            ...evaluatePropsToSign,
-            signature: evaluateSignature
-        }
-    });
-    log("Returning lazy challenge to user: sessionId=%s, challengeUrl=%s", sessionId, challengeUrl);
 
     // Server tracks challenge completion state - no token needed from user
-    const verify = async (_answer: string): Promise<ChallengeResultInput> => {
+    const verifySession = async ({ sessionId }: { sessionId: string }): Promise<ChallengeResultInput> => {
         log("verify called for sessionId=%s", sessionId);
 
         const verifyTimestamp = Math.floor(Date.now() / 1000);
@@ -345,11 +353,44 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
         return { success: true };
     };
 
-    return { challenge: challengeUrl, verify, type };
+    const createLazyChallenge = ({ sessionId, payload }: { sessionId: string; payload: unknown }): ChallengeInput => {
+        const challengeUrl = createLazyChallengeUrl({ serverUrl: options.serverUrl, sessionId, payload });
+        log("Returning lazy challenge to user: sessionId=%s, challengeUrl=%s", sessionId, challengeUrl);
+        return { challenge: challengeUrl, verify: () => verifySession({ sessionId }), type };
+    };
+
+    const precheckSessionId = getPrecheckPass(args);
+    if (precheckSessionId) {
+        const evaluateRequest = await createEvaluateRequest({ precheckSessionId });
+        try {
+            const evaluateResponse = parseWithSchema<EvaluateResponse>(
+                EvaluateResponseSchema,
+                await postCbor(`${options.serverUrl}/evaluate`, evaluateRequest.payload),
+                "evaluate"
+            );
+            log("Pre-check pass redemption: sessionId=%s, status=%s", evaluateRequest.sessionId, evaluateResponse.status);
+            if (evaluateResponse.status === "completed" || evaluateResponse.status === "failed") {
+                return verifySession({ sessionId: evaluateRequest.sessionId });
+            }
+            if (evaluateResponse.status === "pending") {
+                return createLazyChallenge(evaluateRequest);
+            }
+            log.error("Pre-check pass redemption returned no status; falling back to the lazy challenge");
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Unknown error";
+            log.error("Failed to redeem pre-check pass, falling back to the lazy challenge: %s", message);
+        }
+    }
+
+    return createLazyChallenge(await createEvaluateRequest());
 };
 
-function ChallengeFileFactory(_communityChallengeSettings: GetChallengeArgs["challengeSettings"]): ChallengeFileInput {
-    return { getChallenge, optionInputs, type, description };
+// pkc-js publishes `challenge` as community.challenges[i].challenge; clients use it to find the pre-check route.
+// Must not throw: pkc-js calls the factory while building the public community record and on every challenge request.
+function ChallengeFileFactory(args: { challengeSettings: GetChallengeArgs["challengeSettings"] }): ChallengeFileInput {
+    const parsedOptions = OptionsSchema.safeParse(args?.challengeSettings?.options);
+    const challenge = parsedOptions.success ? `${parsedOptions.data.serverUrl}/precheck` : undefined;
+    return { getChallenge, optionInputs, type, description, ...(challenge ? { challenge } : {}) };
 }
 
 export default ChallengeFileFactory;
