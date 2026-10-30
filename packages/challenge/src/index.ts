@@ -106,6 +106,8 @@ const communityLevelActionKeys = ["commentEdit", "commentModeration", "community
 const isCommunityLevelActionRequest = (challengeRequestMessage: GetChallengeArgs["challengeRequestMessage"]) =>
     communityLevelActionKeys.some((key) => Boolean(challengeRequestMessage[key]));
 
+// A stalled redemption falls back to the lazy iframe instead of holding up the community's challenge.
+const PRECHECK_REDEMPTION_TIMEOUT_MS = 10_000;
 const PRECHECK_SESSION_ID_REGEX = /^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 // A client that completed this board's pre-check sends the pre-check session id as this challenge's answer.
@@ -160,7 +162,7 @@ const createRequestSignature = async (
     };
 };
 
-const postCbor = async (url: string, body: unknown): Promise<unknown> => {
+const postCbor = async ({ url, body, signal }: { url: string; body: unknown; signal?: AbortSignal }): Promise<unknown> => {
     const encoded = cborg.encode(body);
     log.trace(`POST ${url} request body (CBOR, %d bytes)`, encoded.length);
     const response = await fetch(url, {
@@ -170,7 +172,8 @@ const postCbor = async (url: string, body: unknown): Promise<unknown> => {
             accept: "application/json",
             "ngrok-skip-browser-warning": "true"
         },
-        body: Buffer.from(encoded)
+        body: Buffer.from(encoded),
+        signal
     });
 
     let responseBody: unknown;
@@ -314,9 +317,9 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
         try {
             verifyResponse = parseWithSchema<VerifyResponse>(
                 VerifyResponseSchema,
-                await postCbor(`${options.serverUrl}/challenge/verify`, {
-                    ...verifyPropsToSign,
-                    signature: verifySignature
+                await postCbor({
+                    url: `${options.serverUrl}/challenge/verify`,
+                    body: { ...verifyPropsToSign, signature: verifySignature }
                 }),
                 "verify"
             );
@@ -365,7 +368,11 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
         try {
             const evaluateResponse = parseWithSchema<EvaluateResponse>(
                 EvaluateResponseSchema,
-                await postCbor(`${options.serverUrl}/evaluate`, evaluateRequest.payload),
+                await postCbor({
+                    url: `${options.serverUrl}/evaluate`,
+                    body: evaluateRequest.payload,
+                    signal: AbortSignal.timeout(PRECHECK_REDEMPTION_TIMEOUT_MS)
+                }),
                 "evaluate"
             );
             log("Pre-check pass redemption: sessionId=%s, status=%s", evaluateRequest.sessionId, evaluateResponse.status);

@@ -456,7 +456,7 @@ describe("pre-check pass", () => {
     const requestWithPass = { challengeAnswers: [pass] } as unknown as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
     const todaySignedPropertyNames = ["challengeRequest", "sessionId", "evaluationOptions", "timestamp"];
 
-    const createEvaluateResponse = (status?: "pending" | "completed" | "failed") => ({
+    const createEvaluateResponse = ({ status }: { status?: "pending" | "completed" | "failed" } = {}) => ({
         riskScore: 0.5,
         sessionId: "server-echo",
         challengeUrl: "https://spamblocker.bitsocial.net/api/v1/iframe/server-echo",
@@ -480,10 +480,10 @@ describe("pre-check pass", () => {
             community
         });
 
-    const decodeFetchBody = (fetchMock: ReturnType<typeof vi.fn>, callIndex: number) =>
+    const decodeFetchBody = ({ fetchMock, callIndex }: { fetchMock: ReturnType<typeof vi.fn>; callIndex: number }) =>
         cborg.decode(fetchMock.mock.calls[callIndex]?.[1]?.body as Buffer) as Record<string, any>;
 
-    const expectTodaysLazyChallenge = (result: Awaited<ReturnType<typeof getChallengeWith>>) => {
+    const expectTodaysLazyChallenge = ({ result }: { result: Awaited<ReturnType<typeof getChallengeWith>> }) => {
         if ("success" in result) {
             throw new Error("Expected a lazy challenge response");
         }
@@ -524,7 +524,10 @@ describe("pre-check pass", () => {
     });
 
     it("redeems a completed pass server-to-server and returns the verify result", async () => {
-        const fetchMock = stubFetch(createResponse(createEvaluateResponse("completed")), createResponse(createVerifyResponse()));
+        const fetchMock = stubFetch(
+            createResponse(createEvaluateResponse({ status: "completed" })),
+            createResponse(createVerifyResponse())
+        );
 
         const result = await getChallengeWith();
 
@@ -534,7 +537,7 @@ describe("pre-check pass", () => {
         expect(fetchMock.mock.calls[0]?.[1]?.headers).not.toHaveProperty("x-bitsocial-user-origin");
         expect(fetchMock.mock.calls[1]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/challenge/verify");
 
-        const evaluateBody = decodeFetchBody(fetchMock, 0);
+        const evaluateBody = decodeFetchBody({ fetchMock, callIndex: 0 });
         expect(evaluateBody).toEqual(
             expect.objectContaining({
                 challengeRequest: requestWithPass,
@@ -554,11 +557,14 @@ describe("pre-check pass", () => {
         ]);
         expect(await ed.verify(signature.signature, cborg.encode(signedProps), signature.publicKey)).toBe(true);
 
-        expect(decodeFetchBody(fetchMock, 1).sessionId).toBe(evaluateBody.sessionId);
+        expect(decodeFetchBody({ fetchMock, callIndex: 1 }).sessionId).toBe(evaluateBody.sessionId);
     });
 
     it("applies IP policies to a completed pass", async () => {
-        stubFetch(createResponse(createEvaluateResponse("completed")), createResponse(createVerifyResponse({ ipTypeEstimation: "vpn" })));
+        stubFetch(
+            createResponse(createEvaluateResponse({ status: "completed" })),
+            createResponse(createVerifyResponse({ ipTypeEstimation: "vpn" }))
+        );
 
         const result = await getChallengeWith({ options: { blockVpn: "true" } });
 
@@ -567,7 +573,7 @@ describe("pre-check pass", () => {
 
     it("returns the server's error for a failed pass", async () => {
         stubFetch(
-            createResponse(createEvaluateResponse("failed")),
+            createResponse(createEvaluateResponse({ status: "failed" })),
             createResponse(createVerifyResponse({ success: false, error: "Publication rejected" }))
         );
 
@@ -577,7 +583,7 @@ describe("pre-check pass", () => {
     });
 
     it("returns the lazy challenge built from the redemption payload when the pass is pending", async () => {
-        const fetchMock = stubFetch(createResponse(createEvaluateResponse("pending")), createResponse(createVerifyResponse()));
+        const fetchMock = stubFetch(createResponse(createEvaluateResponse({ status: "pending" })), createResponse(createVerifyResponse()));
 
         const result = await getChallengeWith();
 
@@ -585,14 +591,14 @@ describe("pre-check pass", () => {
             throw new Error("Expected a lazy challenge response");
         }
         expect(fetchMock).toHaveBeenCalledTimes(1);
-        const evaluateBody = decodeFetchBody(fetchMock, 0);
+        const evaluateBody = decodeFetchBody({ fetchMock, callIndex: 0 });
         const { sessionId, payload } = getLazyChallengeParts(result.challenge);
         expect(sessionId).toBe(evaluateBody.sessionId);
         expect(payload).toEqual(evaluateBody);
 
         await result.verify("");
         expect(fetchMock.mock.calls[1]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/challenge/verify");
-        expect(decodeFetchBody(fetchMock, 1).sessionId).toBe(sessionId);
+        expect(decodeFetchBody({ fetchMock, callIndex: 1 }).sessionId).toBe(sessionId);
     });
 
     it.each([
@@ -610,8 +616,25 @@ describe("pre-check pass", () => {
         const result = await getChallengeWith();
 
         expect(fetchMock).toHaveBeenCalledTimes(1);
-        const { sessionId } = expectTodaysLazyChallenge(result);
-        expect(sessionId).not.toBe(decodeFetchBody(fetchMock, 0).sessionId);
+        const { sessionId } = expectTodaysLazyChallenge({ result });
+        expect(sessionId).not.toBe(decodeFetchBody({ fetchMock, callIndex: 0 }).sessionId);
+    });
+
+    it("gives up on a stalled redemption and returns today's lazy challenge", async () => {
+        const controller = new AbortController();
+        const timeoutSpy = vi.spyOn(AbortSignal, "timeout").mockReturnValue(controller.signal);
+        const fetchMock = vi.fn(
+            (_url: string, init: { signal?: AbortSignal }) =>
+                new Promise((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(init.signal?.reason)))
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        const resultPromise = getChallengeWith();
+        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+        expect(timeoutSpy).toHaveBeenCalledWith(10_000);
+        controller.abort(new DOMException("The operation timed out.", "TimeoutError"));
+
+        expectTodaysLazyChallenge({ result: await resultPromise });
     });
 
     it.each([
@@ -630,6 +653,6 @@ describe("pre-check pass", () => {
         });
 
         expect(fetchMock).not.toHaveBeenCalled();
-        expectTodaysLazyChallenge(result);
+        expectTodaysLazyChallenge({ result });
     });
 });
