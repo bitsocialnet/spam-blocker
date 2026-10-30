@@ -637,6 +637,26 @@ describe("pre-check pass", () => {
         expectTodaysLazyChallenge({ result: await resultPromise });
     });
 
+    it.each([
+        ["fails", () => Promise.reject(new Error("ECONNRESET"))],
+        [
+            "is answered with a server error",
+            () => Promise.resolve(createResponse({ error: "Service unavailable" }, { ok: false, status: 503 }))
+        ],
+        ["is answered with something unreadable", () => Promise.resolve(createResponse({ unexpected: true }))]
+    ])("returns today's lazy challenge when the verify request of a redeemed pass %s", async (_name, verifyResponse) => {
+        const fetchMock = vi
+            .fn()
+            .mockResolvedValueOnce(createResponse(createEvaluateResponse({ status: "completed" })))
+            .mockImplementationOnce(verifyResponse);
+        vi.stubGlobal("fetch", fetchMock);
+
+        const result = await getChallengeWith();
+
+        expect(fetchMock.mock.calls[1]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/challenge/verify");
+        expectTodaysLazyChallenge({ result });
+    });
+
     it("gives up on a verify request that stalls after the pass is redeemed", async () => {
         const controller = new AbortController();
         vi.spyOn(AbortSignal, "timeout").mockReturnValue(controller.signal);

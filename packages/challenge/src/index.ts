@@ -306,7 +306,9 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
     };
 
     // Server tracks challenge completion state - no token needed from user
-    // With `signal`, a request it aborts throws instead of failing the challenge, so the caller can fall back.
+    // For a pass redemption (given `signal`), a verify request that fails, times out or returns an unreadable
+    // answer throws instead of failing the challenge, so the caller falls back to the lazy iframe. A verify
+    // answer that rejects the publication still fails it.
     const verifySession = async ({ sessionId, signal }: { sessionId: string; signal?: AbortSignal }): Promise<ChallengeResultInput> => {
         log("verify called for sessionId=%s", sessionId);
 
@@ -327,7 +329,7 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
                 "verify"
             );
         } catch (error) {
-            if (signal?.aborted) throw error;
+            if (signal) throw error;
             const message = error instanceof Error ? error.message : "Unknown error";
             log.error("Failed to verify challenge: %s", message);
             return { success: false, error: message };
