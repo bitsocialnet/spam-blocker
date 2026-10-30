@@ -637,6 +637,26 @@ describe("pre-check pass", () => {
         expectTodaysLazyChallenge({ result: await resultPromise });
     });
 
+    it("gives up on a verify request that stalls after the pass is redeemed", async () => {
+        const controller = new AbortController();
+        vi.spyOn(AbortSignal, "timeout").mockReturnValue(controller.signal);
+        const fetchMock = vi
+            .fn()
+            .mockResolvedValueOnce(createResponse(createEvaluateResponse({ status: "completed" })))
+            .mockImplementationOnce(
+                (_url: string, init: { signal?: AbortSignal }) =>
+                    new Promise((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(init.signal?.reason)))
+            );
+        vi.stubGlobal("fetch", fetchMock);
+
+        const resultPromise = getChallengeWith();
+        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+        expect(fetchMock.mock.calls[1]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/challenge/verify");
+        controller.abort(new DOMException("The operation timed out.", "TimeoutError"));
+
+        expectTodaysLazyChallenge({ result: await resultPromise });
+    });
+
     it.each([
         ["no challenge answers", request, 0],
         ["a pass at another challenge index", requestWithPass, 1],

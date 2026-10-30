@@ -106,7 +106,8 @@ const communityLevelActionKeys = ["commentEdit", "commentModeration", "community
 const isCommunityLevelActionRequest = (challengeRequestMessage: GetChallengeArgs["challengeRequestMessage"]) =>
     communityLevelActionKeys.some((key) => Boolean(challengeRequestMessage[key]));
 
-// A stalled redemption falls back to the lazy iframe instead of holding up the community's challenge.
+// A stalled redemption (its /evaluate and /challenge/verify together) falls back to the lazy iframe instead
+// of holding up the community's challenge.
 const PRECHECK_REDEMPTION_TIMEOUT_MS = 10_000;
 const PRECHECK_SESSION_ID_REGEX = /^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -305,7 +306,8 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
     };
 
     // Server tracks challenge completion state - no token needed from user
-    const verifySession = async ({ sessionId }: { sessionId: string }): Promise<ChallengeResultInput> => {
+    // With `signal`, a request it aborts throws instead of failing the challenge, so the caller can fall back.
+    const verifySession = async ({ sessionId, signal }: { sessionId: string; signal?: AbortSignal }): Promise<ChallengeResultInput> => {
         log("verify called for sessionId=%s", sessionId);
 
         const verifyTimestamp = Math.floor(Date.now() / 1000);
@@ -319,11 +321,13 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
                 VerifyResponseSchema,
                 await postCbor({
                     url: `${options.serverUrl}/challenge/verify`,
-                    body: { ...verifyPropsToSign, signature: verifySignature }
+                    body: { ...verifyPropsToSign, signature: verifySignature },
+                    signal
                 }),
                 "verify"
             );
         } catch (error) {
+            if (signal?.aborted) throw error;
             const message = error instanceof Error ? error.message : "Unknown error";
             log.error("Failed to verify challenge: %s", message);
             return { success: false, error: message };
@@ -365,19 +369,21 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
     const precheckSessionId = getPrecheckPass(args);
     if (precheckSessionId) {
         const evaluateRequest = await createEvaluateRequest({ precheckSessionId });
+        const signal = AbortSignal.timeout(PRECHECK_REDEMPTION_TIMEOUT_MS);
         try {
             const evaluateResponse = parseWithSchema<EvaluateResponse>(
                 EvaluateResponseSchema,
                 await postCbor({
                     url: `${options.serverUrl}/evaluate`,
                     body: evaluateRequest.payload,
-                    signal: AbortSignal.timeout(PRECHECK_REDEMPTION_TIMEOUT_MS)
+                    signal
                 }),
                 "evaluate"
             );
             log("Pre-check pass redemption: sessionId=%s, status=%s", evaluateRequest.sessionId, evaluateResponse.status);
             if (evaluateResponse.status === "completed" || evaluateResponse.status === "failed") {
-                return verifySession({ sessionId: evaluateRequest.sessionId });
+                // Awaited here so a verify request the deadline aborts reaches the fallback below.
+                return await verifySession({ sessionId: evaluateRequest.sessionId, signal });
             }
             if (evaluateResponse.status === "pending") {
                 return createLazyChallenge(evaluateRequest);
