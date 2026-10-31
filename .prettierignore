@@ -15,3 +15,6 @@
 .codex
 
 .cursor
+
+# Synced from bitsocialnet/5chan, which formats it with oxfmt.
+.github/workflows/claude-code-review.yml
