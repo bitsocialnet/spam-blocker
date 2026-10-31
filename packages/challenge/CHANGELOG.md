@@ -1,5 +1,20 @@
 # Changelog
 
+## <small>0.1.7 (2026-10-31)</small>
+
+* chore(agents): add repository retrospective skill ([94af9a2](https://github.com/bitsocialnet/spam-blocker/commit/94af9a2))
+* chore(ai workflows): consolidate native agent configuration ([c4322c6](https://github.com/bitsocialnet/spam-blocker/commit/c4322c6))
+* chore(deps): fix Dependabot security alerts [skip github-alerts] ([415fc17](https://github.com/bitsocialnet/spam-blocker/commit/415fc17))
+* chore(deps): patch vulnerable dependencies [skip ci] [skip github-alerts] ([bf611f5](https://github.com/bitsocialnet/spam-blocker/commit/bf611f5))
+* chore(deps): patch vulnerable dependencies [skip ci] [skip github-alerts] ([cc4ca20](https://github.com/bitsocialnet/spam-blocker/commit/cc4ca20))
+* chore(prettier): ignore the synced review workflow and format AGENTS.md ([ccf4c08](https://github.com/bitsocialnet/spam-blocker/commit/ccf4c08))
+* feat(challenge): redeem pre-check passes and publish the pre-check URL (#15) ([b2c8b04](https://github.com/bitsocialnet/spam-blocker/commit/b2c8b04)), closes [#15](https://github.com/bitsocialnet/spam-blocker/issues/15)
+* ci: add Claude Code review workflow ([13b3ecc](https://github.com/bitsocialnet/spam-blocker/commit/13b3ecc))
+* ci: update Claude Code review workflow from bitsocialnet/5chan [skip ci] [skip github-alerts] ([d5e60f5](https://github.com/bitsocialnet/spam-blocker/commit/d5e60f5))
+* ci: update Claude Code review workflow from bitsocialnet/5chan [skip ci] [skip github-alerts] ([0edbd5b](https://github.com/bitsocialnet/spam-blocker/commit/0edbd5b))
+* fix(deps): patch Dependabot alerts [skip github-alerts] [skip ci] ([78ee377](https://github.com/bitsocialnet/spam-blocker/commit/78ee377))
+* docs: record hosted service source policy ([b570938](https://github.com/bitsocialnet/spam-blocker/commit/b570938))
+
 ## <small>0.1.6 (2026-08-12)</small>
 
 * docs: document hosted signer-cluster protection ([78d9673](https://github.com/bitsocialnet/spam-blocker/commit/78d9673))
