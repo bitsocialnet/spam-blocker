@@ -8,6 +8,7 @@ import type { VerifyResponse } from "@bitsocial/spam-blocker-shared";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import ChallengeFileFactory from "../src/index.js";
 import * as cborg from "cborg";
+import * as ed from "@noble/ed25519";
 import path from "node:path";
 
 type MockResponseOptions = {
@@ -415,7 +416,7 @@ describe("Bitsocial Spam Blocker challenge package", () => {
         expect((verifyResult as any).error).toMatch(/Invalid JSON response/i);
     });
 
-    it("does not expose serverUrl or options in the public community challenge record", async () => {
+    it("publishes only the pre-check URL, not the options, in the public community challenge record", async () => {
         const __dirname = path.dirname(fileURLToPath(import.meta.url));
         const challengePath = path.resolve(__dirname, "../dist/index.js");
 
@@ -438,13 +439,260 @@ describe("Bitsocial Spam Blocker challenge package", () => {
 
         expect(publicChallenge.type).toBe("url/iframe");
         expect(publicChallenge.description).toMatch(/Bitsocial/i);
+        expect(publicChallenge.challenge).toBe("https://secret-server.example.com/api/v1/precheck");
 
-        const serialized = JSON.stringify(publicChallenge);
+        const serialized = JSON.stringify({ ...publicChallenge, challenge: undefined });
         expect(serialized).not.toContain("secret-server.example.com");
         expect(serialized).not.toContain("serverUrl");
         expect(serialized).not.toContain("autoAcceptThreshold");
         expect(serialized).not.toContain("autoRejectThreshold");
         expect(serialized).not.toContain("countryBlacklist");
         expect(publicChallenge).not.toHaveProperty("options");
+    });
+});
+
+describe("pre-check pass", () => {
+    const pass = "precheck-0b6c3f5e-8f1a-4c2d-9e7b-1a2b3c4d5e6f";
+    const requestWithPass = { challengeAnswers: [pass] } as unknown as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
+    const todaySignedPropertyNames = ["challengeRequest", "sessionId", "evaluationOptions", "timestamp"];
+
+    const createEvaluateResponse = ({ status }: { status?: "pending" | "completed" | "failed" } = {}) => ({
+        riskScore: 0.5,
+        sessionId: "server-echo",
+        challengeUrl: "https://spamblocker.bitsocial.net/api/v1/iframe/server-echo",
+        challengeExpiresAt: 1_900_000_000,
+        ...(status ? { status } : {})
+    });
+
+    const getChallengeWith = ({
+        challengeRequestMessage = requestWithPass,
+        options = {},
+        challengeIndex = 0
+    }: {
+        challengeRequestMessage?: DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
+        options?: Record<string, string>;
+        challengeIndex?: number;
+    } = {}) =>
+        ChallengeFileFactory({ challengeSettings: { options } as CommunityChallengeSetting }).getChallenge({
+            challengeSettings: { options } as CommunityChallengeSetting,
+            challengeRequestMessage,
+            challengeIndex,
+            community
+        });
+
+    const decodeFetchBody = ({ fetchMock, callIndex }: { fetchMock: ReturnType<typeof vi.fn>; callIndex: number }) =>
+        cborg.decode(fetchMock.mock.calls[callIndex]?.[1]?.body as Buffer) as Record<string, any>;
+
+    const expectTodaysLazyChallenge = ({ result }: { result: Awaited<ReturnType<typeof getChallengeWith>> }) => {
+        if ("success" in result) {
+            throw new Error("Expected a lazy challenge response");
+        }
+        const { sessionId, payload } = getLazyChallengeParts(result.challenge);
+        expect(payload).not.toHaveProperty("precheckSessionId");
+        expect(payload.sessionId).toBe(sessionId);
+        expect(payload.signature.signedPropertyNames).toEqual(todaySignedPropertyNames);
+        return { sessionId, payload };
+    };
+
+    describe("factory marker", () => {
+        it("publishes the pre-check URL for the default server", () => {
+            expect(ChallengeFileFactory({ challengeSettings: { options: {} } as CommunityChallengeSetting }).challenge).toBe(
+                "https://spamblocker.bitsocial.net/api/v1/precheck"
+            );
+        });
+
+        it("strips trailing slashes from serverUrl", () => {
+            const challengeFile = ChallengeFileFactory({
+                challengeSettings: { options: { serverUrl: "https://example.com/api///" } } as unknown as CommunityChallengeSetting
+            });
+            expect(challengeFile.challenge).toBe("https://example.com/api/precheck");
+        });
+
+        it.each([
+            ["serverUrl", { serverUrl: "ftp://example.com" }],
+            ["threshold", { autoAcceptThreshold: "nope" }],
+            ["country", { countryBlacklist: "XX" }]
+        ])("omits the marker without throwing when the %s option is invalid", (_name, options) => {
+            const challengeFile = ChallengeFileFactory({ challengeSettings: { options } as unknown as CommunityChallengeSetting });
+            expect(challengeFile).not.toHaveProperty("challenge");
+            expect(challengeFile.type).toBe("url/iframe");
+        });
+
+        it("does not throw when called without settings", () => {
+            expect(() => ChallengeFileFactory(undefined as never)).not.toThrow();
+        });
+    });
+
+    it("redeems a completed pass server-to-server and returns the verify result", async () => {
+        const fetchMock = stubFetch(
+            createResponse(createEvaluateResponse({ status: "completed" })),
+            createResponse(createVerifyResponse())
+        );
+
+        const result = await getChallengeWith();
+
+        expect(result).toEqual({ success: true });
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(fetchMock.mock.calls[0]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/evaluate");
+        expect(fetchMock.mock.calls[0]?.[1]?.headers).not.toHaveProperty("x-bitsocial-user-origin");
+        expect(fetchMock.mock.calls[1]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/challenge/verify");
+
+        const evaluateBody = decodeFetchBody({ fetchMock, callIndex: 0 });
+        expect(evaluateBody).toEqual(
+            expect.objectContaining({
+                challengeRequest: requestWithPass,
+                sessionId: expect.any(String),
+                evaluationOptions: { autoAcceptThreshold: 0.2, autoRejectThreshold: 0.8 },
+                precheckSessionId: pass,
+                timestamp: expect.any(Number)
+            })
+        );
+        const { signature, ...signedProps } = evaluateBody;
+        expect(signature.signedPropertyNames).toEqual([
+            "challengeRequest",
+            "sessionId",
+            "evaluationOptions",
+            "precheckSessionId",
+            "timestamp"
+        ]);
+        expect(await ed.verify(signature.signature, cborg.encode(signedProps), signature.publicKey)).toBe(true);
+
+        expect(decodeFetchBody({ fetchMock, callIndex: 1 }).sessionId).toBe(evaluateBody.sessionId);
+    });
+
+    it("applies IP policies to a completed pass", async () => {
+        stubFetch(
+            createResponse(createEvaluateResponse({ status: "completed" })),
+            createResponse(createVerifyResponse({ ipTypeEstimation: "vpn" }))
+        );
+
+        const result = await getChallengeWith({ options: { blockVpn: "true" } });
+
+        expect(result).toEqual({ success: false, error: "Rejected by IP policy (VPN)." });
+    });
+
+    it("returns the server's error for a failed pass", async () => {
+        stubFetch(
+            createResponse(createEvaluateResponse({ status: "failed" })),
+            createResponse(createVerifyResponse({ success: false, error: "Publication rejected" }))
+        );
+
+        const result = await getChallengeWith();
+
+        expect(result).toEqual({ success: false, error: "Publication rejected" });
+    });
+
+    it("returns the lazy challenge built from the redemption payload when the pass is pending", async () => {
+        const fetchMock = stubFetch(createResponse(createEvaluateResponse({ status: "pending" })), createResponse(createVerifyResponse()));
+
+        const result = await getChallengeWith();
+
+        if ("success" in result) {
+            throw new Error("Expected a lazy challenge response");
+        }
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        const evaluateBody = decodeFetchBody({ fetchMock, callIndex: 0 });
+        const { sessionId, payload } = getLazyChallengeParts(result.challenge);
+        expect(sessionId).toBe(evaluateBody.sessionId);
+        expect(payload).toEqual(evaluateBody);
+
+        await result.verify("");
+        expect(fetchMock.mock.calls[1]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/challenge/verify");
+        expect(decodeFetchBody({ fetchMock, callIndex: 1 }).sessionId).toBe(sessionId);
+    });
+
+    it.each([
+        ["the request fails", () => vi.fn().mockRejectedValue(new Error("ECONNREFUSED"))],
+        [
+            "the server rejects the request",
+            () => vi.fn().mockResolvedValue(createResponse({ error: "Invalid request body" }, { ok: false, status: 400 }))
+        ],
+        ["the response does not match the schema", () => vi.fn().mockResolvedValue(createResponse({ status: "completed" }))],
+        ["the response has no status", () => vi.fn().mockResolvedValue(createResponse(createEvaluateResponse()))]
+    ])("falls back to today's lazy challenge when %s", async (_name, createFetchMock) => {
+        const fetchMock = createFetchMock();
+        vi.stubGlobal("fetch", fetchMock);
+
+        const result = await getChallengeWith();
+
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        const { sessionId } = expectTodaysLazyChallenge({ result });
+        expect(sessionId).not.toBe(decodeFetchBody({ fetchMock, callIndex: 0 }).sessionId);
+    });
+
+    it("gives up on a stalled redemption and returns today's lazy challenge", async () => {
+        const controller = new AbortController();
+        const timeoutSpy = vi.spyOn(AbortSignal, "timeout").mockReturnValue(controller.signal);
+        const fetchMock = vi.fn(
+            (_url: string, init: { signal?: AbortSignal }) =>
+                new Promise((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(init.signal?.reason)))
+        );
+        vi.stubGlobal("fetch", fetchMock);
+
+        const resultPromise = getChallengeWith();
+        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+        expect(timeoutSpy).toHaveBeenCalledWith(10_000);
+        controller.abort(new DOMException("The operation timed out.", "TimeoutError"));
+
+        expectTodaysLazyChallenge({ result: await resultPromise });
+    });
+
+    it.each([
+        ["fails", () => Promise.reject(new Error("ECONNRESET"))],
+        [
+            "is answered with a server error",
+            () => Promise.resolve(createResponse({ error: "Service unavailable" }, { ok: false, status: 503 }))
+        ],
+        ["is answered with something unreadable", () => Promise.resolve(createResponse({ unexpected: true }))]
+    ])("returns today's lazy challenge when the verify request of a redeemed pass %s", async (_name, verifyResponse) => {
+        const fetchMock = vi
+            .fn()
+            .mockResolvedValueOnce(createResponse(createEvaluateResponse({ status: "completed" })))
+            .mockImplementationOnce(verifyResponse);
+        vi.stubGlobal("fetch", fetchMock);
+
+        const result = await getChallengeWith();
+
+        expect(fetchMock.mock.calls[1]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/challenge/verify");
+        expectTodaysLazyChallenge({ result });
+    });
+
+    it("gives up on a verify request that stalls after the pass is redeemed", async () => {
+        const controller = new AbortController();
+        vi.spyOn(AbortSignal, "timeout").mockReturnValue(controller.signal);
+        const fetchMock = vi
+            .fn()
+            .mockResolvedValueOnce(createResponse(createEvaluateResponse({ status: "completed" })))
+            .mockImplementationOnce(
+                (_url: string, init: { signal?: AbortSignal }) =>
+                    new Promise((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(init.signal?.reason)))
+            );
+        vi.stubGlobal("fetch", fetchMock);
+
+        const resultPromise = getChallengeWith();
+        await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+        expect(fetchMock.mock.calls[1]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/challenge/verify");
+        controller.abort(new DOMException("The operation timed out.", "TimeoutError"));
+
+        expectTodaysLazyChallenge({ result: await resultPromise });
+    });
+
+    it.each([
+        ["no challenge answers", request, 0],
+        ["a pass at another challenge index", requestWithPass, 1],
+        ["an uppercase pass", { challengeAnswers: [pass.toUpperCase()] }, 0],
+        ["a plain UUID", { challengeAnswers: [pass.replace("precheck-", "")] }, 0],
+        ["a truncated pass", { challengeAnswers: ["precheck-0b6c3f5e"] }, 0]
+    ])("keeps today's flow without calling the server for %s", async (_name, challengeRequestMessage, challengeIndex) => {
+        const fetchMock = vi.fn();
+        vi.stubGlobal("fetch", fetchMock);
+
+        const result = await getChallengeWith({
+            challengeRequestMessage: challengeRequestMessage as DecryptedChallengeRequestMessageTypeWithCommunityAuthor,
+            challengeIndex
+        });
+
+        expect(fetchMock).not.toHaveBeenCalled();
+        expectTodaysLazyChallenge({ result });
     });
 });

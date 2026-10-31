@@ -71,6 +71,7 @@ Then add or edit the `challenges` array in your community settings to include th
     - **Between thresholds**: The iframe presents OAuth and/or CAPTCHA verification.
 5. After challenge verification, the server's `/challenge/verify` endpoint confirms whether the user passed. Additional IP-based policies (country, VPN, proxy, Tor, datacenter blocking) are applied if configured.
 6. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted without calling `/evaluate`.
+7. The challenge publishes `<serverUrl>/precheck` as its public `challenge` so clients can run the spam blocker before uploading a file. A client that completed that pre-check sends its `precheck-<uuid>` session id as this challenge's answer in `challengeRequest.challengeAnswers`; `getChallenge()` then redeems it with `/evaluate` server-to-server and answers without a second iframe when the session is already decided. If redemption is still pending or fails, the usual lazy iframe is returned. See the repository README's pre-check pass section for the client flow.
 
 ## License
 

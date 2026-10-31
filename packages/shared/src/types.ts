@@ -53,7 +53,9 @@ export const EvaluateResponseSchema = z.object({
     challengeUrl: z.url().refine((value) => isHttpUrl(value), {
         message: "challengeUrl must be a valid HTTP/HTTPS URL"
     }),
-    challengeExpiresAt: UnixTimestampSchema.optional()
+    challengeExpiresAt: UnixTimestampSchema.optional(),
+    // Optional so responses from servers that predate the field still parse.
+    status: z.enum(["pending", "completed", "failed"]).optional()
 });
 
 export const VerifyResponseSchema = z.object({
