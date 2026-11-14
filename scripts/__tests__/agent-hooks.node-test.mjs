@@ -21,12 +21,9 @@ function fixture(t) {
     return { temporary, root, write };
 }
 
-test("normalizes Claude and Cursor edits, including paths with shell metacharacters", () => {
+test("normalizes Claude writes", () => {
     assert.deepEqual(editedPaths({ hook_event_name: "PostToolUse", tool_name: "Write", tool_input: { file_path: "/repo/file.ts" } }), [
         "/repo/file.ts"
-    ]);
-    assert.deepEqual(editedPaths({ hook_event_name: "afterFileEdit", file_path: "src/a $(touch sentinel).tsx" }), [
-        "src/a $(touch sentinel).tsx"
     ]);
 });
 

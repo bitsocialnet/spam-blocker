@@ -39,7 +39,7 @@ Source of truth:
 
 Compiled context:
 
-- `AGENTS.md`, directory-specific `AGENTS.md` files, `CLAUDE.md`, and repo-managed `.codex/`, `.cursor/`, and `.claude/` workflow files.
+- `AGENTS.md`, directory-specific `AGENTS.md` files, `CLAUDE.md`, and repo-managed `.codex/` and `.claude/` workflow files.
 - `docs/agent-playbooks/**`, `docs/agent-runs/**`, `docs/agent-playbooks/known-surprises.md`, and tracked `llms.txt` / `llms-full.txt` files when present.
 
 Agents may use compiled context to navigate quickly, but must verify against source files before making behavioral claims or edits. External code graph, RAG, MCP, or wiki tools are optional local accelerators unless the developer explicitly asks to make one part of the committed workflow.
@@ -148,7 +148,7 @@ Consult these only when the task touches their domain:
 ## Shared AI tooling
 
 - Edit `.agents/skills/` and `.agents/roles/`, then run `corepack yarn ai-workflow:sync`, `corepack yarn ai-workflow:check`, and `corepack yarn ai-workflow:test`.
-- `.agents/roles/` is this repository’s generator input, not a native app discovery path. Commit the generated `.codex/agents/*.toml`, `.cursor/agents/*.md`, `.claude/agents/*.md`, and `.claude/skills/` outputs. Codex and Cursor read `.agents/skills/`; Claude uses the generated copies and `CLAUDE.md` importing `AGENTS.md`.
+- `.agents/roles/` is this repository’s generator input, not a native app discovery path. Commit the generated `.codex/agents/*.toml`, `.claude/agents/*.md`, and `.claude/skills/` outputs. Codex reads `.agents/skills/`; Claude uses the generated copies and `CLAUDE.md` importing `AGENTS.md`.
 - Leave model and reasoning fields unset in skills and roles. Runtime invocation, app/user defaults, and parent inheritance select them. Do not pin a generation or model family in repository prompts.
 - Keep hook schemas and permissions native to each harness; similar file contents do not imply identical runtime behavior. See [skills-and-tools.md](docs/agent-playbooks/skills-and-tools.md).
 - Keep skill descriptions precise and roots short. Load references when relevant; preserve domain constraints and supported manual-invocation metadata. Prefer installed tools and current official documentation when versions matter; search for or install additional skills only when requested.

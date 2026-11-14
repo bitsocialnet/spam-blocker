@@ -29,7 +29,7 @@ Repo-specific AI workflow guidance lives in:
 - [`docs/agent-playbooks/hooks-setup.md`](./docs/agent-playbooks/hooks-setup.md)
 - [`docs/agent-playbooks/skills-and-tools.md`](./docs/agent-playbooks/skills-and-tools.md)
 
-Use Corepack-managed Yarn. Shared skills and role sources live under `.agents/`; the workflow generator maintains native Codex, Cursor, and Claude outputs. Automatic hooks only format edited source files. See the playbooks for setup and checks selected by the change.
+Use Corepack-managed Yarn. Shared skills and role sources live under `.agents/`; the workflow generator maintains native Codex and Claude outputs. Automatic hooks only format edited source files. See the playbooks for setup and checks selected by the change.
 
 Quick setup for a fresh machine:
 
