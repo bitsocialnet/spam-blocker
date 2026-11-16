@@ -241,7 +241,7 @@ const getPostChallengeRejection = (verifyResponse: VerifyResponse, options: Pars
             return "Rejected by IP policy (proxy).";
         }
         if (ipType === "tor" && options.blockTor) {
-            return "Rejected by IP policy (Tor).";
+            return "Your connection was detected as Tor. This community does not allow posting through Tor. Use a connection without Tor and try again.";
         }
         if (ipType === "datacenter" && options.blockDatacenter) {
             return "Rejected by IP policy (datacenter).";
@@ -287,7 +287,8 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
 
     const evaluationOptions: EvaluationOptions = {
         autoAcceptThreshold: options.autoAcceptThreshold,
-        autoRejectThreshold: options.autoRejectThreshold
+        autoRejectThreshold: options.autoRejectThreshold,
+        ...(options.blockTor ? { blockTor: true } : {})
     };
 
     // Signed /evaluate payload; the lazy iframe posts the same payload when the user opens it.
@@ -404,7 +405,9 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
 // Must not throw: pkc-js calls the factory while building the public community record and on every challenge request.
 function ChallengeFileFactory(args: { challengeSettings: GetChallengeArgs["challengeSettings"] }): ChallengeFileInput {
     const parsedOptions = OptionsSchema.safeParse(args?.challengeSettings?.options);
-    const challenge = parsedOptions.success ? `${parsedOptions.data.serverUrl}/precheck` : undefined;
+    const challenge = parsedOptions.success
+        ? `${parsedOptions.data.serverUrl}/precheck${parsedOptions.data.blockTor ? "?blockTor=true" : ""}`
+        : undefined;
     return { getChallenge, optionInputs, type, description, ...(challenge ? { challenge } : {}) };
 }
 

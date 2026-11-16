@@ -29,7 +29,8 @@ export const IsoCountryCodeSchema = z
 export const EvaluationOptionsSchema = z
     .object({
         autoAcceptThreshold: UnitIntervalSchema.optional(),
-        autoRejectThreshold: UnitIntervalSchema.optional()
+        autoRejectThreshold: UnitIntervalSchema.optional(),
+        blockTor: z.boolean().optional()
     })
     .strict()
     .superRefine((value, ctx) => {

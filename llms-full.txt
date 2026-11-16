@@ -112,6 +112,7 @@ The request body is CBOR-encoded (not JSON). This preserves `Uint8Array` types d
     evaluationOptions?: {
         autoAcceptThreshold?: number;
         autoRejectThreshold?: number;
+        blockTor?: boolean; // Community policy; Tor connections are rejected before verification
     };
     timestamp: number; // Unix timestamp (seconds)
     signature: {
@@ -310,9 +311,11 @@ User opens iframe -> lazy iframe posts signed payload to /evaluate -> riskScore
 
 A client can run a board's spam blocker check before it uploads an attached file, so rejected authors never upload. The board still evaluates the real signed publication (including `link`) when it is published; the pass only lets the board reuse the confirmed user-origin IP and any CAPTCHA/OAuth the author already completed, so the author is not shown a second iframe.
 
-**Public marker.** The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"` (for example `https://spamblocker.bitsocial.net/api/v1/precheck`). A challenge is pass-capable when its `type` is `"url/iframe"` and `challenge` is an `https` (or localhost `http`) URL whose pathname ends with `/precheck`. If the board's options are invalid, `challenge` is omitted.
+**Public marker.** The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"` (for example `https://spamblocker.bitsocial.net/api/v1/precheck`). A challenge is pass-capable when its `type` is `"url/iframe"` and `challenge` is an `https` (or localhost `http`) URL whose pathname ends with `/precheck`. When `blockTor` is enabled, the marker includes `?blockTor=true`. Clients accept this parameter and remove it when deriving the API base URL; the server independently reads the community’s published policy. If the board's options are invalid, `challenge` is omitted.
 
 **Obtaining a pass.** The client generates a session id `precheck-<lowercase uuid v4>`, signs a pre-check request for the draft publication (without `link`) with the author's signer, opens `<serverUrl>/iframe/<sessionId>/precheck#payload=<base64url CBOR>` as a `url/iframe` challenge, and after the iframe posts its answer reads `GET <serverUrl>/challenge/status/<sessionId>`. Only `completed` produces a pass; on `failed`, or a check the author closed before it finished, the client stops before uploading. If the status cannot be read, the client can publish without a pass and let the board check the post as usual.
+
+**Tor-blocking communities.** A successful pass still opens a brief lazy iframe when publishing so the server can verify the current connection. Earned CAPTCHA/OAuth credit is retained; the current-origin check prevents switching to Tor after passing a precheck on another network. Board-side exemptions remain unchanged, but prechecks cannot establish exemptions that depend on another challenge succeeding (such as whitelist or `.bso` verification); those authors can encounter an early Tor rejection even when the board would exempt them.
 
 **Redeeming a pass.** After uploading, publish with the pre-check session id as the answer at the index of each pass-capable challenge that applies to the publication, for example `challengeRequest: { challengeAnswers: [pass] }` when the spam blocker is `community.challenges[0]`. Every slot before that index must hold an answer the challenge there accepts: challenges that ignore pre-supplied answers (such as pkc-js `fail`) take any string, but one that publishes its own `challenge` text (pkc-js `question`) reads its slot as the author's answer, so a client should not pre-check a board where such a challenge would receive the pass. The board's `getChallenge()` sees a value matching `^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$` at its `challengeIndex` and POSTs a community-signed `/evaluate` request with `precheckSessionId`:
 
@@ -554,7 +557,7 @@ field from its internal database of author history, so new authors won't have it
 
 **Error Handling:** If the server is unreachable, the challenge code returns a failed challenge result instead of silently accepting or rejecting user-generated content. Community-level actions are accepted locally without contacting the server.
 
-**Privacy of options:** The `options` object (including thresholds and filtering settings) is **not** exposed in the public `community.challenges` IPFS record. bitsocial-js strips `options` when computing the public `communityChallenge` from `communityChallengeSetting`, so only `type`, `description`, `challenge`, and `exclude` are published. `challenge` is the pre-check marker `<serverUrl>/precheck`, so the server URL is public (it was already visible to every author in the lazy iframe URL); thresholds and filtering rules remain private to the community operator.
+**Privacy of options:** The `options` object (including thresholds and filtering settings) is **not** exposed in the public `community.challenges` IPFS record. bitsocial-js strips `options` when computing the public `communityChallenge` from `communityChallengeSetting`, so only `type`, `description`, `challenge`, and `exclude` are published. `challenge` is the pre-check marker `<serverUrl>/precheck`, so the server URL is public (it was already visible to every author in the lazy iframe URL); the Tor-blocking policy is also public through `?blockTor=true`, while thresholds and other filtering rules remain private to the community operator.
 
 ### Server Configuration (separate from challenge)
 
