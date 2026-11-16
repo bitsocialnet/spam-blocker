@@ -1,8 +1,9 @@
-import { IsoCountryCodeSchema } from "@bitsocial/spam-blocker-shared";
+import { IsoCountryCodeSchema, PrecheckExemptionsSchema, type PrecheckExemptions } from "@bitsocial/spam-blocker-shared";
 import { z } from "zod";
 
 export type ParsedOptions = {
     serverUrl: string;
+    precheckExemptions?: PrecheckExemptions;
     autoAcceptThreshold: number;
     autoRejectThreshold: number;
     countryBlacklist: Set<string>;
@@ -123,6 +124,15 @@ export const createOptionsSchema = (optionInputs: ReadonlyArray<OptionInput>) =>
                         message: "Server URL must use http or https"
                     })
                 ),
+                precheckExemptions: z.preprocess((value) => {
+                    if (value === undefined || value === null || (typeof value === "string" && !value.trim())) return undefined;
+                    if (typeof value !== "string") return value;
+                    try {
+                        return JSON.parse(value);
+                    } catch {
+                        return value;
+                    }
+                }, PrecheckExemptionsSchema.optional()),
                 autoAcceptThreshold: numberOptionSchema("autoAcceptThreshold").refine((value) => value >= 0 && value <= 1, {
                     message: "autoAcceptThreshold must be between 0 and 1"
                 }),

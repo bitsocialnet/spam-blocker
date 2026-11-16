@@ -20,6 +20,14 @@ const DEFAULT_SERVER_URL = "https://spamblocker.bitsocial.net/api/v1";
 
 const optionInputs = [
     {
+        option: "precheckExemptions",
+        label: "Pre-check exemptions",
+        default: "",
+        description:
+            "Public JSON declaration of verified name and public whitelist challenge dependencies. Must match the community challenge settings.",
+        placeholder: '{"version":1,"rules":[{"challengeIndex":0,"type":"verified-author-name-suffix","suffix":".bso"}]}'
+    },
+    {
         option: "serverUrl",
         label: "Server URL",
         default: DEFAULT_SERVER_URL,
@@ -241,7 +249,16 @@ const getPostChallengeRejection = (verifyResponse: VerifyResponse, options: Pars
             return "Rejected by IP policy (proxy).";
         }
         if (ipType === "tor" && options.blockTor) {
-            return "Your connection was detected as Tor. This community does not allow posting through Tor. Use a connection without Tor and try again.";
+            const exceptionHints = [];
+            if (options.precheckExemptions?.rules.some((rule) => rule.type === "whitelist")) {
+                exceptionHints.push("ask the community owner to whitelist your account");
+            }
+            if (options.precheckExemptions?.rules.some((rule) => rule.type === "verified-author-name-suffix")) {
+                exceptionHints.push("use a verified .bso name on your Bitsocial account");
+            }
+            return exceptionHints.length
+                ? `Your connection was detected as Tor. This community blocks posting through Tor unless your account qualifies for an exemption. Use a connection without Tor${exceptionHints.length === 1 ? " or " : ", "}${exceptionHints.join(", or ")}.`
+                : "Your connection was detected as Tor. This community does not allow posting through Tor. Use a connection without Tor and try again.";
         }
         if (ipType === "datacenter" && options.blockDatacenter) {
             return "Rejected by IP policy (datacenter).";
@@ -405,21 +422,31 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
 // Must not throw: pkc-js calls the factory while building the public community record and on every challenge request.
 function ChallengeFileFactory(args: { challengeSettings: GetChallengeArgs["challengeSettings"] }): ChallengeFileInput {
     const parsedOptions = OptionsSchema.safeParse(args?.challengeSettings?.options);
-    // The community must run dependent challenges to establish private whitelist/name exemptions.
-    // Advertising an author-only precheck would let it reject someone the community would exempt.
+    // Unknown dependency semantics remain private and require authoritative community evaluation.
+    // Only an explicit owner declaration lets the server check known exemptions before upload.
     const excludes = args?.challengeSettings?.exclude;
-    const hasChallengeDependentExemption =
+    const hasUncoveredChallengeDependentExemption =
         Array.isArray(excludes) &&
         excludes.some(
             (exclude) =>
                 Array.isArray(exclude?.challenges) &&
                 exclude.challenges.length > 0 &&
-                exclude.challenges.every((index) => Number.isInteger(index) && index >= 0)
+                exclude.challenges.every((index) => Number.isInteger(index) && index >= 0) &&
+                exclude.challenges.some(
+                    (index) =>
+                        !parsedOptions.success ||
+                        !parsedOptions.data.precheckExemptions?.rules.some((rule) => rule.challengeIndex === index)
+                )
         );
-    const challenge =
-        parsedOptions.success && !hasChallengeDependentExemption
-            ? `${parsedOptions.data.serverUrl}/precheck${parsedOptions.data.blockTor ? "?blockTor=true" : ""}`
-            : undefined;
+    let challenge: string | undefined;
+    if (parsedOptions.success && !hasUncoveredChallengeDependentExemption) {
+        const marker = new URL(`${parsedOptions.data.serverUrl}/precheck`);
+        if (parsedOptions.data.blockTor) marker.searchParams.set("blockTor", "true");
+        if (parsedOptions.data.precheckExemptions) {
+            marker.searchParams.set("precheckExemptions", JSON.stringify(parsedOptions.data.precheckExemptions));
+        }
+        challenge = marker.toString();
+    }
     return { getChallenge, optionInputs, type, description, ...(challenge ? { challenge } : {}) };
 }
 
