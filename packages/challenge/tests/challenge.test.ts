@@ -308,7 +308,11 @@ describe("Bitsocial Spam Blocker challenge package", () => {
     it.each([
         ["vpn", { blockVpn: "true" }, "Rejected by IP policy (VPN)."],
         ["proxy", { blockProxy: "true" }, "Rejected by IP policy (proxy)."],
-        ["tor", { blockTor: "true" }, "Rejected by IP policy (Tor)."],
+        [
+            "tor",
+            { blockTor: "true" },
+            "Your connection was detected as Tor. This community does not allow posting through Tor. Use a connection without Tor and try again."
+        ],
         ["datacenter", { blockDatacenter: "true" }, "Rejected by IP policy (datacenter)."]
     ])("rejects by ipTypeEstimation '%s' when configured", async (ipType, options, expected) => {
         stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: ipType })));
@@ -499,6 +503,24 @@ describe("pre-check pass", () => {
             expect(ChallengeFileFactory({ challengeSettings: { options: {} } as CommunityChallengeSetting }).challenge).toBe(
                 "https://spamblocker.bitsocial.net/api/v1/precheck"
             );
+        });
+
+        it("publishes Tor policy and includes it in the community-signed evaluation", async () => {
+            const settings = { options: { blockTor: "true" } } as unknown as CommunityChallengeSetting;
+            const challengeFile = ChallengeFileFactory({ challengeSettings: settings });
+            expect(challengeFile.challenge).toBe("https://spamblocker.bitsocial.net/api/v1/precheck?blockTor=true");
+            const result = await challengeFile.getChallenge({
+                challengeSettings: settings,
+                challengeRequestMessage: request,
+                challengeIndex: 0,
+                community
+            });
+            if ("success" in result) throw new Error("Expected a lazy challenge");
+            const { payload } = getLazyChallengeParts(result.challenge);
+            expect(payload.evaluationOptions.blockTor).toBe(true);
+            expect(payload.signature.signedPropertyNames).toContain("evaluationOptions");
+            const { signature, ...signedProps } = payload;
+            expect(await ed.verify(signature.signature, cborg.encode(signedProps), signature.publicKey)).toBe(true);
         });
 
         it("strips trailing slashes from serverUrl", () => {
