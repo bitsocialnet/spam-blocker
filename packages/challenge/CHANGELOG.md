@@ -1,5 +1,11 @@
 # Changelog
 
+## <small>0.1.8 (2026-11-16)</small>
+
+* feat(challenge): explain and publish community Tor policy (#16) ([d7d513b](https://github.com/bitsocialnet/spam-blocker/commit/d7d513b)), closes [#16](https://github.com/bitsocialnet/spam-blocker/issues/16)
+* fix(agents): reject stale Cursor skill links ([3370855](https://github.com/bitsocialnet/spam-blocker/commit/3370855))
+* chore(agents): remove Cursor configuration ([56585da](https://github.com/bitsocialnet/spam-blocker/commit/56585da))
+
 ## <small>0.1.7 (2026-10-31)</small>
 
 * chore(agents): add repository retrospective skill ([94af9a2](https://github.com/bitsocialnet/spam-blocker/commit/94af9a2))
