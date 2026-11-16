@@ -26,376 +26,375 @@ Use this as compiled context only. Source files, tests, manifests, and live/runt
 Source: https://github.com/bitsocialnet/spam-blocker/blob/master/README.md
 
 ```markdown
-# BitsocialSpamBlocker
+# Bitsocial Spam Blocker
 
-## Overview
+Bitsocial Spam Blocker scores posts, replies, and votes for spam risk before a community accepts them. A community installs the challenge package, which sends each publication to a spam blocker service. Low-risk publications pass, high-risk ones are rejected, and the rest are asked to verify with an OAuth sign-in or a CAPTCHA.
 
-A centralized spam detection service that evaluates publications and provides risk scores to help communities filter spam. This public workspace contains the integration packages:
+This repository is the public integration surface: the challenge package, the shared schemas, and the API contract. The official hosted service at `https://spamblocker.bitsocial.net/api/v1` is closed source and lives in a separate private repository. See [Hosted Spam Blocker Source Policy](./docs/architecture/hosted-service-source-policy.md) for the reasoning.
 
-1. **Challenge Package** (`@bitsocial/spam-blocker-challenge`) - package for community integration
-2. **Shared Package** (`@bitsocial/spam-blocker-shared`) - shared schemas and response types used by the public integration surface
+## Contents
 
-## Licensing
+- [Packages](#packages)
+- [Quick start](#quick-start)
+- [Challenge options](#challenge-options)
+- [How it works](#how-it-works)
+- [Pre-check pass](#pre-check-pass)
+- [API contract](#api-contract)
+- [Risk scoring and enforcement](#risk-scoring-and-enforcement)
+- [Privacy](#privacy)
+- [Known limitations](#known-limitations)
+- [Development](#development)
+- [License](#license)
 
-This monorepo uses package-specific licensing:
+## Packages
 
-- `packages/challenge`: `GPL-3.0-or-later`. This is the public challenge package for community integrations.
-- `packages/shared`: `MIT`. This is the permissive shared-types package intended to be reused by both private services and public integrations.
+| Package                                                     | Path                 | License            | Purpose                                                               |
+| ----------------------------------------------------------- | -------------------- | ------------------ | --------------------------------------------------------------------- |
+| [`@bitsocial/spam-blocker-challenge`](./packages/challenge) | `packages/challenge` | `GPL-3.0-or-later` | pkc-js challenge that community owners install                        |
+| [`@bitsocial/spam-blocker-shared`](./packages/shared)       | `packages/shared`    | `MIT`              | Zod schemas and response types shared by the challenge and the server |
 
-The hosted Bitsocial spam blocker server implementation now lives in a separate private repository and is not included here. The repo root is marked `UNLICENSED` so the workspace metadata does not imply a single open-source license for the whole repository.
+## Quick start
 
-The official hosted service at `https://spamblocker.bitsocial.net/api/v1` is the default and strongly recommended integration because its centralized history enables cross-community abuse and signer-cluster detection. `serverUrl` remains configurable for compatible independent services, but the official hosted server's proprietary implementation is not distributed by this repository.
+Install the challenge on the Bitsocial server that runs your community:
 
-See [Hosted Spam Blocker Source Policy](./docs/architecture/hosted-service-source-policy.md) for the rationale, transparency commitments, and conditions for reconsidering this boundary.
-
-## Development Workflow
-
-Repo-specific AI workflow guidance lives in:
-
-- [`AGENTS.md`](./AGENTS.md)
-- [`CLAUDE.md`](./CLAUDE.md)
-- [`docs/agent-playbooks/hooks-setup.md`](./docs/agent-playbooks/hooks-setup.md)
-- [`docs/agent-playbooks/skills-and-tools.md`](./docs/agent-playbooks/skills-and-tools.md)
-
-Use Corepack-managed Yarn. Shared skills and role sources live under `.agents/`; the workflow generator maintains native Codex and Claude outputs. Automatic hooks only format edited source files. See the playbooks for setup and checks selected by the change.
-
-Quick setup for a fresh machine:
-
-1. `corepack enable`
-2. `corepack yarn install`
-3. `corepack yarn ai-workflow:check`
-
-**Important:**
-
-- `packages/shared` defines the public response schemas used by the challenge package and by hosted server integrations.
-- The hosted server implementation is private; this README documents the public integration contract exposed to the challenge package.
-
-## Repository Structure
-
-```
-bitsocial-spam-blocker/
-├── package.json                    # Root workspace config
-├── tsconfig.base.json
-├── docs/                           # Architecture decisions and agent playbooks
-├── packages/
-│   ├── challenge/                  # package for community owners
-│   │   └── src/
-│   │       └── index.ts            # ChallengeFileFactory
-│   └── shared/                     # Shared types
-│       └── src/types.ts
+```bash
+bitsocial challenge install @bitsocial/spam-blocker-challenge
 ```
 
-## API Endpoints
+Enable it on a community:
 
-### POST /api/v1/evaluate
+```bash
+bitsocial community edit your-community.bso '--settings.challenges[0].name' @bitsocial/spam-blocker-challenge
+```
 
-Evaluate publication risk. The server tracks author history internally, so no completion tokens are needed.
+That uses the hosted service and the default thresholds. The hosted service is the recommended setup because its history across communities is what makes ban-evasion and linked-account detection possible. `serverUrl` stays configurable for any service that implements the [API contract](#api-contract).
 
-Requests are signed by the community signer to prevent abuse (e.g., someone unrelated to the community querying the engine to doxx users). The server validates the request signature and ensures the signer matches the community (for domain addresses, the server resolves the community via `bitsocial.getCommunity` and compares `community.signature.publicKey`). Resolved community public keys are cached in-memory for 12 hours to reduce repeated lookups. The HTTP server initializes a single shared bitsocial instance and only destroys it when the server shuts down.
+To set options, pass them in the same command. All option values are strings.
 
-The public challenge package does not call this endpoint from `getChallenge()` unless the ChallengeRequest carries a [pre-check pass](#pre-check-pass-client-authors). It returns `/api/v1/iframe/:sessionId/lazy#payload=...` instead. The signed payload is stored in the URL fragment, which is not sent on the initial iframe GET; the lazy iframe posts it to `/evaluate` only after the user opens the iframe.
+```bash
+bitsocial community edit your-community.bso \
+  '--settings.challenges[0].name' @bitsocial/spam-blocker-challenge \
+  '--settings.challenges[0].options.autoAcceptThreshold' '0.2' \
+  '--settings.challenges[0].options.autoRejectThreshold' '0.8' \
+  '--settings.challenges[0].options.countryBlacklist' 'RU,CN,KP' \
+  '--settings.challenges[0].options.blockVpn' 'true' \
+  '--settings.challenges[0].options.blockTor' 'true'
+```
 
-**Request Format:** `Content-Type: application/cbor`
+The equivalent community settings, with pkc-js `exclude` rules to skip the check for trusted authors:
 
-The request body is CBOR-encoded (not JSON). This preserves `Uint8Array` types during transmission and ensures signature verification works correctly.
+```json
+{
+    "challenges": [
+        {
+            "name": "@bitsocial/spam-blocker-challenge",
+            "options": {
+                "serverUrl": "https://spamblocker.bitsocial.net/api/v1",
+                "autoAcceptThreshold": "0.2",
+                "autoRejectThreshold": "0.8",
+                "countryBlacklist": "RU,CN,KP",
+                "blockVpn": "true",
+                "blockTor": "true"
+            },
+            "exclude": [{ "role": ["owner", "admin", "moderator"] }, { "postScore": 100 }]
+        }
+    ]
+}
+```
 
-**Request:**
+## Challenge options
+
+| Option                | Default                                    | Description                                                                 |
+| --------------------- | ------------------------------------------ | --------------------------------------------------------------------------- |
+| `serverUrl`           | `https://spamblocker.bitsocial.net/api/v1` | Spam blocker service URL (`http` or `https`); trailing slashes are stripped |
+| `autoAcceptThreshold` | `0.2`                                      | Pass without OAuth or CAPTCHA when the risk score is below this value       |
+| `autoRejectThreshold` | `0.8`                                      | Reject when the risk score is at or above this value                        |
+| `countryBlacklist`    | _(empty)_                                  | Comma-separated ISO 3166-1 alpha-2 country codes to reject, e.g. `RU,CN,KP` |
+| `maxIpRisk`           | `1.0`                                      | Reject when the IP risk reported by the service exceeds this value          |
+| `blockVpn`            | `false`                                    | Reject publications from VPN IPs                                            |
+| `blockProxy`          | `false`                                    | Reject publications from proxy IPs                                          |
+| `blockTor`            | `false`                                    | Reject publications from Tor exit nodes                                     |
+| `blockDatacenter`     | `false`                                    | Reject publications from datacenter IPs                                     |
+
+Validation:
+
+- Thresholds and `maxIpRisk` must be between 0 and 1, and `autoAcceptThreshold` cannot exceed `autoRejectThreshold`.
+- Boolean options accept only `true` or `false`.
+- An empty or missing value falls back to the default.
+- An unknown country code or any other invalid option makes the challenge throw on every request, so the publication is not accepted.
+
+The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor` is also sent to the service so it can reject a Tor connection before asking the user to verify. IP classification is an estimate and can be wrong.
+
+**What is public.** pkc-js strips `options` from the public community record. It publishes only `type`, `description`, `challenge`, and `exclude`. Because `challenge` is the [pre-check marker](#pre-check-pass), the server URL and the Tor-blocking policy (`?blockTor=true`) are public. Thresholds and the other filters stay private to the community operator.
+
+## How it works
+
+1. An author publishes a post, reply, or vote. The community's `getChallenge()` signs an evaluation payload with the community signer and returns a `url/iframe` challenge pointing at `<serverUrl>/iframe/<sessionId>/lazy#payload=...`. No request reaches the service yet.
+2. The Bitsocial client asks the author before opening the iframe.
+3. Once opened, the iframe posts the signed payload to `/evaluate`. The payload sits in the URL fragment, so it is not sent with the initial iframe request.
+4. The service returns a risk score between 0 and 1:
+    - below `autoAcceptThreshold`: the session completes;
+    - at or above `autoRejectThreshold`: the session fails and the page explains why;
+    - in between: the page redirects to the verification page (OAuth sign-in first, CAPTCHA as a fallback).
+5. The page tells the client the outcome is ready, and the client sends a `ChallengeAnswer` with an empty string.
+6. The community calls `/challenge/verify` with the session id. On success it applies its own IP rules from the options above, then accepts or rejects the publication.
+
+```text
+getChallenge() -> lazy iframe URL (no request to the service)
+  |
+  v
+author opens iframe -> POST /evaluate -> riskScore
+  |
+  ├─ <  autoAcceptThreshold -> completed ----------------------------> /challenge/verify -> success
+  ├─ >= autoRejectThreshold -> failed -------------------------------> /challenge/verify -> rejected
+  └─ in between -> verification page
+        |
+        ├─ OAuth sign-in
+        |     ├─ enough -> completed --------------------------------> /challenge/verify -> success
+        |     └─ not enough -> second OAuth provider, or CAPTCHA
+        |
+        └─ "I don't have a social account" -> CAPTCHA
+              ├─ enough -> completed --------------------------------> /challenge/verify -> success
+              └─ not enough -> OAuth required
+```
+
+Other behavior of the challenge package:
+
+- `commentEdit`, `commentModeration`, and `communityEdit` requests are accepted locally without contacting the service.
+- If the service is unreachable or returns an invalid response during verify, the challenge fails with the error. It never silently accepts or rejects.
+- A missing community signer fails the challenge.
+- `author.community` in the forwarded request is `undefined` for authors who have never published in the community. The community fills it from its own history.
+
+## Pre-check pass
+
+A client can run a community's spam blocker check before it uploads an attached file, so rejected authors never upload. The community still evaluates the real signed publication, including `link`, when it is published. The pass only lets the community reuse the confirmed user-origin IP and any CAPTCHA or OAuth the author already completed, so the author does not see a second iframe.
+
+### Public marker
+
+The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"`, for example `https://spamblocker.bitsocial.net/api/v1/precheck`. With `blockTor` enabled the marker is `<serverUrl>/precheck?blockTor=true`. If the community's options are invalid, `challenge` is omitted.
+
+A challenge is pass-capable when its `type` is `"url/iframe"` and `challenge` is an `https` (or localhost `http`) URL whose pathname ends with `/precheck`. Clients accept the `blockTor` parameter and remove it when deriving the API base URL. The server reads the community's published policy independently.
+
+### Obtaining a pass
+
+1. Generate a session id `precheck-<lowercase uuid v4>`.
+2. Sign a [pre-check request](#post-precheck) for the draft publication, without `link`, using the author's signer.
+3. Open `<serverUrl>/iframe/<sessionId>/precheck#payload=<base64url CBOR>` as a `url/iframe` challenge.
+4. After the iframe posts its answer, read `GET <serverUrl>/challenge/status/<sessionId>`.
+
+Only `completed` produces a pass. On `failed`, or if the author closes the check before it finishes, stop before uploading. If the status cannot be read, publish without a pass and let the community check the post as usual.
+
+### Redeeming a pass
+
+After uploading, publish with the pre-check session id as the answer at the index of each pass-capable challenge that applies to the publication. For example, use `challengeRequest: { challengeAnswers: [pass] }` when the spam blocker is `community.challenges[0]`.
+
+Every slot before that index must hold an answer its challenge accepts. Challenges that ignore pre-supplied answers (such as pkc-js `fail`) take any string. A challenge that publishes its own `challenge` text (pkc-js `question`) reads its slot as the author's answer, so do not pre-check a community where such a challenge would receive the pass.
+
+`getChallenge()` looks at its `challengeIndex` for a value matching `^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$` and posts a community-signed `/evaluate` request with `precheckSessionId`. What happens next depends on the returned `status`:
+
+| Result                                             | Community behavior                                                                                      |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `completed` or `failed`                            | Answers immediately through `/challenge/verify`, so its IP, country, and network-type rules still apply |
+| `pending`                                          | Returns the usual lazy iframe for the same session, which continues from the pass's CAPTCHA and OAuth   |
+| Error, no `status`, or no answer within 10 seconds | Returns the usual lazy iframe, as if no pass was sent                                                   |
+
+A pass is single use and is accepted only for the author signer and community that ran the pre-check.
+
+### Tor-blocking communities
+
+A successful pass still opens a brief lazy iframe when publishing, so the server can check the current connection. Earned CAPTCHA and OAuth credit is kept. This stops an author from passing a pre-check on one network and then publishing through Tor.
+
+Community-side exemptions are unchanged, but a pre-check cannot establish exemptions that depend on another challenge succeeding, such as a whitelist or `.bso` verification. Those authors can see an early Tor rejection even though the community would exempt them.
+
+## API contract
+
+All routes are relative to `serverUrl`, for example `https://spamblocker.bitsocial.net/api/v1`. Response schemas for `/evaluate` and `/challenge/verify` are exported from [`packages/shared/src/types.ts`](./packages/shared/src/types.ts).
+
+| Route                              | Caller                  | Purpose                                             |
+| ---------------------------------- | ----------------------- | --------------------------------------------------- |
+| `POST /evaluate`                   | Lazy iframe, community  | Score a publication and create its session          |
+| `POST /challenge/verify`           | Community               | Read the session outcome and IP intelligence        |
+| `POST /precheck`                   | Pre-check iframe        | Score a draft comment before upload                 |
+| `GET /challenge/status/:sessionId` | Challenge pages, client | Poll a session's state                              |
+| `GET /iframe/:sessionId/lazy`      | Author's browser        | Consent-gated bootstrap page that calls `/evaluate` |
+| `GET /iframe/:sessionId/precheck`  | Author's browser        | Bootstrap page that calls `/precheck`               |
+| `GET /iframe/:sessionId`           | Author's browser        | Verification page (OAuth and CAPTCHA)               |
+| `POST /challenge/complete`         | Verification page       | Submit a solved CAPTCHA                             |
+| `GET /oauth/:provider/start`       | Verification page       | Start an OAuth sign-in                              |
+| `GET /oauth/:provider/callback`    | OAuth provider          | Finish an OAuth sign-in                             |
+| `GET /oauth/status/:sessionId`     | Verification page       | Poll OAuth progress                                 |
+
+### Signed CBOR requests
+
+`/evaluate`, `/challenge/verify`, and `/precheck` take `Content-Type: application/cbor` bodies. CBOR keeps `Uint8Array` values intact, which signature verification depends on. Responses are JSON.
+
+To sign a request, CBOR-encode an object holding the signed properties, sign those bytes with Ed25519, and add:
 
 ```typescript
-// The request wraps the DecryptedChallengeRequestMessageTypeWithcommunityAuthor from bitsocial-js
-// communityAddress is required; author.community is optional (undefined for first-time publishers)
-// The signature is created by CBOR-encoding the signed properties, then signing with Ed25519
+signature: {
+    signature: Uint8Array; // Ed25519 signature of the CBOR-encoded signed properties
+    publicKey: Uint8Array; // 32-byte Ed25519 public key
+    type: "ed25519";
+    signedPropertyNames: string[]; // keys of the signed object, in order
+}
+```
+
+`/evaluate` and `/challenge/verify` are signed by the community signer. This stops parties unrelated to the community from querying the service about its authors. The hosted service checks that the signer matches the community, resolving domain addresses through pkc-js. `/precheck` is signed by the author.
+
+### POST /evaluate
+
+Request:
+
+```typescript
 {
-    challengeRequest: DecryptedChallengeRequestMessageTypeWithcommunityAuthor;
-    sessionId?: string; // Optional client-generated ID for consent-gated lazy iframes
-    precheckSessionId?: string; // Optional pre-check pass being redeemed; must be in signedPropertyNames when present
+    // DecryptedChallengeRequestMessageTypeWithCommunityAuthor from pkc-js.
+    // author.community is undefined for first-time publishers.
+    challengeRequest: DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
+    sessionId?: string; // Caller-generated id for the lazy iframe flow; must not start with "precheck-"
+    precheckSessionId?: string; // Pre-check pass being redeemed; must be signed when present
     evaluationOptions?: {
         autoAcceptThreshold?: number;
         autoRejectThreshold?: number;
         blockTor?: boolean; // Community policy; Tor connections are rejected before verification
     };
-    timestamp: number; // Unix timestamp (seconds)
+    timestamp: number; // Unix seconds
     signature: {
-        signature: Uint8Array; // Ed25519 signature of CBOR-encoded signed properties
-        publicKey: Uint8Array; // 32-byte Ed25519 public key
-        type: "ed25519";
-        signedPropertyNames: Array<"challengeRequest" | "sessionId" | "evaluationOptions" | "precheckSessionId" | "timestamp">;
+        // signedPropertyNames: "challengeRequest" | "sessionId" | "evaluationOptions" | "precheckSessionId" | "timestamp"
+    };
+}
+```
+
+Response:
+
+```typescript
+{
+    riskScore: number; // 0.0 to 1.0
+    explanation?: string; // Human-readable reasoning for the score
+    sessionId: string;
+    challengeUrl: string; // <serverUrl>/iframe/<sessionId>
+    challengeExpiresAt?: number; // Unix seconds, 1 hour after creation
+    status?: "pending" | "completed" | "failed"; // Optional so responses from older servers still parse
+}
+```
+
+The challenge package calls this endpoint directly only to redeem a [pre-check pass](#pre-check-pass). Otherwise the lazy iframe posts the payload after the author opens it. An unusable pass is ignored and never fails the request.
+
+### POST /challenge/verify
+
+Request, signed with the same community signer as the evaluation:
+
+```typescript
+{
+    sessionId: string;
+    timestamp: number; // Unix seconds
+    signature: {
+        // signedPropertyNames: ["sessionId", "timestamp"]
     }
 }
 ```
 
-**Response:**
+Response:
 
 ```typescript
 {
-  riskScore: number; // 0.0 to 1.0
-  explanation?: string; // Human-readable reasoning for the score
+    success: boolean;
+    error?: string; // One-line, user-facing reason when success is false
 
-  sessionId: string;
-  challengeUrl: string; // Full URL: https://spamblocker.bitsocial.net/api/v1/iframe/{sessionId}
-  challengeExpiresAt?: number; // Unix timestamp, 1 hour from creation
-  status?: "pending" | "completed" | "failed"; // Session state; optional so older servers' responses still parse
+    // Returned on success so the community can apply its own filters
+    ipRisk?: number; // 0.0 to 1.0
+    ipAddressCountry?: string; // ISO 3166-1 alpha-2
+    challengeType?: string; // e.g. "turnstile"
+    ipTypeEstimation?: string; // "residential" | "vpn" | "proxy" | "tor" | "datacenter" | "unknown"
 }
 ```
 
-The response always includes the concrete challenge session URL. For the public challenge package's lazy iframe flow, low-risk and high-risk sessions are handled inside the lazy iframe without redirecting to the full challenge UI. Medium-risk sessions redirect to `challengeUrl`.
+Completion is tracked on the server. No token passes through the author's client. The community relays `error` to the author. It names the kind of problem in broad terms and never includes scores or thresholds.
 
-### POST /api/v1/challenge/verify
+### POST /precheck
 
-Called by the community's challenge code to verify that the user completed the iframe challenge. The server tracks challenge completion state internally - no token is passed from the user.
+Called from the author's browser through `/iframe/:sessionId/precheck`. The author identity is the signing public key. `publication.author.address` is untrusted.
 
-**Request must be signed by the community** (same signing mechanism as /evaluate), using the same signing key that was used for the evaluate request.
-
-**Request Format:** `Content-Type: application/cbor`
-
-**Request:**
+Request:
 
 ```typescript
 {
-    sessionId: string; // The sessionId from the /evaluate response
-    timestamp: number; // Unix timestamp (seconds)
+    sessionId: string; // "precheck-<lowercase uuid v4>", generated by the client
+    communityAddress: string; // Domain or IPNS address
+    publication: {
+        // The comment about to be published, without link, linkWidth, or linkHeight
+        author: { address: string; displayName?: string; previousCommentCid?: string };
+        content?: string;
+        title?: string;
+        parentCid?: string;
+        postCid?: string;
+        spoiler?: boolean;
+        nsfw?: boolean;
+        flairs?: Flair[];
+        timestamp: number; // Unix seconds
+    };
+    timestamp: number; // Unix seconds, within 5 minutes of server time
     signature: {
-        signature: Uint8Array; // Ed25519 signature of CBOR-encoded signed properties
-        publicKey: Uint8Array; // 32-byte Ed25519 public key
-        type: "ed25519";
-        signedPropertyNames: ["sessionId", "timestamp"];
-    }
+        // Author's signer. signedPropertyNames: ["sessionId", "communityAddress", "publication", "timestamp"], all required
+    };
 }
 ```
 
-**Response:**
+Response:
 
 ```typescript
 {
-  success: boolean;
-  error?: string;              // If success is false
-
-  // The following fields are returned on success, allowing the challenge
-  // code to make additional filtering decisions
-  ipRisk?: number;             // 0.0 to 1.0, risk score based on IP analysis
-  ipAddressCountry?: string;   // ISO 3166-1 alpha-2 country code (e.g., "US", "RU")
-  challengeType?: string;      // What challenge was sent (e.g., "turnstile", "hcaptcha")
-  ipTypeEstimation?: string;   // "residential" | "vpn" | "proxy" | "tor" | "datacenter" | "unknown"
+    sessionId: string;
+    status: "pending" | "completed" | "failed";
+    challengeUrl: string;
+    challengeExpiresAt: number; // Unix seconds, 1 hour after creation
 }
 ```
 
-### GET /api/v1/iframe/:sessionId/lazy
+The pre-check is not a security boundary. Redemption re-scores the real signed publication, and the community still applies its verify-time rules. Pre-check sessions never count as publishing history. The endpoint is rate-limited per client IP. Repeating a request for an existing session by the same author returns its current state, and any other reuse of the id returns 409.
 
-Serves the consent-gated bootstrap iframe used by the public challenge package. This route does not create a challenge session by itself. After the iframe opens, its script reads the signed CBOR payload from the URL fragment, posts it to `/api/v1/evaluate`, then either completes/fails immediately or redirects to `/api/v1/iframe/:sessionId`.
+### GET /challenge/status/:sessionId
 
-### GET /api/v1/iframe/:sessionId
+Returns `{ completed, status, outcome?, warning? }` and sends `Access-Control-Allow-Origin: *`, so a client can read a pre-check's result after the cross-origin iframe posts its answer.
 
-Serves the iframe challenge page. The iframe uses an **OAuth-first** flow where OAuth is the primary trust signal and CAPTCHA is a fallback.
+- `outcome` explains a rejection, or a verification step that was not enough: `{ code: "blocked" | "rejected" | "more_verification_required", title, message, retryAt? }`.
+- `warning` (`{ level: "caution" | "verification_required", title, message }`) appears when many accounts have posted from the author's network.
 
-- **OAuth providers** (primary): GitHub, Google, Twitter, Yandex, TikTok, Discord, Reddit
-- **CAPTCHA provider** (fallback): Cloudflare Turnstile
+### Iframe pages
 
-> **Privacy note**: For OAuth providers, the server only verifies successful authentication - it does NOT share account identifiers (username, email) with the community. The hosted operator stores IP evidence for abuse prevention, including signer-cluster detection; only the country code and risk result are shared with the community, never the raw IP address.
+- **`/iframe/:sessionId/lazy`** does not create a session by itself. Its script reads the signed payload from the URL fragment and posts it to `/evaluate`. It then completes, redirects to the verification page, or shows why the publication was rejected until the author presses Close.
+- **`/iframe/:sessionId/precheck`** does the same for a `precheck-` session id, posting to `/precheck`.
+- **`/iframe/:sessionId`** shows OAuth sign-in buttons. If a CAPTCHA alone can pass at the session's score, it also shows an "I don't have a social account" link. When no OAuth provider is configured, it serves a CAPTCHA only.
 
-**Iframe logic (OAuth-first):**
+Challenge pages post `{ type: "challengeCompletionManaged", sessionId }` to the parent window on load. This tells the client that the page sends the answer itself, as `{ type: "challengeAnswer", challengeAnswers: [""], sessionId }`, once the author has seen the outcome.
 
-When OAuth providers are configured, the iframe shows OAuth buttons as the primary challenge:
+The hosted service supports GitHub, Google, Twitter, Yandex, TikTok, Discord, and Reddit sign-in, and Cloudflare Turnstile as the CAPTCHA.
 
-1. **Initial view**: OAuth sign-in buttons. If CAPTCHA alone can pass at this score level, a "I don't have a social account" link is also shown.
-2. **After first OAuth**: If `riskScore × oauthMultiplier < passThreshold` → session completes. Otherwise, "Additional verification needed" view shows remaining providers and optional CAPTCHA.
-3. **CAPTCHA fallback**: Shown when the user clicks "I don't have a social account". If OAuth was already completed, the combined multiplier (OAuth × CAPTCHA) is applied.
+## Risk scoring and enforcement
 
-When no OAuth is configured, a turnstile-only CAPTCHA iframe is served.
+Everything in this section describes the hosted service, not the challenge package. Fine-grained weights and heuristics are private. See the [source policy](./docs/architecture/hosted-service-source-policy.md).
 
-**Challenge completion flow:**
+### Risk score
 
-1. User signs in via OAuth (or solves CAPTCHA fallback)
-2. Server applies score adjustment and determines if session passes
-3. If more verification needed, iframe transitions to "need more" view
-4. Once passed, iframe shows "Verification complete!"
-5. The user clicks "done" in their bitsocial client (the client provides this button outside the iframe)
-6. The client sends a `ChallengeAnswer` with an empty string to the community
-7. The community's challenge code calls `/api/v1/challenge/verify` to check if the session is completed
+The score is a weighted combination of account age, karma, author reputation across the network, content and link analysis, publishing velocity, IP intelligence, and linked-signer behavior. Reputation data comes from an indexer that crawls Bitsocial communities and tracks which authors get accepted, removed, or banned.
 
-### POST /api/v1/challenge/complete
+### Verification credit
 
-Called by the iframe after the user solves the CAPTCHA (as a fallback in the OAuth-first flow). Validates the Turnstile response, then applies score adjustment to decide whether the session passes.
+Each completed verification step multiplies the risk score. The session passes when the adjusted score drops below the pass threshold (default 0.4).
 
-**Request:**
+| Path                                 | Default adjusted score | Passes when the raw score is below |
+| ------------------------------------ | ---------------------- | ---------------------------------- |
+| One OAuth sign-in                    | score × 0.6            | about 0.67                         |
+| CAPTCHA only                         | score × 0.7            | about 0.57                         |
+| OAuth + CAPTCHA                      | score × 0.6 × 0.7      | about 0.95                         |
+| OAuth + a second, different provider | score × 0.6 × 0.5      | any score that was not rejected    |
 
-```typescript
-{
-  sessionId: string;
-  challengeResponse: string; // Token from the challenge provider
-  challengeType?: string;    // e.g., "turnstile" (default)
-}
-```
+A CAPTCHA that is not enough returns `oauthRequired`, and the page goes back to the sign-in view.
 
-**Response:**
+### Rate limiting
 
-```typescript
-{
-  success: boolean;
-  error?: string;          // Error message on failure
-  passed?: boolean;        // Whether the challenge is fully passed (session completed)
-  oauthRequired?: boolean; // Whether OAuth is required (CAPTCHA alone is not enough)
-}
-```
+Before scoring, the service can reject a publication with HTTP 429 when the author exceeds their budget. This stops manual spammers who solve every CAPTCHA.
 
-**Score adjustment logic:** After validating the CAPTCHA, the server checks if OAuth was already completed. If so, the combined multiplier is used: `adjustedScore = riskScore × oauthMultiplier × captchaMultiplier`. Otherwise: `adjustedScore = riskScore × captchaMultiplier`. If `adjustedScore < challengePassThreshold`, the session is marked `completed` and `passed: true` is returned. Otherwise, the CAPTCHA is marked complete but the session stays `pending`, and `passed: false, oauthRequired: true` is returned.
-
-### OAuth Routes
-
-**GET /api/v1/oauth/:provider/start?sessionId=...** — Initiates the OAuth flow. Generates state, stores it in the database, and redirects the user to the OAuth provider's authorization page.
-
-**GET /api/v1/oauth/:provider/callback** — OAuth callback handler. Exchanges the authorization code for a token, retrieves the user identity, then applies score adjustment:
-
-- **First OAuth**: If `riskScore × oauthMultiplier < passThreshold` → session completed. Otherwise, marks `oauthCompleted` and session stays pending ("need more" state).
-- **Second OAuth**: Must be from a different provider. Applies `riskScore × oauthMultiplier × secondOauthMultiplier`. If below threshold → session completed.
-- Multiple OAuth identities are accumulated as a JSON array in the session's `oauthIdentity` field.
-
-**GET /api/v1/oauth/status/:sessionId** — Polling endpoint used by the iframe to check OAuth status. Returns `{ completed, oauthCompleted, needsMore, firstProvider, status }`.
-
-## Challenge Flow (Detailed)
-
-The challenge flow uses **server-side state tracking** - no tokens are passed from the iframe to the user's client. This matches the standard bitsocial iframe challenge pattern (used by mintpass and others).
-
-**OAuth is the primary challenge.** The iframe shows OAuth sign-in buttons first. CAPTCHA is available as a fallback for users without social accounts. After the user completes verification, the server adjusts the risk score. If the adjusted score is below the pass threshold, the session completes. For high-risk users, additional verification (second OAuth from a different provider, or CAPTCHA) may be required.
-
-```
-getChallenge() -> lazy iframe URL (no spam blocker server request)
-  |
-  v
-User opens iframe -> lazy iframe posts signed payload to /evaluate -> riskScore
-  |
-  ├─ < autoAcceptThreshold -> auto_accept (verify succeeds immediately)
-  ├─ >= autoRejectThreshold -> auto_reject (verify fails immediately)
-  └─ between -> create session (store riskScore), return challengeUrl
-        |
-        v
-  Iframe serves OAuth buttons (primary) + optional CAPTCHA fallback link
-        |
-        ├─ User signs in via OAuth -> callback applies score adjustment
-        |     |
-        |     ├─ riskScore x oauthMultiplier < passThreshold?
-        |     |     YES -> mark "completed" -------------------------> /verify -> success
-        |     |
-        |     └─    NO -> mark oauthCompleted, session stays "pending"
-        |                 Iframe shows "need more" view
-        |                 |
-        |                 ├─ User signs in with 2nd OAuth (different provider)
-        |                 |     -> riskScore x oauthMult x 2ndOauthMult < threshold?
-        |                 |       YES -> completed ------------------> /verify -> success
-        |                 |
-        |                 └─ User completes CAPTCHA
-        |                       -> riskScore x oauthMult x captchaMult < threshold?
-        |                         YES -> completed ------------------> /verify -> success
-        |
-        └─ User clicks "I don't have a social account" -> CAPTCHA fallback
-              |
-              ├─ riskScore x captchaMultiplier < passThreshold?
-              |     YES -> mark "completed" -------------------------> /verify -> success
-              |
-              └─    NO -> mark captchaCompleted, return { oauthRequired: true }
-                           Iframe redirects back to OAuth view
-```
-
-```
-1. Client sends ChallengeRequest to the community.
-2. Community challenge code returns a lazy spam blocker iframe URL with a signed payload in the URL fragment.
-3. Client asks the user before opening the iframe.
-4. After the user opens the iframe, the iframe posts the signed payload to /evaluate.
-5. /evaluate creates the session and either completes, fails, or returns the full challengeUrl.
-6. Medium-risk sessions redirect to /iframe/:sessionId for OAuth and/or CAPTCHA.
-7. When done, the iframe posts a ChallengeAnswer with an empty string.
-8. Community verify("") calls /challenge/verify with the pre-generated sessionId.
-9. The community applies post-challenge IP filters and accepts or rejects the publication.
-```
-
-## Pre-check Pass (Client Authors)
-
-A client can run a board's spam blocker check before it uploads an attached file, so rejected authors never upload. The board still evaluates the real signed publication (including `link`) when it is published; the pass only lets the board reuse the confirmed user-origin IP and any CAPTCHA/OAuth the author already completed, so the author is not shown a second iframe.
-
-**Public marker.** The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"` (for example `https://spamblocker.bitsocial.net/api/v1/precheck`). A challenge is pass-capable when its `type` is `"url/iframe"` and `challenge` is an `https` (or localhost `http`) URL whose pathname ends with `/precheck`. When `blockTor` is enabled, the marker includes `?blockTor=true`. Clients accept this parameter and remove it when deriving the API base URL; the server independently reads the community’s published policy. If the board's options are invalid, `challenge` is omitted.
-
-**Obtaining a pass.** The client generates a session id `precheck-<lowercase uuid v4>`, signs a pre-check request for the draft publication (without `link`) with the author's signer, opens `<serverUrl>/iframe/<sessionId>/precheck#payload=<base64url CBOR>` as a `url/iframe` challenge, and after the iframe posts its answer reads `GET <serverUrl>/challenge/status/<sessionId>`. Only `completed` produces a pass; on `failed`, or a check the author closed before it finished, the client stops before uploading. If the status cannot be read, the client can publish without a pass and let the board check the post as usual.
-
-**Tor-blocking communities.** A successful pass still opens a brief lazy iframe when publishing so the server can verify the current connection. Earned CAPTCHA/OAuth credit is retained; the current-origin check prevents switching to Tor after passing a precheck on another network. Board-side exemptions remain unchanged, but prechecks cannot establish exemptions that depend on another challenge succeeding (such as whitelist or `.bso` verification); those authors can encounter an early Tor rejection even when the board would exempt them.
-
-**Redeeming a pass.** After uploading, publish with the pre-check session id as the answer at the index of each pass-capable challenge that applies to the publication, for example `challengeRequest: { challengeAnswers: [pass] }` when the spam blocker is `community.challenges[0]`. Every slot before that index must hold an answer the challenge there accepts: challenges that ignore pre-supplied answers (such as pkc-js `fail`) take any string, but one that publishes its own `challenge` text (pkc-js `question`) reads its slot as the author's answer, so a client should not pre-check a board where such a challenge would receive the pass. The board's `getChallenge()` sees a value matching `^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$` at its `challengeIndex` and POSTs a community-signed `/evaluate` request with `precheckSessionId`:
-
-- `completed` or `failed`: the board answers immediately through `/challenge/verify`, so its IP, country, and VPN/proxy/Tor/datacenter policies still apply.
-- `pending`: the board returns its usual lazy iframe for the same session, which continues from the pass's completed CAPTCHA/OAuth.
-- Any redemption error, or no valid pass: the board returns its usual lazy iframe, as if no pass was sent.
-
-A pass is single use and is only accepted for the same author signer and community that ran the pre-check.
-
-## Risk Score
-
-The risk score is a value between 0.0 and 1.0 that indicates the likelihood a publication is spam or malicious. It's calculated as a weighted combination of multiple factors including account age, karma, author reputation, content analysis, velocity, IP intelligence, and signer-cluster behavior.
-
-Detailed risk-scoring implementation notes live with the private server codebase. This public repo documents the exposed API contract and the public challenge/shared packages.
-
-### Signer-cluster Sybil resistance
-
-The hosted service links distinct signer public keys first observed on the same confirmed user-origin IP. This makes disposable Bitsocial accounts less useful for evading a community ban, manufacturing a conversation, or voting on related accounts' content.
-
-- A few signers are allowed to accommodate users who cannot yet sync their Bitsocial account across devices. The first three signers in the rolling 30-day window are normally treated as legitimate multi-device use.
-- Additional signers progressively raise risk and appear as operator evidence. Rapid account churn, ban evasion, repeated failures, or replies/votes between signers linked to the same IP can require stronger verification.
-- Severe rapid or compound abuse can cause a temporary IP-level rejection while the rolling evidence remains active. Operators may also apply a persistent manual IP block.
-
-This is a centralized, service-local defense rather than a protocol-wide Bitsocial identity or ban. Shared households, offices, and carrier networks can legitimately reuse an IP, so the signal is graduated and is not treated as proof that multiple signers are one person. The hosted challenge UI warns users about the policy.
-
-## Indexer
-
-The server includes a background indexer that crawls the Bitsocial network to build author reputation data. It:
-
-- Indexes communities and their comments/posts
-- Follows `author.previousCommentCid` chains to discover new communities
-- Tracks modQueue to see which authors get accepted/rejected
-- Detects bans/removals by monitoring CommentUpdate availability
-- Provides network-wide author reputation data for risk scoring
-
-Indexer implementation details live with the private server codebase.
-
-**Tier Thresholds (configurable per community via challenge options):**
-
-- `riskScore < autoAcceptThreshold` → Complete after iframe evaluation (no OAuth/CAPTCHA)
-- `autoAcceptThreshold <= riskScore < oauthSufficientThreshold` → One OAuth is sufficient (`oauth_sufficient`)
-- `oauthSufficientThreshold <= riskScore < autoRejectThreshold` → OAuth + more needed (`oauth_plus_more`)
-- `riskScore >= autoRejectThreshold` → Reject after iframe evaluation
-
-**Score Adjustment (configurable on server):**
-
-OAuth is the primary trust signal. CAPTCHA is a fallback for users without social accounts.
-
-| Path                     | Formula                             | Default           | Pass if                  |
-| ------------------------ | ----------------------------------- | ----------------- | ------------------------ |
-| OAuth alone              | score × oauthScoreMultiplier        | score × 0.6       | < challengePassThreshold |
-| CAPTCHA alone (fallback) | score × captchaScoreMultiplier      | score × 0.7       | < challengePassThreshold |
-| OAuth + second OAuth     | score × oauthMult × secondOauthMult | score × 0.6 × 0.5 | < challengePassThreshold |
-| OAuth + CAPTCHA          | score × oauthMult × captchaMult     | score × 0.6 × 0.7 | < challengePassThreshold |
-
-With default values (threshold 0.4):
-
-- One OAuth sufficient when raw score < ~0.67
-- CAPTCHA alone sufficient when raw score < ~0.57
-- OAuth + second OAuth sufficient when raw score < ~1.33 (all non-auto-rejected pass)
-- OAuth + CAPTCHA sufficient when raw score < ~0.95 (most non-auto-rejected pass)
-
-## Dynamic Rate Limiting
-
-An opt-in pre-check that hard-rejects publications (HTTP 429) when an author exceeds their budget. This runs before risk scoring and prevents manual spammers who solve CAPTCHAs from posting at high rates.
-
-**Enabling:** Pass `rateLimitConfig: {}` in `RouteOptions` to enable with defaults. Omit it to disable entirely.
-
-**Dynamic budgets:** Each author gets a budget multiplier based on `ageFactor × reputationFactor` (clamped 0.25–5.0):
-
-| Account Age          | ageFactor |     | Condition              | reputationFactor |
-| -------------------- | --------- | --- | ---------------------- | ---------------- |
-| No history / < 1 day | 0.5       |     | Any active bans        | 0.5              |
-| 1–7 days             | 0.75      |     | Removal rate > 30%     | 0.5              |
-| 7–30 days            | 1.0       |     | Removal rate 15–30%    | 0.75             |
-| 30–90 days           | 1.5       |     | No history or < 15%    | 1.0              |
-| 90–365 days          | 2.0       |     | < 5% AND > 10 comments | 1.25             |
-| > 365 days           | 3.0       |     |                        |                  |
-
-**Base limits (at 1.0× multiplier), effective = `max(1, floor(base × multiplier))`:**
+Base limits, checked per type and then in aggregate:
 
 | Type          | Hourly | Daily   |
 | ------------- | ------ | ------- |
@@ -404,258 +403,90 @@ An opt-in pre-check that hard-rejects publications (HTTP 429) when an author exc
 | vote          | 10     | 200     |
 | **aggregate** | **40** | **250** |
 
-Check order: per-type hourly → per-type daily → aggregate hourly → aggregate daily. Only user-generated content (posts, replies, votes) is rate-limited. The challenge package accepts community-level actions (commentEdit, commentModeration, communityEdit) without calling the evaluate endpoint since they don't require spam detection.
+Each limit is multiplied by `ageFactor × reputationFactor`, clamped to 0.25–5.0, and never drops below 1.
 
-## Challenge Verification
+| Account age           | `ageFactor` |
+| --------------------- | ----------- |
+| No history or < 1 day | 0.5         |
+| 1–7 days              | 0.75        |
+| 7–30 days             | 1.0         |
+| 30–90 days            | 1.5         |
+| 90–365 days           | 2.0         |
+| Over 365 days         | 3.0         |
 
-Challenge completion is tracked **server-side** in the database - no tokens are passed to the user's client.
+| Reputation                                  | `reputationFactor` |
+| ------------------------------------------- | ------------------ |
+| Any ban                                     | 0.5                |
+| Removal rate above 30%                      | 0.5                |
+| Removal rate 15–30%                         | 0.75               |
+| Removal rate below 5% with over 10 comments | 1.25               |
+| Otherwise, including no history             | 1.0                |
 
-When a user completes the iframe challenge:
+### Linked accounts on one network
 
-1. The iframe shows OAuth sign-in buttons; user signs in with a provider
-2. The OAuth callback applies score adjustment (`riskScore × oauthMultiplier`)
-3. If the adjusted score is below `challengePassThreshold` → session marked `completed`
-4. If not → `oauthCompleted` is set, iframe shows "need more" view with remaining providers and optional CAPTCHA
-5. User completes second OAuth (different provider) or CAPTCHA → combined multiplier applied → session marked `completed`
-6. Alternatively, user can use CAPTCHA fallback from the start ("I don't have a social account")
-7. The user clicks "done" in their bitsocial client
-8. The client sends a `ChallengeAnswer` with an empty string to the community
-9. The community's challenge code calls `/api/v1/challenge/verify` with the `sessionId`
-10. The server checks `session.status === "completed"` and returns success + IP intelligence
+The service links distinct signer public keys first seen on the same confirmed user-origin IP. This makes disposable accounts less useful for evading a community ban, faking a conversation, or voting on related accounts' content.
 
-**Session expiry:** 1 hour from creation
+- The first three signers in a rolling 30-day window are normally treated as one person's devices, because Bitsocial accounts cannot yet sync across devices.
+- More signers raise risk progressively. Rapid account churn, ban evasion, repeated failures, or replies and votes between linked signers can require stronger verification.
+- Severe or compounded abuse can cause a temporary rejection for the whole network while the evidence stays in the window. Operators can also apply a manual IP block.
+- Challenge pages warn authors before their network reaches the limit.
 
-## Database Schema (SQLite + better-sqlite3)
+This is a defense local to the hosted service. It is not a protocol-wide identity or ban.
 
-**Tables:**
+## Privacy
 
-Author columns store the full `author` object from each publication (for example, `DecryptedChallengeRequestMessageTypeWithcommunityAuthor.comment.author`).
+- The hosted operator stores raw IP addresses and publication content for abuse detection. All of it is visible to the operator.
+- IP addresses are sent to ipapi.is for classification.
+- Communities receive only the country code, the IP risk, the network type estimate, and the pass or fail result. They never receive the raw IP.
+- OAuth identities (`provider:userId`) are stored by the operator and never shared with communities. The service only confirms that a sign-in succeeded.
+- The `explanation` field gives the reasoning behind a score.
 
-### `comments`
+## Known limitations
 
-Stores comment publications for analysis and rate limiting.
+- IP intelligence is a best-effort estimate and can misclassify VPNs and residential addresses.
+- IP options are rejection-only by design. There is no country whitelist or other IP-based auto-approval, because it would be easy to game and could be used to flood a community.
+- IP intelligence fields are optional in `/challenge/verify`. The challenge applies an IP rule only when the field it needs is present.
+- IP-linked signer clusters are probabilistic. Shared households, offices, and carrier networks can group legitimate users, and attackers can rotate IPs. The allowance and the compound-signal escalation reduce false positives but cannot remove them.
 
-- `sessionId` TEXT PRIMARY KEY (foreign key of challengeSessions)
-- `author` TEXT NOT NULL -- is actually a JSON
-- `communityAddress` TEXT NOT NULL
-- `parentCid` TEXT (null for posts, set for replies)
-- `content` TEXT
-- `link` TEXT
-- `linkWidth` INTEGER
-- `linkHeight` INTEGER
-- `postCid` TEXT
-- `signature` TEXT NOT NULL
-- `title` TEXT
-- `timestamp` INTEGER NOT NULL
-- `linkHtmlTagName` TEXT
-- `flair` TEXT
-- `spoiler` INTEGER (BOOLEAN 0/1)
-- `protocolVersion` TEXT NOT NULL
-- `nsfw` INTEGER (BOOLEAN 0/1)
-- `receivedAt` INTEGER NOT NULL
+## Development
 
-### `votes`
+Requires Node.js 22 or later and Corepack-managed Yarn.
 
-Stores vote publications.
-
-- `sessionId` TEXT PRIMARY KEY (foreign key of challengeSessions)
-- `author` TEXT NOT NULL -- is actually a json
-- `communityAddress` TEXT NOT NULL
-- `commentCid` TEXT NOT NULL
-- `signature` TEXT NOT NULL
-- `protocolVersion` TEXT NOT NULL
-- `vote` INTEGER NOT NULL (-1, 0 or 1)
-- `timestamp` INTEGER NOT NULL
-- `receivedAt` INTEGER NOT NULL
-
-### `challengeSessions`
-
-Tracks challenge sessions. Sessions are kept permanently for historical analysis. Internal timestamps (completedAt, expiresAt, receivedChallengeRequestAt, authorAccessedIframeAt) are in milliseconds.
-
-- `sessionId` TEXT PRIMARY KEY -- UUID v4
-- `communityPublicKey` TEXT
-- `status` TEXT DEFAULT 'pending' (pending, completed, failed)
-- `completedAt` INTEGER
-- `expiresAt` INTEGER NOT NULL
-- `receivedChallengeRequestAt` INTEGER NOT NULL
-- `authorAccessedIframeAt` INTEGER -- when did the author access the iframe?
-- `oauthIdentity` TEXT -- format: "provider:userId" or JSON array '["provider:userId", ...]'
-- `challengeTier` TEXT -- 'oauth_sufficient' or 'oauth_plus_more' (determined by score thresholds)
-- `captchaCompleted` INTEGER DEFAULT 0 -- 1 if CAPTCHA portion completed
-- `oauthCompleted` INTEGER DEFAULT 0 -- 1 if first OAuth completed
-- `riskScore` REAL -- the risk score at evaluation time (used for score adjustment after OAuth/CAPTCHA)
-
-### `ipRecords`
-
-Stores raw IP addresses associated with authors (captured via iframe). One record per challenge.
-
-- `sessionId` TEXT NOT NULL (foreign key to challengeSessions.sessionId) PRIMARY KEY
-- `ipAddress` TEXT NOT NULL -- ip address string representation
-- `isVpn` INTEGER (BOOLEAN 0/1)
-- `isProxy` INTEGER (BOOLEAN 0/1)
-- `isTor` INTEGER (BOOLEAN 0/1)
-- `isDatacenter` INTEGER (BOOLEAN 0/1)
-- `countryCode` TEXT -- ISO 3166-1 alpha-2 country code
-- `timestamp` INTEGER NOT NULL -- when did we query the ip provider
-
-### `oauthStates`
-
-Ephemeral table for CSRF protection during OAuth flow. Internal timestamps (createdAt, expiresAt) are in milliseconds.
-
-- `state` TEXT PRIMARY KEY
-- `sessionId` TEXT NOT NULL (foreign key to challengeSessions)
-- `provider` TEXT NOT NULL -- 'github', 'google', 'twitter', etc.
-- `codeVerifier` TEXT -- PKCE code verifier (required for google, twitter)
-- `createdAt` INTEGER NOT NULL
-- `expiresAt` INTEGER NOT NULL
-
-## Challenge Code
-
-Implements pkc-js `ChallengeFileFactory`:
-
-```typescript
-// Usage in community settings
-{
-  "challenges": [{
-    "name": "@bitsocial/spam-blocker-challenge",
-    "options": {
-      "serverUrl": "https://spamblocker.bitsocial.net/api/v1",
-      "autoAcceptThreshold": "0.2",
-      "autoRejectThreshold": "0.8",
-      "countryBlacklist": "RU,CN,KP",
-      "blockVpn": "true",
-      "blockTor": "true"
-    },
-    "exclude": [
-      { "role": ["owner", "admin", "moderator"] },
-      { "postScore": 100 }
-    ]
-  }]
-}
+```bash
+corepack enable
 ```
 
-When calling `/api/v1/evaluate`, the `author.community` field in the publication
-(e.g., `challengeRequest.comment.author.community`) may be `undefined` for first-time
-publishers who have never posted in the community before. The community populates this
-field from its internal database of author history, so new authors won't have it set.
+```bash
+corepack yarn install
+```
 
-### Configuration Options (Challenge Package)
+| Command                       | What it does                                                |
+| ----------------------------- | ----------------------------------------------------------- |
+| `corepack yarn build`         | Build `shared`, then `challenge`                            |
+| `corepack yarn type-check`    | Type-check both packages                                    |
+| `corepack yarn test`          | Run the challenge package's Vitest suite                    |
+| `corepack yarn format`        | Format with Prettier                                        |
+| `corepack yarn llms:generate` | Regenerate `llms.txt` and `llms-full.txt` after doc changes |
 
-| Option                | Default                                    | Description                                                                    |
-| --------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
-| `serverUrl`           | `https://spamblocker.bitsocial.net/api/v1` | URL of the BitsocialSpamBlocker server (must be http/https)                    |
-| `autoAcceptThreshold` | `0.2`                                      | Complete verification after iframe evaluation when risk is below this score    |
-| `autoRejectThreshold` | `0.8`                                      | Reject after iframe evaluation when risk is above this score                   |
-| `countryBlacklist`    | `""`                                       | Comma-separated ISO 3166-1 alpha-2 country codes to block (e.g., `"RU,CN,KP"`) |
-| `maxIpRisk`           | `1.0`                                      | Reject if ipRisk from /verify exceeds this threshold                           |
-| `blockVpn`            | `false`                                    | Reject publications from VPN IPs (`true`/`false` only)                         |
-| `blockProxy`          | `false`                                    | Reject publications from proxy IPs (`true`/`false` only)                       |
-| `blockTor`            | `false`                                    | Reject publications from Tor exit nodes (`true`/`false` only)                  |
-| `blockDatacenter`     | `false`                                    | Reject publications from datacenter IPs (`true`/`false` only)                  |
+```text
+packages/
+├── challenge/   # @bitsocial/spam-blocker-challenge: getChallenge(), options schema, tests
+└── shared/      # @bitsocial/spam-blocker-shared: response schemas and types
+docs/
+├── architecture/     # Hosted service source policy
+└── agent-playbooks/  # Workflow notes for AI agents
+```
 
-**Post-challenge filtering:** After a user completes a challenge, the `/verify` response includes IP intelligence data. The challenge code uses the above options to reject publications even after successful challenge completion (e.g., if the user is from a blacklisted country or using a VPN).
+AI agent rules live in [`AGENTS.md`](./AGENTS.md), with setup notes in [`docs/agent-playbooks/`](./docs/agent-playbooks/).
 
-**Error Handling:** If the server is unreachable, the challenge code returns a failed challenge result instead of silently accepting or rejecting user-generated content. Community-level actions are accepted locally without contacting the server.
+## License
 
-**Privacy of options:** The `options` object (including thresholds and filtering settings) is **not** exposed in the public `community.challenges` IPFS record. bitsocial-js strips `options` when computing the public `communityChallenge` from `communityChallengeSetting`, so only `type`, `description`, `challenge`, and `exclude` are published. `challenge` is the pre-check marker `<serverUrl>/precheck`, so the server URL is public (it was already visible to every author in the lazy iframe URL); the Tor-blocking policy is also public through `?blockTor=true`, while thresholds and other filtering rules remain private to the community operator.
+Licensing is per package:
 
-### Server Configuration (separate from challenge)
+- [`packages/challenge`](./packages/challenge/LICENSE): `GPL-3.0-or-later`
+- [`packages/shared`](./packages/shared/LICENSE): `MIT`
 
-These settings are configured on the HTTP server, not in the challenge package:
-
-**Required:**
-
-- `DATABASE_PATH`: Path to the SQLite database file. Use `:memory:` for in-memory.
-
-**Challenge providers:**
-
-- `TURNSTILE_SITE_KEY`: Cloudflare Turnstile site key
-- `TURNSTILE_SECRET_KEY`: Cloudflare Turnstile secret key
-- `BASE_URL`: Base URL for OAuth callbacks (e.g., `https://spamblocker.bitsocial.net`)
-
-**IP Intelligence:**
-
-- `IPAPI_KEY`: ipapi.is API key for IP intelligence lookups (optional — works without key)
-
-**Challenge tier thresholds:**
-
-- `AUTO_ACCEPT_THRESHOLD`: Complete immediately after evaluation below this score (default: 0.2)
-- `OAUTH_SUFFICIENT_THRESHOLD`: Scores between autoAccept and this pass with one OAuth (default: 0.4)
-- `AUTO_REJECT_THRESHOLD`: Reject immediately after evaluation at or above this score (default: 0.8)
-
-**Score adjustment (OAuth-first model):**
-
-- `OAUTH_SCORE_MULTIPLIER`: Multiplier applied after first OAuth, in (0, 1] (default: 0.6)
-- `SECOND_OAUTH_SCORE_MULTIPLIER`: Multiplier applied after second OAuth from different provider, in (0, 1] (default: 0.5)
-- `CAPTCHA_SCORE_MULTIPLIER`: Multiplier applied after CAPTCHA (fallback), in (0, 1] (default: 0.7)
-- `CHALLENGE_PASS_THRESHOLD`: Adjusted score must be below this, in (0, 1) (default: 0.4)
-
-**OAuth providers** (each requires both CLIENT_ID and CLIENT_SECRET):
-
-- `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
-- `TWITTER_CLIENT_ID` / `TWITTER_CLIENT_SECRET`
-- `YANDEX_CLIENT_ID` / `YANDEX_CLIENT_SECRET`
-- `TIKTOK_CLIENT_ID` / `TIKTOK_CLIENT_SECRET`
-- `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`
-- `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET`
-
-**Risk factor disabling:**
-
-- `DISABLED_RISK_FACTORS`: Comma-separated list of risk factor names to disable. Disabled factors get `weight=0` and their weight is redistributed to remaining factors. Valid values: `commentContentTitleRisk`, `commentUrlRisk`, `velocityRisk`, `accountAge`, `karmaScore`, `ipRisk`, `signerClusterRisk`, `networkBanHistory`, `modqueueRejectionRate`, `networkRemovalRate`, `socialVerification`, `walletVerification`. Example: `DISABLED_RISK_FACTORS=walletVerification`
-
-**Other:**
-
-- `PORT`: Server port (default: 3000)
-- `HOST`: Server host (default: 0.0.0.0)
-- `LOG_LEVEL`: Set to `silent` to disable logging
-- `PKC_RPC_URL`: PKC RPC URL for community resolution
-- `ALLOW_NON_DOMAIN_COMMUNITIES`: Set to `true` to allow non-domain community addresses
-
-## Key Design Decisions
-
-- **Database:** SQLite with better-sqlite3, no ORM
-- **Content Analysis:** Server-side setting, enabled by default
-- **Primary Challenge Provider:** Cloudflare Turnstile (free, privacy-friendly)
-- **Challenge Model:** CAPTCHA-first with score-based OAuth gating (CAPTCHA always required; OAuth only if score remains too high after adjustment)
-- **OAuth Library:** Arctic (lightweight, supports many providers)
-- **Error Handling:** Return failed challenge results on server errors (no silent failures)
-- **IP Storage:** Raw IPs stored (not hashed) for accurate analysis
-- **IP Intelligence:** ipapi.is (external HTTP API, best-effort, works without API key)
-- **Ephemeral Sessions:** Challenge sessions auto-purge after 1 hour
-
-## Privacy Considerations
-
-- Raw IPs are stored for spam detection purposes
-- Content analysis is performed on the server
-- IP intelligence lookups are sent to ipapi.is when enabled
-- OAuth identity (provider:userId) is stored server-side but never shared with communities
-- All data is visible to the server operator
-- Public integration contract documented here; hosted implementation is private
-- Explanation field shows reasoning for scores
-
-## Known Limitations
-
-- IP intelligence fields are best-effort estimates and can be wrong (e.g., VPNs, residential IPs, or misclassification)
-- Treat IP intelligence as informational and use it only for rejection decisions
-- IP intelligence fields are optional and may be removed from the engine response in the future; challenge code only applies IP filtering options when they are present
-- IP-based options are intentionally rejection-only; we do not support IP-derived auto-approval (e.g., a country whitelist), because it is easy to game and can be used to flood a community
-- IP-linked signer clusters are probabilistic: shared networks can group legitimate users, while attackers can rotate IPs or use proxies. The allowance and compound-signal escalation reduce false positives but cannot eliminate them.
-
-## Verification Plan
-
-1. Build the public packages with `corepack yarn build`
-2. Type-check the public packages with `corepack yarn type-check`
-3. Run the challenge-package tests with `corepack yarn test`
-4. Integrate the challenge package with a server instance that implements the API contract documented in this README
-5. Verify end-to-end flow against a local or hosted private server deployment
-
-## Reference Files
-
-- bitsocial-js challenge example: `pkc-js/src/runtime/node/community/challenges/bitsocial-js-challenges/captcha-canvas-v3/index.ts`
-- bitsocial-js schemas: `pkc-js/src/community/schema.ts`
-- bitsocial-js challenge orchestration: `pkc-js/src/runtime/node/community/challenges/index.ts`
-- MintPass iframe challenge: https://github.com/bitsociallabs/mintpass/tree/master/challenge
+The repository root is marked `UNLICENSED` so the workspace metadata does not imply a single license for the whole repository. The hosted server implementation is not distributed here.
 ```
 
 ---
@@ -1094,6 +925,12 @@ Source: https://github.com/bitsocialnet/spam-blocker/blob/master/packages/challe
 
 ```markdown
 # Changelog
+
+## <small>0.1.8 (2026-11-16)</small>
+
+* feat(challenge): explain and publish community Tor policy (#16) ([d7d513b](https://github.com/bitsocialnet/spam-blocker/commit/d7d513b)), closes [#16](https://github.com/bitsocialnet/spam-blocker/issues/16)
+* fix(agents): reject stale Cursor skill links ([3370855](https://github.com/bitsocialnet/spam-blocker/commit/3370855))
+* chore(agents): remove Cursor configuration ([56585da](https://github.com/bitsocialnet/spam-blocker/commit/56585da))
 
 ## <small>0.1.7 (2026-10-31)</small>
 
