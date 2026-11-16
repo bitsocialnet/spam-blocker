@@ -523,6 +523,19 @@ describe("pre-check pass", () => {
             );
         });
 
+        it("treats whitespace-only exemption settings as unset in the marker and final challenge", async () => {
+            const settings = { options: { blockTor: "true", precheckExemptions: " \t\n " } } as unknown as CommunityChallengeSetting;
+            const challengeFile = ChallengeFileFactory({ challengeSettings: settings });
+            expect(challengeFile.challenge).toBe("https://spamblocker.bitsocial.net/api/v1/precheck?blockTor=true");
+            const result = await challengeFile.getChallenge({
+                challengeSettings: settings,
+                challengeRequestMessage: request,
+                challengeIndex: 0,
+                community
+            });
+            expect(result).toHaveProperty("challenge");
+        });
+
         it("publishes Tor policy and includes it in the community-signed evaluation", async () => {
             const settings = { options: { blockTor: "true" } } as unknown as CommunityChallengeSetting;
             const challengeFile = ChallengeFileFactory({ challengeSettings: settings });

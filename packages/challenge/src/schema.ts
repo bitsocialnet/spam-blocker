@@ -125,7 +125,7 @@ export const createOptionsSchema = (optionInputs: ReadonlyArray<OptionInput>) =>
                     })
                 ),
                 precheckExemptions: z.preprocess((value) => {
-                    if (value === undefined || value === null || value === "") return undefined;
+                    if (value === undefined || value === null || (typeof value === "string" && !value.trim())) return undefined;
                     if (typeof value !== "string") return value;
                     try {
                         return JSON.parse(value);
