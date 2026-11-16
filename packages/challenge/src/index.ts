@@ -405,9 +405,21 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
 // Must not throw: pkc-js calls the factory while building the public community record and on every challenge request.
 function ChallengeFileFactory(args: { challengeSettings: GetChallengeArgs["challengeSettings"] }): ChallengeFileInput {
     const parsedOptions = OptionsSchema.safeParse(args?.challengeSettings?.options);
-    const challenge = parsedOptions.success
-        ? `${parsedOptions.data.serverUrl}/precheck${parsedOptions.data.blockTor ? "?blockTor=true" : ""}`
-        : undefined;
+    // The community must run dependent challenges to establish private whitelist/name exemptions.
+    // Advertising an author-only precheck would let it reject someone the community would exempt.
+    const excludes = args?.challengeSettings?.exclude;
+    const hasChallengeDependentExemption =
+        Array.isArray(excludes) &&
+        excludes.some(
+            (exclude) =>
+                Array.isArray(exclude?.challenges) &&
+                exclude.challenges.length > 0 &&
+                exclude.challenges.every((index) => Number.isInteger(index) && index >= 0)
+        );
+    const challenge =
+        parsedOptions.success && !hasChallengeDependentExemption
+            ? `${parsedOptions.data.serverUrl}/precheck${parsedOptions.data.blockTor ? "?blockTor=true" : ""}`
+            : undefined;
     return { getChallenge, optionInputs, type, description, ...(challenge ? { challenge } : {}) };
 }
 
