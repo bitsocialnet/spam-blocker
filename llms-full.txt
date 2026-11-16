@@ -171,7 +171,7 @@ A client can run a community's spam blocker check before it uploads an attached 
 
 ### Public marker
 
-The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"`, for example `https://spamblocker.bitsocial.net/api/v1/precheck`. With `blockTor` enabled the marker is `<serverUrl>/precheck?blockTor=true`. If the community's options are invalid, `challenge` is omitted.
+The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"`, for example `https://spamblocker.bitsocial.net/api/v1/precheck`. With `blockTor` enabled the marker is `<serverUrl>/precheck?blockTor=true`. The marker is omitted if the community's options are invalid or its spam blocker has a challenge-result exemption (`exclude[].challenges`). Such exemptions require the community to verify another challenge first, so clients must proceed without a pre-check pass and let the community check the publication after any attachment upload.
 
 A challenge is pass-capable when its `type` is `"url/iframe"` and `challenge` is an `https` (or localhost `http`) URL whose pathname ends with `/precheck`. Clients accept the `blockTor` parameter and remove it when deriving the API base URL. The server reads the community's published policy independently.
 
@@ -204,7 +204,7 @@ A pass is single use and is accepted only for the author signer and community th
 
 A successful pass still opens a brief lazy iframe when publishing, so the server can check the current connection. Earned CAPTCHA and OAuth credit is kept. This stops an author from passing a pre-check on one network and then publishing through Tor.
 
-Community-side exemptions are unchanged, but a pre-check cannot establish exemptions that depend on another challenge succeeding, such as a whitelist or `.bso` verification. Those authors can see an early Tor rejection even though the community would exempt them.
+Community-side exemptions remain authoritative. When exemptions depend on another challenge succeeding, such as a whitelist or `.bso` verification, the package omits the pre-check marker. Clients therefore defer to the community instead of rejecting exempt authors early. Private whitelist membership is not published, and a claimed `.bso` address does not grant an exemption: the community verifies eligibility. Authors who do not qualify still receive the normal spam-blocker check, including Tor policy, after upload.
 
 ## API contract
 

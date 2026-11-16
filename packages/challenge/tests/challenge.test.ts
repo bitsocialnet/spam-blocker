@@ -523,6 +523,56 @@ describe("pre-check pass", () => {
             expect(await ed.verify(signature.signature, cborg.encode(signedProps), signature.publicKey)).toBe(true);
         });
 
+        it.each([{ challenges: [0] }, { challenges: [1] }, { challenges: [0, 1] }])(
+            "omits the pre-check marker for challenge-dependent exemptions: %j",
+            (exclude) => {
+                const challengeFile = ChallengeFileFactory({
+                    challengeSettings: { options: { blockTor: "true" }, exclude: [exclude] } as unknown as CommunityChallengeSetting
+                });
+                expect(challengeFile).not.toHaveProperty("challenge");
+                expect(challengeFile.type).toBe("url/iframe");
+            }
+        );
+
+        it.each([
+            { roles: ["owner", "admin", "moderator"] },
+            { challenges: [] },
+            { challenges: [-1] },
+            { challenges: [0.5] },
+            { challenges: ["0"] },
+            { challenges: null }
+        ])("keeps the marker without a valid challenge-result dependency: %j", (exclude) => {
+            const challengeFile = ChallengeFileFactory({
+                challengeSettings: { options: { blockTor: "true" }, exclude: [exclude] } as unknown as CommunityChallengeSetting
+            });
+            expect(challengeFile.challenge).toBe("https://spamblocker.bitsocial.net/api/v1/precheck?blockTor=true");
+        });
+
+        it("still enforces signed Tor policy during final verification when the marker is omitted", async () => {
+            const settings = {
+                options: { blockTor: "true" },
+                exclude: [{ challenges: [0] }, { challenges: [1] }]
+            } as unknown as CommunityChallengeSetting;
+            const challengeFile = ChallengeFileFactory({ challengeSettings: settings });
+            expect(challengeFile).not.toHaveProperty("challenge");
+            const result = await challengeFile.getChallenge({
+                challengeSettings: settings,
+                challengeRequestMessage: request,
+                challengeIndex: 2,
+                community
+            });
+            if ("success" in result) throw new Error("Expected the normal lazy challenge");
+            const { payload } = getLazyChallengeParts(result.challenge);
+            expect(payload.evaluationOptions.blockTor).toBe(true);
+            const { signature, ...signedProps } = payload;
+            expect(await ed.verify(signature.signature, cborg.encode(signedProps), signature.publicKey)).toBe(true);
+            stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: "tor" })));
+            expect(await result.verify([])).toEqual({
+                success: false,
+                error: "Your connection was detected as Tor. This community does not allow posting through Tor. Use a connection without Tor and try again."
+            });
+        });
+
         it("strips trailing slashes from serverUrl", () => {
             const challengeFile = ChallengeFileFactory({
                 challengeSettings: { options: { serverUrl: "https://example.com/api///" } } as unknown as CommunityChallengeSetting
