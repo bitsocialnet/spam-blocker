@@ -26,6 +26,66 @@ export const IsoCountryCodeSchema = z
         message: "Unknown ISO 3166-1 alpha-2 country code"
     });
 
+// An explicit owner declaration of known dependency semantics, published in the signed community marker.
+// Never infer a challenge implementation from its description or option names.
+export const PrecheckExemptionsSchema = z
+    .object({
+        version: z.literal(1),
+        rules: z
+            .array(
+                z.discriminatedUnion("type", [
+                    z
+                        .object({
+                            challengeIndex: z.number().int().nonnegative(),
+                            type: z.literal("verified-author-name-suffix"),
+                            suffix: z.literal(".bso")
+                        })
+                        .strict(),
+                    z
+                        .object({
+                            challengeIndex: z.number().int().nonnegative(),
+                            type: z.literal("whitelist"),
+                            urls: z
+                                .array(
+                                    z.url().refine(
+                                        (value) => {
+                                            let url: URL;
+                                            try {
+                                                url = new URL(value);
+                                            } catch {
+                                                return false;
+                                            }
+                                            return (
+                                                url.protocol === "https:" &&
+                                                url.hostname === "raw.githubusercontent.com" &&
+                                                !url.username &&
+                                                !url.password &&
+                                                !url.port &&
+                                                !url.hash
+                                            );
+                                        },
+                                        {
+                                            message:
+                                                "Whitelist URLs must use raw.githubusercontent.com HTTPS without credentials, ports or fragments"
+                                        }
+                                    )
+                                )
+                                .min(1)
+                                .max(10)
+                        })
+                        .strict()
+                ])
+            )
+            .min(1)
+            .max(32)
+    })
+    .strict()
+    .refine((policy) => new Set(policy.rules.map((rule) => rule.challengeIndex)).size === policy.rules.length, {
+        message: "Exemption challenge indexes must be unique"
+    });
+
+export type PrecheckExemptions = z.infer<typeof PrecheckExemptionsSchema>;
+
 export const EvaluationOptionsSchema = z
     .object({
         autoAcceptThreshold: UnitIntervalSchema.optional(),

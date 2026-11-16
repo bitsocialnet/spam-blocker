@@ -113,6 +113,7 @@ The equivalent community settings, with pkc-js `exclude` rules to skip the check
 | `maxIpRisk`           | `1.0`                                      | Reject when the IP risk reported by the service exceeds this value          |
 | `blockVpn`            | `false`                                    | Reject publications from VPN IPs                                            |
 | `blockProxy`          | `false`                                    | Reject publications from proxy IPs                                          |
+| `precheckExemptions`  | empty                                      | Public JSON declaration of supported challenge dependencies (see below)     |
 | `blockTor`            | `false`                                    | Reject publications from Tor exit nodes                                     |
 | `blockDatacenter`     | `false`                                    | Reject publications from datacenter IPs                                     |
 
@@ -125,7 +126,7 @@ Validation:
 
 The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor` is also sent to the service so it can reject a Tor connection before asking the user to verify. IP classification is an estimate and can be wrong.
 
-**What is public.** pkc-js strips `options` from the public community record. It publishes only `type`, `description`, `challenge`, and `exclude`. Because `challenge` is the [pre-check marker](#pre-check-pass), the server URL and the Tor-blocking policy (`?blockTor=true`) are public. Thresholds and the other filters stay private to the community operator.
+**What is public.** pkc-js strips `options` from the public community record. It publishes only `type`, `description`, `challenge`, and `exclude`. Because `challenge` is the [pre-check marker](#pre-check-pass), the server URL, Tor-blocking policy (`?blockTor=true`), and any explicit `precheckExemptions` policy are public. Thresholds and the other filters stay private to the community operator.
 
 ## How it works
 
@@ -171,9 +172,9 @@ A client can run a community's spam blocker check before it uploads an attached 
 
 ### Public marker
 
-The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"`, for example `https://spamblocker.bitsocial.net/api/v1/precheck`. With `blockTor` enabled the marker is `<serverUrl>/precheck?blockTor=true`. The marker is omitted if the community's options are invalid or its spam blocker has a challenge-result exemption (`exclude[].challenges`). Such exemptions require the community to verify another challenge first, so clients must proceed without a pre-check pass and let the community check the publication after any attachment upload.
+The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"`, for example `https://spamblocker.bitsocial.net/api/v1/precheck`. With `blockTor` enabled the marker is `<serverUrl>/precheck?blockTor=true`. The marker is omitted if options are invalid or a challenge-result dependency (`exclude[].challenges`) is not covered by the explicit policy below. Covered dependencies can be checked before attachment upload. Unknown or private dependencies still defer to the authoritative community checks.
 
-A challenge is pass-capable when its `type` is `"url/iframe"` and `challenge` is an `https` (or localhost `http`) URL whose pathname ends with `/precheck`. Clients accept the `blockTor` parameter and remove it when deriving the API base URL. The server reads the community's published policy independently.
+A challenge is pass-capable when its `type` is `"url/iframe"` and `challenge` is an `https` (or localhost `http`) URL whose pathname ends with `/precheck`. Clients accept the `blockTor` and `precheckExemptions` parameters and remove them when deriving the API base URL. The server reads the community's published policy independently.
 
 ### Obtaining a pass
 
@@ -204,7 +205,27 @@ A pass is single use and is accepted only for the author signer and community th
 
 A successful pass still opens a brief lazy iframe when publishing, so the server can check the current connection. Earned CAPTCHA and OAuth credit is kept. This stops an author from passing a pre-check on one network and then publishing through Tor.
 
-Community-side exemptions remain authoritative. When exemptions depend on another challenge succeeding, such as a whitelist or `.bso` verification, the package omits the pre-check marker. Clients therefore defer to the community instead of rejecting exempt authors early. Private whitelist membership is not published, and a claimed `.bso` address does not grant an exemption: the community verifies eligibility. Authors who do not qualify still receive the normal spam-blocker check, including Tor policy, after upload.
+Community-side exemptions remain authoritative. Operators can set `options.precheckExemptions` to a JSON string declaring exactly the known challenge dependencies they use:
+
+```json
+{
+    "version": 1,
+    "rules": [
+        { "challengeIndex": 0, "type": "verified-author-name-suffix", "suffix": ".bso" },
+        {
+            "challengeIndex": 1,
+            "type": "whitelist",
+            "urls": ["https://raw.githubusercontent.com/bitsocialnet/lists/refs/heads/master/whitelist-challenge.json"]
+        }
+    ]
+}
+```
+
+This policy is encoded in the marker's `precheckExemptions` query parameter and signed with the public community record. It must match the actual built-in challenge settings and remain synchronized when they change: index 0 above must check `author.name` for `\\.(bso)$`, with normal name ownership validation enabled; index 1 must use the declared whitelist URLs. The factory receives only its own settings and cannot inspect sibling challenge implementations. It never infers their identity from descriptions or option names.
+
+The server verifies the author's signing identity, checks ownership of a claimed `.bso` name, and evaluates the community's exclusion conditions. A claimed name alone grants no exemption. Version 1 supports only `.bso` and public JSON arrays of identities served over HTTPS by `raw.githubusercontent.com`, without credentials, custom ports, fragments, or redirects. Private whitelist addresses are not included in this policy. Unsupported dependencies require authoritative community evaluation instead of an early rejection.
+
+The final community still verifies eligibility. An early exemption is not a reusable authorization to bypass other communities, challenges, or upload policies. The Tor rejection explains the configured whitelist and verified-name exceptions when this policy is present.
 
 ## API contract
 
@@ -925,6 +946,11 @@ Source: https://github.com/bitsocialnet/spam-blocker/blob/master/packages/challe
 
 ```markdown
 # Changelog
+
+## <small>0.1.9 (2026-11-16)</small>
+
+* fix(challenge): stop advertising unsafe exemption prechecks (#17) ([cfa3597](https://github.com/bitsocialnet/spam-blocker/commit/cfa3597)), closes [#17](https://github.com/bitsocialnet/spam-blocker/issues/17)
+* docs(readme): rewrite around the public integration surface ([aa5badf](https://github.com/bitsocialnet/spam-blocker/commit/aa5badf))
 
 ## <small>0.1.8 (2026-11-16)</small>
 

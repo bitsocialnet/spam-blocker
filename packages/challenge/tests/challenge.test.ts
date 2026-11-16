@@ -313,6 +313,24 @@ describe("Bitsocial Spam Blocker challenge package", () => {
             { blockTor: "true" },
             "Your connection was detected as Tor. This community does not allow posting through Tor. Use a connection without Tor and try again."
         ],
+        [
+            "tor",
+            {
+                blockTor: "true",
+                precheckExemptions: JSON.stringify({
+                    version: 1,
+                    rules: [
+                        { challengeIndex: 0, type: "verified-author-name-suffix", suffix: ".bso" },
+                        {
+                            challengeIndex: 1,
+                            type: "whitelist",
+                            urls: ["https://raw.githubusercontent.com/bitsocialnet/lists/refs/heads/master/whitelist-challenge.json"]
+                        }
+                    ]
+                })
+            },
+            "Your connection was detected as Tor. This community blocks posting through Tor unless your account qualifies for an exemption. Use a connection without Tor, ask the community owner to whitelist your account, or use a verified .bso name on your Bitsocial account."
+        ],
         ["datacenter", { blockDatacenter: "true" }, "Rejected by IP policy (datacenter)."]
     ])("rejects by ipTypeEstimation '%s' when configured", async (ipType, options, expected) => {
         stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: ipType })));
@@ -521,6 +539,82 @@ describe("pre-check pass", () => {
             expect(payload.signature.signedPropertyNames).toContain("evaluationOptions");
             const { signature, ...signedProps } = payload;
             expect(await ed.verify(signature.signature, cborg.encode(signedProps), signature.publicKey)).toBe(true);
+        });
+
+        it("publishes explicit verified exemptions for the actual board layout", () => {
+            const policy = {
+                version: 1,
+                rules: [
+                    { challengeIndex: 0, type: "verified-author-name-suffix", suffix: ".bso" },
+                    { challengeIndex: 1, type: "whitelist", urls: ["https://raw.githubusercontent.com/example/lists/main/whitelist.json"] }
+                ]
+            };
+            const challengeFile = ChallengeFileFactory({
+                challengeSettings: {
+                    options: { blockTor: "true", precheckExemptions: JSON.stringify(policy) },
+                    exclude: [{ challenges: [0] }, { challenges: [1] }]
+                } as unknown as CommunityChallengeSetting
+            });
+            const marker = new URL(challengeFile.challenge!);
+            expect(marker.searchParams.get("blockTor")).toBe("true");
+            expect(JSON.parse(marker.searchParams.get("precheckExemptions")!)).toEqual(policy);
+        });
+
+        it.each([
+            { version: 1, rules: [{ challengeIndex: 0, type: "whitelist", urls: ["not a URL"] }] },
+            { version: 1, rules: [{ challengeIndex: 0, type: "whitelist", urls: ["https://example.com/whitelist.json"] }] },
+            { version: 1, rules: [{ challengeIndex: 0, type: "whitelist", urls: ["https://raw.githubusercontent.com:444/example/list"] }] },
+            {
+                version: 1,
+                rules: [{ challengeIndex: 0, type: "whitelist", urls: ["https://user@raw.githubusercontent.com/example/list"] }]
+            },
+            {
+                version: 1,
+                rules: [{ challengeIndex: 0, type: "whitelist", urls: ["https://raw.githubusercontent.com/example/list#fragment"] }]
+            },
+            { version: 2, rules: [{ challengeIndex: 0, type: "verified-author-name-suffix", suffix: ".bso" }] },
+            { version: 1, rules: [{ challengeIndex: 0, type: "publication-match", suffix: ".bso" }] },
+            { version: 1, rules: [{ challengeIndex: 0, type: "verified-author-name-suffix", suffix: ".eth" }] },
+            { version: 1, rules: [{ challengeIndex: 0, type: "whitelist", urls: ["http://localhost/private"] }] },
+            {
+                version: 1,
+                rules: [
+                    {
+                        challengeIndex: 0,
+                        type: "whitelist",
+                        urls: ["https://raw.githubusercontent.com/example/lists/main/whitelist.json"],
+                        addresses: ["private"]
+                    }
+                ]
+            },
+            {
+                version: 1,
+                rules: [
+                    { challengeIndex: 0, type: "verified-author-name-suffix", suffix: ".bso" },
+                    { challengeIndex: 0, type: "whitelist", urls: ["https://raw.githubusercontent.com/example/lists/main/whitelist.json"] }
+                ]
+            }
+        ])("does not advertise an invalid exemption policy: %j", (policy) => {
+            expect(
+                ChallengeFileFactory({
+                    challengeSettings: { options: { precheckExemptions: JSON.stringify(policy) } } as unknown as CommunityChallengeSetting
+                })
+            ).not.toHaveProperty("challenge");
+        });
+
+        it("keeps unknown challenge dependencies deferred even with a partial policy", () => {
+            const challengeFile = ChallengeFileFactory({
+                challengeSettings: {
+                    options: {
+                        precheckExemptions: JSON.stringify({
+                            version: 1,
+                            rules: [{ challengeIndex: 0, type: "verified-author-name-suffix", suffix: ".bso" }]
+                        })
+                    },
+                    exclude: [{ challenges: [0] }, { challenges: [1] }]
+                } as unknown as CommunityChallengeSetting
+            });
+            expect(challengeFile).not.toHaveProperty("challenge");
         });
 
         it.each([{ challenges: [0] }, { challenges: [1] }, { challenges: [0, 1] }])(
