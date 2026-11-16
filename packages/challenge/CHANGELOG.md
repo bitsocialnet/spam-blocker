@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>0.1.10 (2026-11-16)</small>
+
+* fix: verify declared exemptions before upload prechecks (#18) ([a1d7fcc](https://github.com/bitsocialnet/spam-blocker/commit/a1d7fcc)), closes [#18](https://github.com/bitsocialnet/spam-blocker/issues/18)
+
 ## <small>0.1.9 (2026-11-16)</small>
 
 * fix(challenge): stop advertising unsafe exemption prechecks (#17) ([cfa3597](https://github.com/bitsocialnet/spam-blocker/commit/cfa3597)), closes [#17](https://github.com/bitsocialnet/spam-blocker/issues/17)
