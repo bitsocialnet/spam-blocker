@@ -1,5 +1,10 @@
 # Changelog
 
+## <small>0.1.9 (2026-11-16)</small>
+
+* fix(challenge): stop advertising unsafe exemption prechecks (#17) ([cfa3597](https://github.com/bitsocialnet/spam-blocker/commit/cfa3597)), closes [#17](https://github.com/bitsocialnet/spam-blocker/issues/17)
+* docs(readme): rewrite around the public integration surface ([aa5badf](https://github.com/bitsocialnet/spam-blocker/commit/aa5badf))
+
 ## <small>0.1.8 (2026-11-16)</small>
 
 * feat(challenge): explain and publish community Tor policy (#16) ([d7d513b](https://github.com/bitsocialnet/spam-blocker/commit/d7d513b)), closes [#16](https://github.com/bitsocialnet/spam-blocker/issues/16)
