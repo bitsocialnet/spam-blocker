@@ -96,7 +96,7 @@ Validation:
 - An empty or missing value falls back to the default.
 - An unknown country code or any other invalid option makes the challenge throw on every request, so the publication is not accepted.
 
-The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter` are also sent in the community-signed evaluation so the service can enforce each connection policy before verification. IP classification is an estimate and can be wrong. Connection-policy rejections name the category actually reported by the service; a datacenter classification is not presented as a detected VPN. Messages list only declared whitelist/verified `.bso` exemptions and unconditional moderator-role exemptions. These policies are not cooldowns: waiting alone does not remove a connection restriction.
+The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter` are also sent in the community-signed evaluation so the service can enforce each connection policy before verification. IP classification is an estimate and can be wrong. Connection-policy rejections name the category actually reported by the service; a datacenter classification is not presented as a detected VPN. Messages list only declared whitelist/verified `.bso` exemptions and unconditional moderator-role exemptions. These policies are not cooldowns: waiting alone does not remove a connection restriction. A policy-enabled challenge requires complete classification evidence from `/challenge/verify`; missing or incomplete evidence fails closed without claiming a connection category. Deploy a compatible service before upgrading policy-enabled challenges. Older services that omit this evidence cannot approve those connections; communities without connection restrictions retain compatibility.
 
 **What is public.** pkc-js strips `options` from the public community record. It publishes only `type`, `description`, `challenge`, and `exclude`. Because `challenge` is the [pre-check marker](#pre-check-pass), the server URL, connection policies (`blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter`, each set to `true` when enabled), and any explicit `precheckExemptions` policy are public. Thresholds, country restrictions, and the IP-risk limit stay private to the community operator.
 
@@ -300,7 +300,9 @@ Response:
     ipRisk?: number; // 0.0 to 1.0
     ipAddressCountry?: string; // ISO 3166-1 alpha-2
     challengeType?: string; // e.g. "turnstile"
-    ipTypeEstimation?: string; // "residential" | "vpn" | "proxy" | "tor" | "datacenter" | "unknown"
+    ipTypeEstimation?: string; // Legacy primary category; do not use alone to enforce connection policy
+    connectionTypes?: ("tor" | "proxy" | "vpn" | "datacenter")[]; // Every positively detected category
+    ipClassificationComplete?: boolean; // Confirmed user origin and all four classification flags known
 }
 ```
 

@@ -244,26 +244,30 @@ const getPostChallengeRejection = ({
     options: ParsedOptions;
     challengeSettings: GetChallengeArgs["challengeSettings"];
 }) => {
-    if (typeof verifyResponse.ipTypeEstimation === "string") {
-        const ipType = verifyResponse.ipTypeEstimation.trim().toLowerCase();
-        const policy = connectionPolicies.find(([type, option]) => type === ipType && options[option]);
-        if (policy) {
-            const label = policy[2];
-            const hints: string[] = [];
-            if (
-                challengeSettings.exclude?.some(
-                    (exclude) => Object.keys(exclude).length === 1 && Array.isArray(exclude.roles) && exclude.roles.includes("moderator")
-                )
+    const policy = connectionPolicies.find(([type, option]) => verifyResponse.connectionTypes?.includes(type) && options[option]);
+    if (policy) {
+        const label = policy[2];
+        const hints: string[] = [];
+        if (
+            challengeSettings.exclude?.some(
+                (exclude) => Object.keys(exclude).length === 1 && Array.isArray(exclude.roles) && exclude.roles.includes("moderator")
             )
-                hints.push("use your verified community moderator account");
-            if (options.precheckExemptions?.rules.some((rule) => rule.type === "whitelist")) {
-                hints.push("ask the community owner to whitelist your account");
-            }
-            if (options.precheckExemptions?.rules.some((rule) => rule.type === "verified-author-name-suffix")) {
-                hints.push("use a verified .bso name on your Bitsocial account");
-            }
-            return `Your connection was detected as ${label}. This community restricts posting through ${label}${hints.length ? " unless your account qualifies for an exemption" : ""}. Use an unrestricted connection${hints.length ? `, or ${hints.join(", or ")}` : " and try again"}. Waiting alone will not remove this connection restriction.`;
+        )
+            hints.push("use your verified community moderator account");
+        if (options.precheckExemptions?.rules.some((rule) => rule.type === "whitelist")) {
+            hints.push("ask the community owner to whitelist your account");
         }
+        if (options.precheckExemptions?.rules.some((rule) => rule.type === "verified-author-name-suffix")) {
+            hints.push("use a verified .bso name on your Bitsocial account");
+        }
+        return `Your connection was detected as ${label}. This community restricts posting through ${label}${hints.length ? " unless your account qualifies for an exemption" : ""}. Use an unrestricted connection${hints.length ? `, or ${hints.join(", or ")}` : " and try again"}. Waiting alone will not remove this connection restriction.`;
+    }
+
+    if (
+        connectionPolicies.some(([, option]) => options[option]) &&
+        (verifyResponse.ipClassificationComplete !== true || !Array.isArray(verifyResponse.connectionTypes))
+    ) {
+        return "Your connection type could not be verified. This community restricts certain connection types. Try again or use another connection.";
     }
 
     if (typeof verifyResponse.ipRisk === "number" && verifyResponse.ipRisk > options.maxIpRisk) {
