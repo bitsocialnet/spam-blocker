@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>0.1.12 (2026-11-17)</small>
+
+* fix(challenge): require complete connection classification (#21) ([6805106](https://github.com/bitsocialnet/spam-blocker/commit/6805106)), closes [#21](https://github.com/bitsocialnet/spam-blocker/issues/21)
+
 ## <small>0.1.11 (2026-11-17)</small>
 
 * feat(challenge): publish and explain connection restrictions (#20) ([4fa195c](https://github.com/bitsocialnet/spam-blocker/commit/4fa195c)), closes [#20](https://github.com/bitsocialnet/spam-blocker/issues/20)
