@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>0.1.11 (2026-11-17)</small>
+
+* feat(challenge): publish and explain connection restrictions (#20) ([4fa195c](https://github.com/bitsocialnet/spam-blocker/commit/4fa195c)), closes [#20](https://github.com/bitsocialnet/spam-blocker/issues/20)
+
 ## <small>0.1.10 (2026-11-16)</small>
 
 * fix: verify declared exemptions before upload prechecks (#18) ([a1d7fcc](https://github.com/bitsocialnet/spam-blocker/commit/a1d7fcc)), closes [#18](https://github.com/bitsocialnet/spam-blocker/issues/18)
