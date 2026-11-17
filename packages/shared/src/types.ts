@@ -90,7 +90,10 @@ export const EvaluationOptionsSchema = z
     .object({
         autoAcceptThreshold: UnitIntervalSchema.optional(),
         autoRejectThreshold: UnitIntervalSchema.optional(),
-        blockTor: z.boolean().optional()
+        blockTor: z.boolean().optional(),
+        blockVpn: z.boolean().optional(),
+        blockProxy: z.boolean().optional(),
+        blockDatacenter: z.boolean().optional()
     })
     .strict()
     .superRefine((value, ctx) => {

@@ -96,9 +96,9 @@ Validation:
 - An empty or missing value falls back to the default.
 - An unknown country code or any other invalid option makes the challenge throw on every request, so the publication is not accepted.
 
-The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor` is also sent to the service so it can reject a Tor connection before asking the user to verify. IP classification is an estimate and can be wrong.
+The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter` are also sent in the community-signed evaluation so the service can enforce each connection policy before verification. IP classification is an estimate and can be wrong. Connection-policy rejections name the category actually reported by the service; a datacenter classification is not presented as a detected VPN. Messages list only declared whitelist/verified `.bso` exemptions and unconditional moderator-role exemptions. These policies are not cooldowns: waiting alone does not remove a connection restriction.
 
-**What is public.** pkc-js strips `options` from the public community record. It publishes only `type`, `description`, `challenge`, and `exclude`. Because `challenge` is the [pre-check marker](#pre-check-pass), the server URL, Tor-blocking policy (`?blockTor=true`), and any explicit `precheckExemptions` policy are public. Thresholds and the other filters stay private to the community operator.
+**What is public.** pkc-js strips `options` from the public community record. It publishes only `type`, `description`, `challenge`, and `exclude`. Because `challenge` is the [pre-check marker](#pre-check-pass), the server URL, connection policies (`blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter`, each set to `true` when enabled), and any explicit `precheckExemptions` policy are public. Thresholds, country restrictions, and the IP-risk limit stay private to the community operator.
 
 ## How it works
 
@@ -144,9 +144,9 @@ A client can run a community's spam blocker check before it uploads an attached 
 
 ### Public marker
 
-The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"`, for example `https://spamblocker.bitsocial.net/api/v1/precheck`. With `blockTor` enabled the marker is `<serverUrl>/precheck?blockTor=true`. The marker is omitted if options are invalid or a challenge-result dependency (`exclude[].challenges`) is not covered by the explicit policy below. Covered dependencies can be checked before attachment upload. Unknown or private dependencies still defer to the authoritative community checks.
+The challenge package publishes `community.challenges[i].challenge = "<serverUrl>/precheck"`, for example `https://spamblocker.bitsocial.net/api/v1/precheck`. Enabled connection policies are included as query parameters, for example `<serverUrl>/precheck?blockTor=true&blockVpn=true&blockProxy=true&blockDatacenter=true`. The marker is omitted if options are invalid or a challenge-result dependency (`exclude[].challenges`) is not covered by the explicit policy below. Covered dependencies can be checked before attachment upload. Unknown or private dependencies still defer to the authoritative community checks.
 
-A challenge is pass-capable when its `type` is `"url/iframe"` and `challenge` is an `https` (or localhost `http`) URL whose pathname ends with `/precheck`. Clients accept the `blockTor` and `precheckExemptions` parameters and remove them when deriving the API base URL. The server reads the community's published policy independently.
+A challenge is pass-capable when its `type` is `"url/iframe"` and `challenge` is an `https` (or localhost `http`) URL whose pathname ends with `/precheck`. Clients accept the `blockTor`, `blockVpn`, `blockProxy`, `blockDatacenter`, and `precheckExemptions` parameters and remove them when deriving the API base URL. The server reads the community's published policy independently.
 
 ### Obtaining a pass
 
@@ -248,7 +248,10 @@ Request:
     evaluationOptions?: {
         autoAcceptThreshold?: number;
         autoRejectThreshold?: number;
-        blockTor?: boolean; // Community policy; Tor connections are rejected before verification
+        blockTor?: boolean; // Community connection policies, enforced before verification
+        blockVpn?: boolean;
+        blockProxy?: boolean;
+        blockDatacenter?: boolean;
     };
     timestamp: number; // Unix seconds
     signature: {
