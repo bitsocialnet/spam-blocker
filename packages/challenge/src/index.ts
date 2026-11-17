@@ -228,7 +228,44 @@ const formatRiskScore = (riskScore: number) => {
     return riskScore.toFixed(2);
 };
 
-const getPostChallengeRejection = (verifyResponse: VerifyResponse, options: ParsedOptions) => {
+const connectionPolicies = [
+    ["tor", "blockTor", "Tor"],
+    ["proxy", "blockProxy", "a proxy"],
+    ["vpn", "blockVpn", "a VPN"],
+    ["datacenter", "blockDatacenter", "a datacenter network"]
+] as const;
+
+const getPostChallengeRejection = ({
+    verifyResponse,
+    options,
+    challengeSettings
+}: {
+    verifyResponse: VerifyResponse;
+    options: ParsedOptions;
+    challengeSettings: GetChallengeArgs["challengeSettings"];
+}) => {
+    if (typeof verifyResponse.ipTypeEstimation === "string") {
+        const ipType = verifyResponse.ipTypeEstimation.trim().toLowerCase();
+        const policy = connectionPolicies.find(([type, option]) => type === ipType && options[option]);
+        if (policy) {
+            const label = policy[2];
+            const hints: string[] = [];
+            if (
+                challengeSettings.exclude?.some(
+                    (exclude) => Object.keys(exclude).length === 1 && Array.isArray(exclude.roles) && exclude.roles.includes("moderator")
+                )
+            )
+                hints.push("use your verified community moderator account");
+            if (options.precheckExemptions?.rules.some((rule) => rule.type === "whitelist")) {
+                hints.push("ask the community owner to whitelist your account");
+            }
+            if (options.precheckExemptions?.rules.some((rule) => rule.type === "verified-author-name-suffix")) {
+                hints.push("use a verified .bso name on your Bitsocial account");
+            }
+            return `Your connection was detected as ${label}. This community restricts posting through ${label}${hints.length ? " unless your account qualifies for an exemption" : ""}. Use an unrestricted connection${hints.length ? `, or ${hints.join(", or ")}` : " and try again"}. Waiting alone will not remove this connection restriction.`;
+        }
+    }
+
     if (typeof verifyResponse.ipRisk === "number" && verifyResponse.ipRisk > options.maxIpRisk) {
         return `Rejected by IP risk policy (ipRisk ${formatRiskScore(verifyResponse.ipRisk)}).`;
     }
@@ -237,31 +274,6 @@ const getPostChallengeRejection = (verifyResponse: VerifyResponse, options: Pars
         const country = verifyResponse.ipAddressCountry.trim().toUpperCase();
         if (country && options.countryBlacklist.has(country)) {
             return `Rejected by country policy (${country}).`;
-        }
-    }
-
-    if (typeof verifyResponse.ipTypeEstimation === "string") {
-        const ipType = verifyResponse.ipTypeEstimation.trim().toLowerCase();
-        if (ipType === "vpn" && options.blockVpn) {
-            return "Rejected by IP policy (VPN).";
-        }
-        if (ipType === "proxy" && options.blockProxy) {
-            return "Rejected by IP policy (proxy).";
-        }
-        if (ipType === "tor" && options.blockTor) {
-            const exceptionHints = [];
-            if (options.precheckExemptions?.rules.some((rule) => rule.type === "whitelist")) {
-                exceptionHints.push("ask the community owner to whitelist your account");
-            }
-            if (options.precheckExemptions?.rules.some((rule) => rule.type === "verified-author-name-suffix")) {
-                exceptionHints.push("use a verified .bso name on your Bitsocial account");
-            }
-            return exceptionHints.length
-                ? `Your connection was detected as Tor. This community blocks posting through Tor unless your account qualifies for an exemption. Use a connection without Tor${exceptionHints.length === 1 ? " or " : ", "}${exceptionHints.join(", or ")}.`
-                : "Your connection was detected as Tor. This community does not allow posting through Tor. Use a connection without Tor and try again.";
-        }
-        if (ipType === "datacenter" && options.blockDatacenter) {
-            return "Rejected by IP policy (datacenter).";
         }
     }
 
@@ -305,7 +317,7 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
     const evaluationOptions: EvaluationOptions = {
         autoAcceptThreshold: options.autoAcceptThreshold,
         autoRejectThreshold: options.autoRejectThreshold,
-        ...(options.blockTor ? { blockTor: true } : {})
+        ...Object.fromEntries(connectionPolicies.filter(([, option]) => options[option]).map(([, option]) => [option, true]))
     };
 
     // Signed /evaluate payload; the lazy iframe posts the same payload when the user opens it.
@@ -370,7 +382,7 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
             };
         }
 
-        const postChallengeRejection = getPostChallengeRejection(verifyResponse, options);
+        const postChallengeRejection = getPostChallengeRejection({ verifyResponse, options, challengeSettings });
         if (postChallengeRejection) {
             log("Post-challenge rejection: %s", postChallengeRejection);
             return { success: false, error: postChallengeRejection };
@@ -441,7 +453,9 @@ function ChallengeFileFactory(args: { challengeSettings: GetChallengeArgs["chall
     let challenge: string | undefined;
     if (parsedOptions.success && !hasUncoveredChallengeDependentExemption) {
         const marker = new URL(`${parsedOptions.data.serverUrl}/precheck`);
-        if (parsedOptions.data.blockTor) marker.searchParams.set("blockTor", "true");
+        for (const [, option] of connectionPolicies) {
+            if (parsedOptions.data[option]) marker.searchParams.set(option, "true");
+        }
         if (parsedOptions.data.precheckExemptions) {
             marker.searchParams.set("precheckExemptions", JSON.stringify(parsedOptions.data.precheckExemptions));
         }

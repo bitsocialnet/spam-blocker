@@ -306,12 +306,20 @@ describe("Bitsocial Spam Blocker challenge package", () => {
     });
 
     it.each([
-        ["vpn", { blockVpn: "true" }, "Rejected by IP policy (VPN)."],
-        ["proxy", { blockProxy: "true" }, "Rejected by IP policy (proxy)."],
+        [
+            "vpn",
+            { blockVpn: "true" },
+            "Your connection was detected as a VPN. This community restricts posting through a VPN. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+        ],
+        [
+            "proxy",
+            { blockProxy: "true" },
+            "Your connection was detected as a proxy. This community restricts posting through a proxy. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+        ],
         [
             "tor",
             { blockTor: "true" },
-            "Your connection was detected as Tor. This community does not allow posting through Tor. Use a connection without Tor and try again."
+            "Your connection was detected as Tor. This community restricts posting through Tor. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         ],
         [
             "tor",
@@ -329,9 +337,13 @@ describe("Bitsocial Spam Blocker challenge package", () => {
                     ]
                 })
             },
-            "Your connection was detected as Tor. This community blocks posting through Tor unless your account qualifies for an exemption. Use a connection without Tor, ask the community owner to whitelist your account, or use a verified .bso name on your Bitsocial account."
+            "Your connection was detected as Tor. This community restricts posting through Tor unless your account qualifies for an exemption. Use an unrestricted connection, or ask the community owner to whitelist your account, or use a verified .bso name on your Bitsocial account. Waiting alone will not remove this connection restriction."
         ],
-        ["datacenter", { blockDatacenter: "true" }, "Rejected by IP policy (datacenter)."]
+        [
+            "datacenter",
+            { blockDatacenter: "true" },
+            "Your connection was detected as a datacenter network. This community restricts posting through a datacenter network. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+        ]
     ])("rejects by ipTypeEstimation '%s' when configured", async (ipType, options, expected) => {
         stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: ipType })));
         const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
@@ -349,6 +361,81 @@ describe("Bitsocial Spam Blocker challenge package", () => {
 
         const verifyResult = await result.verify("token");
         expect(verifyResult).toEqual({ success: false, error: expected });
+    });
+
+    it.each([
+        ["tor", "blockTor", "Tor"],
+        ["vpn", "blockVpn", "VPN"],
+        ["proxy", "blockProxy", "proxy"],
+        ["datacenter", "blockDatacenter", "datacenter"]
+    ])("explains %s policy with only the configured exemptions", async (ipType, option, label) => {
+        stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: ipType })));
+        const settings = {
+            options: {
+                [option]: "true",
+                precheckExemptions: JSON.stringify({
+                    version: 1,
+                    rules: [
+                        { challengeIndex: 0, type: "verified-author-name-suffix", suffix: ".bso" },
+                        {
+                            challengeIndex: 1,
+                            type: "whitelist",
+                            urls: ["https://raw.githubusercontent.com/example/list/main/accounts.json"]
+                        }
+                    ]
+                })
+            },
+            exclude: [{ roles: ["moderator"] }, { challenges: [0, 1] }]
+        } as unknown as CommunityChallengeSetting;
+        const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+            challengeSettings: settings,
+            challengeRequestMessage: request,
+            challengeIndex: 0,
+            community
+        });
+        if ("success" in result) throw new Error("Expected a challenge response");
+        const rejection = await result.verify("token");
+        expect(rejection.success).toBe(false);
+        expect(rejection.error).toContain(label);
+        expect(rejection.error).toContain("moderator");
+        expect(rejection.error).toContain("whitelist");
+        expect(rejection.error).toContain("verified .bso");
+        expect(rejection.error).not.toMatch(/links|posting speed|posting quickly/);
+        if (ipType === "datacenter") expect(rejection.error).not.toContain("VPN");
+    });
+
+    it("prioritizes the detected connection policy over a general IP risk limit", async () => {
+        stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: "datacenter", ipRisk: 1 })));
+        const settings = { options: { blockDatacenter: "true", maxIpRisk: "0.5" } } as unknown as CommunityChallengeSetting;
+        const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+            challengeSettings: settings,
+            challengeRequestMessage: request,
+            challengeIndex: 0,
+            community
+        });
+        if ("success" in result) throw new Error("Expected a challenge response");
+        const rejection = await result.verify("token");
+        expect(rejection.success).toBe(false);
+        expect(rejection.error).toContain("This community restricts posting through a datacenter network");
+        expect(rejection.error).not.toContain("IP risk policy");
+    });
+
+    it("does not advertise a conditional moderator exclusion as a general exemption", async () => {
+        stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: "datacenter" })));
+        const settings = {
+            options: { blockDatacenter: "true" },
+            exclude: [{ roles: ["moderator"], postScore: 5 }]
+        } as unknown as CommunityChallengeSetting;
+        const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+            challengeSettings: settings,
+            challengeRequestMessage: request,
+            challengeIndex: 0,
+            community
+        });
+        if ("success" in result) throw new Error("Expected a challenge response");
+        const rejection = await result.verify("token");
+        expect(rejection.success).toBe(false);
+        expect(rejection.error).not.toMatch(/moderator|whitelist|\.bso/);
     });
 
     it("accepts verification when no post-challenge policy triggers", async () => {
@@ -554,6 +641,27 @@ describe("pre-check pass", () => {
             expect(await ed.verify(signature.signature, cborg.encode(signedProps), signature.publicKey)).toBe(true);
         });
 
+        it.each(["blockTor", "blockVpn", "blockProxy", "blockDatacenter"])(
+            "publishes %s and binds it to the community-signed evaluation",
+            async (option) => {
+                const settings = { options: { [option]: "true" } } as unknown as CommunityChallengeSetting;
+                const challengeFile = ChallengeFileFactory({ challengeSettings: settings });
+                expect(new URL(challengeFile.challenge!).searchParams.get(option)).toBe("true");
+                const result = await challengeFile.getChallenge({
+                    challengeSettings: settings,
+                    challengeRequestMessage: request,
+                    challengeIndex: 0,
+                    community
+                });
+                if ("success" in result) throw new Error("Expected a lazy challenge");
+                const { payload } = getLazyChallengeParts(result.challenge);
+                expect(payload.evaluationOptions[option]).toBe(true);
+                expect(payload.signature.signedPropertyNames).toContain("evaluationOptions");
+                const { signature, ...signedProps } = payload;
+                expect(await ed.verify(signature.signature, cborg.encode(signedProps), signature.publicKey)).toBe(true);
+            }
+        );
+
         it("publishes explicit verified exemptions for the actual board layout", () => {
             const policy = {
                 version: 1,
@@ -676,7 +784,7 @@ describe("pre-check pass", () => {
             stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: "tor" })));
             expect(await result.verify([])).toEqual({
                 success: false,
-                error: "Your connection was detected as Tor. This community does not allow posting through Tor. Use a connection without Tor and try again."
+                error: "Your connection was detected as Tor. This community restricts posting through Tor. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
             });
         });
 
@@ -747,7 +855,10 @@ describe("pre-check pass", () => {
 
         const result = await getChallengeWith({ options: { blockVpn: "true" } });
 
-        expect(result).toEqual({ success: false, error: "Rejected by IP policy (VPN)." });
+        expect(result).toEqual({
+            success: false,
+            error: "Your connection was detected as a VPN. This community restricts posting through a VPN. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+        });
     });
 
     it("returns the server's error for a failed pass", async () => {
