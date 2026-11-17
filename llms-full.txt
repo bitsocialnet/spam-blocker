@@ -124,7 +124,7 @@ Validation:
 - An empty or missing value falls back to the default.
 - An unknown country code or any other invalid option makes the challenge throw on every request, so the publication is not accepted.
 
-The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter` are also sent in the community-signed evaluation so the service can enforce each connection policy before verification. IP classification is an estimate and can be wrong. Connection-policy rejections name the category actually reported by the service; a datacenter classification is not presented as a detected VPN. Messages list only declared whitelist/verified `.bso` exemptions and unconditional moderator-role exemptions. These policies are not cooldowns: waiting alone does not remove a connection restriction.
+The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter` are also sent in the community-signed evaluation so the service can enforce each connection policy before verification. IP classification is an estimate and can be wrong. Connection-policy rejections name the category actually reported by the service; a datacenter classification is not presented as a detected VPN. Messages list only declared whitelist/verified `.bso` exemptions and unconditional moderator-role exemptions. These policies are not cooldowns: waiting alone does not remove a connection restriction. A policy-enabled challenge requires complete classification evidence from `/challenge/verify`; missing or incomplete evidence fails closed without claiming a connection category. Deploy a compatible service before upgrading policy-enabled challenges. Older services that omit this evidence cannot approve those connections; communities without connection restrictions retain compatibility.
 
 **What is public.** pkc-js strips `options` from the public community record. It publishes only `type`, `description`, `challenge`, and `exclude`. Because `challenge` is the [pre-check marker](#pre-check-pass), the server URL, connection policies (`blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter`, each set to `true` when enabled), and any explicit `precheckExemptions` policy are public. Thresholds, country restrictions, and the IP-risk limit stay private to the community operator.
 
@@ -328,7 +328,9 @@ Response:
     ipRisk?: number; // 0.0 to 1.0
     ipAddressCountry?: string; // ISO 3166-1 alpha-2
     challengeType?: string; // e.g. "turnstile"
-    ipTypeEstimation?: string; // "residential" | "vpn" | "proxy" | "tor" | "datacenter" | "unknown"
+    ipTypeEstimation?: string; // Legacy primary category; do not use alone to enforce connection policy
+    connectionTypes?: ("tor" | "proxy" | "vpn" | "datacenter")[]; // Every positively detected category
+    ipClassificationComplete?: boolean; // Confirmed user origin and all four classification flags known
 }
 ```
 
@@ -823,7 +825,7 @@ Then add or edit the `challenges` array in your community settings to include th
     - **Below `autoAcceptThreshold`**: Verification completes immediately.
     - **Above `autoRejectThreshold`**: Verification fails immediately.
     - **Between thresholds**: The iframe presents OAuth and/or CAPTCHA verification.
-5. After challenge verification, the server's `/challenge/verify` endpoint confirms whether the user passed. The community-signed VPN, proxy, Tor, and datacenter policies are already enforced before verification; the challenge also applies configured IP policies to successful verification responses as a compatibility fallback.
+5. After challenge verification, the server's `/challenge/verify` endpoint confirms whether the user passed. The community-signed VPN, proxy, Tor, and datacenter policies are already enforced before verification; the challenge also applies configured IP policies to successful verification responses. A connection policy requires `connectionTypes` and `ipClassificationComplete: true`; unavailable classification fails closed. Upgrade the service before deploying a policy-enabled challenge.
 6. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted without calling `/evaluate`.
 7. The challenge publishes `<serverUrl>/precheck` with enabled `blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter` query parameters as its public `challenge` so clients can run the spam blocker before uploading a file. A client that completed that pre-check sends its `precheck-<uuid>` session id as this challenge's answer in `challengeRequest.challengeAnswers`; `getChallenge()` then redeems it with `/evaluate` server-to-server and answers without a second iframe when the session is already decided. If redemption is still pending or fails, the usual lazy iframe is returned. See the repository README's pre-check pass section for the client flow.
 
@@ -949,6 +951,10 @@ Source: https://github.com/bitsocialnet/spam-blocker/blob/master/packages/challe
 
 ```markdown
 # Changelog
+
+## <small>0.1.11 (2026-11-17)</small>
+
+* feat(challenge): publish and explain connection restrictions (#20) ([4fa195c](https://github.com/bitsocialnet/spam-blocker/commit/4fa195c)), closes [#20](https://github.com/bitsocialnet/spam-blocker/issues/20)
 
 ## <small>0.1.10 (2026-11-16)</small>
 

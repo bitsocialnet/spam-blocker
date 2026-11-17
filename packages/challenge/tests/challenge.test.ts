@@ -56,10 +56,16 @@ const getLazyChallengeParts = (challengeUrl: string) => {
     };
 };
 
-const createVerifyResponse = (overrides: Partial<VerifyResponse> = {}): VerifyResponse => ({
-    success: true,
-    ...overrides
-});
+const createVerifyResponse = (overrides: Partial<VerifyResponse> = {}): VerifyResponse => {
+    const ipType = overrides.ipTypeEstimation;
+    const knownType = ipType === "tor" || ipType === "proxy" || ipType === "vpn" || ipType === "datacenter";
+    return {
+        success: true,
+        connectionTypes: knownType ? [ipType] : [],
+        ipClassificationComplete: knownType || ipType === "residential",
+        ...overrides
+    };
+};
 
 const request = {} as DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
 const testPrivateKey = Buffer.alloc(32, 7).toString("base64");
@@ -436,6 +442,124 @@ describe("Bitsocial Spam Blocker challenge package", () => {
         const rejection = await result.verify("token");
         expect(rejection.success).toBe(false);
         expect(rejection.error).not.toMatch(/moderator|whitelist|\.bso/);
+    });
+
+    describe("connection classification required by policy", () => {
+        for (const option of ["blockTor", "blockVpn", "blockProxy", "blockDatacenter"]) {
+            it.each([undefined, "unknown", "", "unrecognized-provider-value"])(
+                `${option} rejects an unverified connection type %s`,
+                async (ipTypeEstimation) => {
+                    stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation })));
+                    const settings = { options: { [option]: "true" } } as unknown as CommunityChallengeSetting;
+                    const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+                        challengeSettings: settings,
+                        challengeRequestMessage: request,
+                        challengeIndex: 0,
+                        community
+                    });
+                    if ("success" in result) throw new Error("Expected a challenge response");
+                    const rejection = await result.verify("token");
+                    expect(rejection.success).toBe(false);
+                    expect(rejection.error).toContain("Your connection type could not be verified");
+                    expect(rejection.error).not.toMatch(/detected as|links|posting speed/);
+                }
+            );
+        }
+
+        it.each([undefined, "unknown"])("does not require classification without a connection policy (%s)", async (ipTypeEstimation) => {
+            stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation })));
+            const settings = {} as CommunityChallengeSetting;
+            const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+                challengeSettings: settings,
+                challengeRequestMessage: request,
+                challengeIndex: 0,
+                community
+            });
+            if ("success" in result) throw new Error("Expected a challenge response");
+            expect(await result.verify("token")).toEqual({ success: true });
+        });
+
+        it.each([
+            { ipTypeEstimation: "residential", connectionTypes: undefined, ipClassificationComplete: undefined },
+            { ipTypeEstimation: "residential", connectionTypes: [], ipClassificationComplete: false },
+            { ipTypeEstimation: "vpn", connectionTypes: ["vpn"], ipClassificationComplete: false },
+            { ipTypeEstimation: "residential", connectionTypes: undefined, ipClassificationComplete: true }
+        ] satisfies Partial<VerifyResponse>[])("requires complete classification evidence (%j)", async (response) => {
+            stubFetch(createResponse(createVerifyResponse(response)));
+            const settings = { options: { blockTor: "true" } } as unknown as CommunityChallengeSetting;
+            const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+                challengeSettings: settings,
+                challengeRequestMessage: request,
+                challengeIndex: 0,
+                community
+            });
+            if ("success" in result) throw new Error("Expected a challenge response");
+            const rejection = await result.verify("token");
+            expect(rejection.success).toBe(false);
+            expect(rejection.error).toContain("Your connection type could not be verified");
+        });
+
+        it("enforces every detected category instead of only the legacy primary category", async () => {
+            stubFetch(
+                createResponse(
+                    createVerifyResponse({
+                        ipTypeEstimation: "proxy",
+                        connectionTypes: ["proxy", "datacenter"],
+                        ipClassificationComplete: true
+                    })
+                )
+            );
+            const settings = { options: { blockDatacenter: "true" } } as unknown as CommunityChallengeSetting;
+            const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+                challengeSettings: settings,
+                challengeRequestMessage: request,
+                challengeIndex: 0,
+                community
+            });
+            if ("success" in result) throw new Error("Expected a challenge response");
+            const rejection = await result.verify("token");
+            expect(rejection.success).toBe(false);
+            expect(rejection.error).toContain("detected as a datacenter network");
+            expect(rejection.error).not.toContain("detected as a proxy");
+        });
+
+        it("reports a confirmed restricted category even when other classification flags are missing", async () => {
+            stubFetch(
+                createResponse(
+                    createVerifyResponse({
+                        ipTypeEstimation: "tor",
+                        connectionTypes: ["tor"],
+                        ipClassificationComplete: false
+                    })
+                )
+            );
+            const settings = { options: { blockTor: "true" } } as unknown as CommunityChallengeSetting;
+            const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+                challengeSettings: settings,
+                challengeRequestMessage: request,
+                challengeIndex: 0,
+                community
+            });
+            if ("success" in result) throw new Error("Expected a challenge response");
+            const rejection = await result.verify("token");
+            expect(rejection.success).toBe(false);
+            expect(rejection.error).toContain("detected as Tor");
+        });
+
+        it("accepts a verified residential connection with every connection policy enabled", async () => {
+            stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: "residential" })));
+            const settings = {
+                options: { blockTor: "true", blockVpn: "true", blockProxy: "true", blockDatacenter: "true" }
+            } as unknown as CommunityChallengeSetting;
+            const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+                challengeSettings: settings,
+                challengeRequestMessage: request,
+                challengeIndex: 0,
+                community
+            });
+            if ("success" in result) throw new Error("Expected a challenge response");
+            expect(await result.verify("token")).toEqual({ success: true });
+        });
     });
 
     it("accepts verification when no post-challenge policy triggers", async () => {

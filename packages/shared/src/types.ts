@@ -128,7 +128,9 @@ export const VerifyResponseSchema = z.object({
     ipRisk: UnitIntervalSchema.optional(),
     ipAddressCountry: IsoCountryCodeSchema.optional(),
     challengeType: z.string().optional(),
-    ipTypeEstimation: z.string().optional()
+    ipTypeEstimation: z.string().optional(),
+    connectionTypes: z.array(z.enum(["tor", "proxy", "vpn", "datacenter"])).optional(),
+    ipClassificationComplete: z.boolean().optional()
 });
 
 export type EvaluationOptions = z.infer<typeof EvaluationOptionsSchema>;
