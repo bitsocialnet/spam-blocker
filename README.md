@@ -68,7 +68,7 @@ The equivalent community settings, with pkc-js `exclude` rules to skip the check
                 "blockVpn": "true",
                 "blockTor": "true"
             },
-            "exclude": [{ "role": ["owner", "admin", "moderator"] }, { "postScore": 100 }]
+            "exclude": [{ "roles": ["owner", "admin", "moderator"] }, { "postScore": 100 }]
         }
     ]
 }
@@ -434,7 +434,7 @@ This is a defense local to the hosted service. It is not a protocol-wide identit
 ## Privacy
 
 - The hosted operator stores raw IP addresses and publication content for abuse detection. All of it is visible to the operator.
-- IP addresses are sent to ipapi.is for classification.
+- IP addresses are sent to a third-party provider for classification: proxycheck.io by default, or ipapi.is when the operator configures an ipapi.is key.
 - Communities receive only the country code, the IP risk, the network type estimate, and the pass or fail result. They never receive the raw IP.
 - OAuth identities (`provider:userId`) are stored by the operator and never shared with communities. The service only confirms that a sign-in succeeded.
 - The `explanation` field gives the reasoning behind a score.
@@ -443,7 +443,7 @@ This is a defense local to the hosted service. It is not a protocol-wide identit
 
 - IP intelligence is a best-effort estimate and can misclassify VPNs and residential addresses.
 - IP options are rejection-only by design. There is no country whitelist or other IP-based auto-approval, because it would be easy to game and could be used to flood a community.
-- IP intelligence fields are optional in `/challenge/verify`. The challenge applies an IP rule only when the field it needs is present.
+- IP intelligence fields are optional in `/challenge/verify`. `maxIpRisk` and `countryBlacklist` apply only when the response includes `ipRisk` or `ipAddressCountry`; without that field the rule is skipped. Enabled connection policies (`blockTor`, `blockVpn`, `blockProxy`, `blockDatacenter`) are different: missing or incomplete classification fails closed, as described in [Challenge options](#challenge-options).
 - IP-linked signer clusters are probabilistic. Shared households, offices, and carrier networks can group legitimate users, and attackers can rotate IPs. The allowance and the compound-signal escalation reduce false positives but cannot remove them.
 
 ## Development
