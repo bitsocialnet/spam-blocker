@@ -120,11 +120,15 @@ const PRECHECK_REDEMPTION_TIMEOUT_MS = 10_000;
 const PRECHECK_SESSION_ID_REGEX = /^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 // A client that completed this board's pre-check sends the pre-check session id as this challenge's answer.
+// pkc-js 0.0.152 and later pass that answer as `challengeAnswer` and key `challengeAnswers` by challenge index;
+// older nodes send a positional array. The dev dependency's types predate both, so they are read defensively.
 const getPrecheckPass = ({
     challengeRequestMessage,
-    challengeIndex
-}: Pick<GetChallengeArgs, "challengeRequestMessage" | "challengeIndex">) => {
-    const answer: unknown = challengeRequestMessage.challengeAnswers?.[challengeIndex];
+    challengeIndex,
+    challengeAnswer
+}: Pick<GetChallengeArgs, "challengeRequestMessage" | "challengeIndex"> & { challengeAnswer?: unknown }) => {
+    const challengeAnswers = challengeRequestMessage.challengeAnswers as Record<string, unknown> | undefined;
+    const answer: unknown = challengeAnswer ?? challengeAnswers?.[String(challengeIndex)];
     return typeof answer === "string" && PRECHECK_SESSION_ID_REGEX.test(answer) ? answer : undefined;
 };
 

@@ -700,17 +700,21 @@ describe("pre-check pass", () => {
     const getChallengeWith = ({
         challengeRequestMessage = requestWithPass,
         options = {},
-        challengeIndex = 0
+        challengeIndex = 0,
+        challengeAnswer
     }: {
         challengeRequestMessage?: DecryptedChallengeRequestMessageTypeWithCommunityAuthor;
         options?: Record<string, string>;
         challengeIndex?: number;
+        // Passed by pkc-js 0.0.152 and later; the dev dependency's GetChallengeArgs predates it.
+        challengeAnswer?: string;
     } = {}) =>
         ChallengeFileFactory({ challengeSettings: { options } as CommunityChallengeSetting }).getChallenge({
             challengeSettings: { options } as CommunityChallengeSetting,
             challengeRequestMessage,
             challengeIndex,
-            community
+            community,
+            ...(challengeAnswer === undefined ? {} : { challengeAnswer })
         });
 
     const decodeFetchBody = ({ fetchMock, callIndex }: { fetchMock: ReturnType<typeof vi.fn>; callIndex: number }) =>
@@ -971,6 +975,27 @@ describe("pre-check pass", () => {
         expect(decodeFetchBody({ fetchMock, callIndex: 1 }).sessionId).toBe(evaluateBody.sessionId);
     });
 
+    it.each([
+        ["args.challengeAnswer", { challengeRequestMessage: request, challengeAnswer: pass }],
+        ["an index-keyed challengeAnswers record", { challengeRequestMessage: { challengeAnswers: { "2": pass } } }],
+        ["a positional challengeAnswers array", { challengeRequestMessage: { challengeAnswers: ["", "", pass] } }]
+    ])("redeems a pass read from %s", async (_name, { challengeRequestMessage, challengeAnswer }) => {
+        const fetchMock = stubFetch(
+            createResponse(createEvaluateResponse({ status: "completed" })),
+            createResponse(createVerifyResponse())
+        );
+
+        const result = await getChallengeWith({
+            challengeRequestMessage: challengeRequestMessage as unknown as DecryptedChallengeRequestMessageTypeWithCommunityAuthor,
+            challengeIndex: 2,
+            challengeAnswer
+        });
+
+        expect(result).toEqual({ success: true });
+        expect(fetchMock.mock.calls[0]?.[0]).toBe("https://spamblocker.bitsocial.net/api/v1/evaluate");
+        expect(decodeFetchBody({ fetchMock, callIndex: 0 }).precheckSessionId).toBe(pass);
+    });
+
     it("applies IP policies to a completed pass", async () => {
         stubFetch(
             createResponse(createEvaluateResponse({ status: "completed" })),
@@ -1094,6 +1119,7 @@ describe("pre-check pass", () => {
     it.each([
         ["no challenge answers", request, 0],
         ["a pass at another challenge index", requestWithPass, 1],
+        ["a pass under another key of an index-keyed record", { challengeAnswers: { "1": pass } }, 0],
         ["an uppercase pass", { challengeAnswers: [pass.toUpperCase()] }, 0],
         ["a plain UUID", { challengeAnswers: [pass.replace("precheck-", "")] }, 0],
         ["a truncated pass", { challengeAnswers: ["precheck-0b6c3f5e"] }, 0]
