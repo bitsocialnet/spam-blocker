@@ -1,5 +1,11 @@
 # Changelog
 
+## <small>0.1.13 (2026-11-19)</small>
+
+* fix(challenge): read the pre-check pass from index-keyed challenge answers (#24) ([e7e06d0](https://github.com/bitsocialnet/spam-blocker/commit/e7e06d0)), closes [#24](https://github.com/bitsocialnet/spam-blocker/issues/24)
+* docs(readme): fix exclude.roles and IP rule wording (#23) ([bcc6f90](https://github.com/bitsocialnet/spam-blocker/commit/bcc6f90)), closes [#23](https://github.com/bitsocialnet/spam-blocker/issues/23)
+* chore(ci): skip Claude reviews on draft PRs [skip ci] [skip github-alerts] ([852868e](https://github.com/bitsocialnet/spam-blocker/commit/852868e))
+
 ## <small>0.1.12 (2026-11-17)</small>
 
 * fix(challenge): require complete connection classification (#21) ([6805106](https://github.com/bitsocialnet/spam-blocker/commit/6805106)), closes [#21](https://github.com/bitsocialnet/spam-blocker/issues/21)
