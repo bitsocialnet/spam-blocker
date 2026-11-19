@@ -187,11 +187,9 @@ Only `completed` produces a pass. On `failed`, or if the author closes the check
 
 ### Redeeming a pass
 
-After uploading, publish with the pre-check session id as the answer at the index of each pass-capable challenge that applies to the publication. For example, use `challengeRequest: { challengeAnswers: [pass] }` when the spam blocker is `community.challenges[0]`.
+After uploading, publish with the pre-check session id as the pre-answer of each pass-capable challenge that applies to the publication. Pre-answers are keyed by challenge index, the position in `community.challenges` as a decimal string. For example, use `challengeRequest: { challengeAnswers: { "2": pass } }` when the spam blocker is `community.challenges[2]`. Include only the challenges you pre-answer; the others get no entry.
 
-Every slot before that index must hold an answer its challenge accepts. Challenges that ignore pre-supplied answers (such as pkc-js `fail`) take any string. A challenge that publishes its own `challenge` text (pkc-js `question`) reads its slot as the author's answer, so do not pre-check a community where such a challenge would receive the pass.
-
-`getChallenge()` looks at its `challengeIndex` for a value matching `^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$` and posts a community-signed `/evaluate` request with `precheckSessionId`. What happens next depends on the returned `status`:
+`getChallenge()` reads its own pre-answer: `challengeAnswer` on pkc-js 0.0.152 and later, or `challengeAnswers[challengeIndex]` from the positional array that older nodes send. When it matches `^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`, it posts a community-signed `/evaluate` request with `precheckSessionId`. What happens next depends on the returned `status`:
 
 | Result                                             | Community behavior                                                                                      |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
