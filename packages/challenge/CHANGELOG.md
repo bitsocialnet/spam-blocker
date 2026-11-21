@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>0.1.14 (2026-11-21)</small>
+
+* feat(challenge): honor established-account exemption and name iCloud Private Relay (#25) ([1143e8c](https://github.com/bitsocialnet/spam-blocker/commit/1143e8c)), closes [#25](https://github.com/bitsocialnet/spam-blocker/issues/25)
+
 ## <small>0.1.13 (2026-11-19)</small>
 
 * fix(challenge): read the pre-check pass from index-keyed challenge answers (#24) ([e7e06d0](https://github.com/bitsocialnet/spam-blocker/commit/e7e06d0)), closes [#24](https://github.com/bitsocialnet/spam-blocker/issues/24)
