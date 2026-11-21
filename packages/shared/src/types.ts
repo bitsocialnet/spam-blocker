@@ -134,9 +134,16 @@ export const VerifyResponseSchema = z.object({
     /** The confirmed connection is a published iCloud Private Relay egress address (also reported as "vpn"). */
     privateRelay: z.boolean().optional(),
     /**
-     * The author passed on enough separate days from unrestricted connections, so VPN, proxy and datacenter
-     * restrictions do not apply to them in this community. Tor restrictions still apply. Reported (true or
-     * false) whenever a VPN, proxy or datacenter connection is detected; servers that predate it omit it.
+     * Why VPN, proxy and datacenter restrictions do not apply to this publication: the author passed on enough
+     * separate days from unrestricted connections (`established_account`), or signed in during this challenge with
+     * an account no ban in the community is linked to (`sign_in`). Tor restrictions still apply. Absent when the
+     * restrictions apply; servers that predate it omit it.
+     */
+    connectionExemption: z.enum(["established_account", "sign_in"]).optional(),
+    /**
+     * True when `connectionExemption` is set, false when a VPN, proxy or datacenter connection is detected
+     * without one. Kept for challenge clients up to 0.1.14, which read only this field; servers that predate
+     * the exemption omit it.
      */
     establishedAccount: z.boolean().optional()
 });

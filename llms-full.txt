@@ -111,11 +111,11 @@ The equivalent community settings, with pkc-js `exclude` rules to skip the check
 | `autoRejectThreshold` | `0.8`                                      | Reject when the risk score is at or above this value                        |
 | `countryBlacklist`    | _(empty)_                                  | Comma-separated ISO 3166-1 alpha-2 country codes to reject, e.g. `RU,CN,KP` |
 | `maxIpRisk`           | `1.0`                                      | Reject when the IP risk reported by the service exceeds this value          |
-| `blockVpn`            | `false`                                    | Reject publications from VPN IPs, including iCloud Private Relay            |
-| `blockProxy`          | `false`                                    | Reject publications from proxy IPs                                          |
+| `blockVpn`            | `false`                                    | Restrict VPN IPs, including iCloud Private Relay; a sign-in unlocks them    |
+| `blockProxy`          | `false`                                    | Restrict proxy IPs; a sign-in unlocks them                                  |
 | `precheckExemptions`  | empty                                      | Public JSON declaration of supported challenge dependencies (see below)     |
 | `blockTor`            | `false`                                    | Reject publications from Tor exit nodes                                     |
-| `blockDatacenter`     | `false`                                    | Reject publications from datacenter IPs                                     |
+| `blockDatacenter`     | `false`                                    | Restrict datacenter IPs; a sign-in unlocks them                             |
 
 Validation:
 
@@ -124,7 +124,7 @@ Validation:
 - An empty or missing value falls back to the default.
 - An unknown country code or any other invalid option makes the challenge throw on every request, so the publication is not accepted.
 
-The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter` are also sent in the community-signed evaluation so the service can enforce each connection policy before verification. IP classification is an estimate and can be wrong. Connection-policy rejections name the category actually reported by the service; a datacenter classification is not presented as a detected VPN. Messages list only declared whitelist/verified `.bso` exemptions and unconditional moderator-role exemptions. These policies are not cooldowns: waiting alone does not remove a connection restriction. One exception is decided by the service: an account that passed a CAPTCHA or OAuth on at least 3 separate days from unrestricted connections is exempt from `blockVpn`, `blockProxy` and `blockDatacenter` (never `blockTor`), and `/challenge/verify` reports it as `establishedAccount: true` (`false` when such a connection does not qualify; rejections explain the exemption only then, since older services omit the field). Only history from unrestricted connections counts, a network counts only while no other account has passed a challenge from it (one network establishes at most one account), and none counts in a community that banned an account on a network in that history, so the exemption gives nobody a connection or an extra author identity they could not already post with. iCloud Private Relay counts as a VPN; `/challenge/verify` reports `privateRelay: true` for it, and rejections name Private Relay and tell Safari users how to show their IP address to the site. A relay address blocked as a proxy or datacenter network is named with that category. Older challenge versions ignore both fields and keep rejecting those connections. A policy-enabled challenge requires complete classification evidence from `/challenge/verify`; missing or incomplete evidence fails closed without claiming a connection category. Deploy a compatible service before upgrading policy-enabled challenges. Older services that omit this evidence cannot approve those connections; communities without connection restrictions retain compatibility.
+The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the result of `/challenge/verify`, after the user has passed. `blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter` are also sent in the community-signed evaluation so the service can enforce each connection policy before verification. IP classification is an estimate and can be wrong. Connection-policy rejections name the category actually reported by the service; a datacenter classification is not presented as a detected VPN. Messages list only declared whitelist/verified `.bso` exemptions and unconditional moderator-role exemptions. These policies are not cooldowns: waiting alone does not remove a connection restriction. One exception is decided by the service: an account that passed a CAPTCHA or OAuth on at least 3 separate days from unrestricted connections is exempt from `blockVpn`, `blockProxy` and `blockDatacenter` (never `blockTor`), and `/challenge/verify` reports it as `connectionExemption: "established_account"`. The hosted service also lets a new account post through a VPN, proxy or datacenter connection after it signs in: instead of rejecting the post, its challenge page asks for a sign-in, explains that posting through the connection is restricted due to abuse and how to post without signing in, and a ban in the community then follows the sign-in account. `/challenge/verify` reports that case as `connectionExemption: "sign_in"`. For either exemption it also sets `establishedAccount: true`, which is all challenge versions up to 0.1.14 read (`false` when such a connection does not qualify; rejections explain the passed-days exemption only then, since older services omit the field). Connection rejections give abuse as the reason ("Posting through a VPN has been blocked in this community due to abuse."). Only history from unrestricted connections counts, a network counts only while no other account has passed a challenge from it (one network establishes at most one account), and none counts in a community that banned an account on a network in that history, so the exemption gives nobody a connection or an extra author identity they could not already post with. iCloud Private Relay counts as a VPN; `/challenge/verify` reports `privateRelay: true` for it, and rejections name Private Relay and tell Safari users how to show their IP address to the site. A relay address blocked as a proxy or datacenter network is named with that category. Older challenge versions ignore both fields and keep rejecting those connections. A policy-enabled challenge requires complete classification evidence from `/challenge/verify`; missing or incomplete evidence fails closed without claiming a connection category. Deploy a compatible service before upgrading policy-enabled challenges. Older services that omit this evidence cannot approve those connections; communities without connection restrictions retain compatibility.
 
 **What is public.** pkc-js strips `options` from the public community record. It publishes only `type`, `description`, `challenge`, and `exclude`. Because `challenge` is the [pre-check marker](#pre-check-pass), the server URL, connection policies (`blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter`, each set to `true` when enabled), and any explicit `precheckExemptions` policy are public. Thresholds, country restrictions, and the IP-risk limit stay private to the community operator.
 
@@ -330,7 +330,8 @@ Response:
     connectionTypes?: ("tor" | "proxy" | "vpn" | "datacenter")[]; // Every positively detected category
     ipClassificationComplete?: boolean; // Confirmed user origin and all four classification flags known
     privateRelay?: boolean; // The origin is an iCloud Private Relay egress address (also reported as "vpn")
-    establishedAccount?: boolean; // Set when a VPN, proxy or datacenter connection is detected; true exempts the author from those policies
+    connectionExemption?: "established_account" | "sign_in"; // Set when the author is exempt from VPN, proxy and datacenter policies for this publication
+    establishedAccount?: boolean; // Set when a VPN, proxy or datacenter connection is detected; true when connectionExemption is set (read by challenge versions up to 0.1.14)
 }
 ```
 
@@ -951,6 +952,10 @@ Source: https://github.com/bitsocialnet/spam-blocker/blob/master/packages/challe
 
 ```markdown
 # Changelog
+
+## <small>0.1.14 (2026-11-21)</small>
+
+* feat(challenge): honor established-account exemption and name iCloud Private Relay (#25) ([1143e8c](https://github.com/bitsocialnet/spam-blocker/commit/1143e8c)), closes [#25](https://github.com/bitsocialnet/spam-blocker/issues/25)
 
 ## <small>0.1.13 (2026-11-19)</small>
 
