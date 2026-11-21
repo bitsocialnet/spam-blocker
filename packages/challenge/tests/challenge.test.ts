@@ -499,6 +499,67 @@ describe("Bitsocial Spam Blocker challenge package", () => {
             expect(rejection.error).toContain("Your connection type could not be verified");
         });
 
+        const verifyWith = async ({ response, options }: { response: Partial<VerifyResponse>; options: Record<string, string> }) => {
+            stubFetch(createResponse(createVerifyResponse(response)));
+            const settings = { options } as unknown as CommunityChallengeSetting;
+            const result = await ChallengeFileFactory({ challengeSettings: settings }).getChallenge({
+                challengeSettings: settings,
+                challengeRequestMessage: request,
+                challengeIndex: 0,
+                community
+            });
+            if ("success" in result) throw new Error("Expected a challenge response");
+            return result.verify("token");
+        };
+
+        it("names iCloud Private Relay and explains how to post without it", async () => {
+            const rejection = await verifyWith({
+                response: { ipTypeEstimation: "vpn", privateRelay: true },
+                options: { blockVpn: "true" }
+            });
+            expect(rejection.success).toBe(false);
+            expect(rejection.error).toContain("Your connection goes through iCloud Private Relay.");
+            expect(rejection.error).toContain("Show IP Address");
+            expect(rejection.error).not.toContain("detected as a VPN");
+        });
+
+        it("names the restricted category when a relay address was blocked as a datacenter network", async () => {
+            const rejection = await verifyWith({
+                response: { connectionTypes: ["vpn", "datacenter"], ipClassificationComplete: true, privateRelay: true },
+                options: { blockDatacenter: "true" }
+            });
+            expect(rejection.error).toContain(
+                "Your connection goes through iCloud Private Relay, which was detected as a datacenter network. This community restricts posting through a datacenter network."
+            );
+            expect(rejection.error).toContain("Show IP Address");
+        });
+
+        it("explains the exemption only when the server reports it checked the account", async () => {
+            const hint =
+                "Accounts that have passed the spam blocker on 3 separate days from an unrestricted connection can post through a VPN.";
+            const response: Partial<VerifyResponse> = { connectionTypes: ["vpn"], ipClassificationComplete: true };
+            const options = { blockVpn: "true" };
+            expect((await verifyWith({ response: { ...response, establishedAccount: false }, options })).error).toContain(hint);
+            // An older server omits the field and never exempts anyone.
+            expect((await verifyWith({ response, options })).error).not.toContain(hint);
+        });
+
+        it("accepts an established account through a VPN, proxy or datacenter network but not Tor", async () => {
+            const options = { blockVpn: "true", blockProxy: "true", blockDatacenter: "true", blockTor: "true" };
+            expect(
+                await verifyWith({
+                    response: { connectionTypes: ["vpn", "datacenter"], ipClassificationComplete: true, establishedAccount: true },
+                    options
+                })
+            ).toEqual({ success: true });
+            const tor = await verifyWith({
+                response: { connectionTypes: ["tor"], ipClassificationComplete: true, establishedAccount: true },
+                options
+            });
+            expect(tor.success).toBe(false);
+            expect(tor.error).toContain("detected as Tor");
+        });
+
         it("enforces every detected category instead of only the legacy primary category", async () => {
             stubFetch(
                 createResponse(
