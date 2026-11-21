@@ -239,6 +239,10 @@ const connectionPolicies = [
     ["datacenter", "blockDatacenter", "a datacenter network"]
 ] as const;
 
+const PRIVATE_RELAY_LABEL = "iCloud Private Relay";
+/** The server exempts accounts with this many days of passed challenges from unrestricted connections. */
+const ESTABLISHED_ACCOUNT_PASSED_DAYS = 3;
+
 const getPostChallengeRejection = ({
     verifyResponse,
     options,
@@ -248,9 +252,15 @@ const getPostChallengeRejection = ({
     options: ParsedOptions;
     challengeSettings: GetChallengeArgs["challengeSettings"];
 }) => {
-    const policy = connectionPolicies.find(([type, option]) => verifyResponse.connectionTypes?.includes(type) && options[option]);
+    // An established account is exempt from every restriction but Tor; the server decides who qualifies.
+    const policy = connectionPolicies.find(
+        ([type, option]) =>
+            verifyResponse.connectionTypes?.includes(type) &&
+            options[option] &&
+            !(verifyResponse.establishedAccount === true && type !== "tor")
+    );
     if (policy) {
-        const label = policy[2];
+        const label = verifyResponse.privateRelay === true && policy[0] !== "tor" ? PRIVATE_RELAY_LABEL : policy[2];
         const hints: string[] = [];
         if (
             challengeSettings.exclude?.some(
@@ -264,7 +274,16 @@ const getPostChallengeRejection = ({
         if (options.precheckExemptions?.rules.some((rule) => rule.type === "verified-author-name-suffix")) {
             hints.push("use a verified .bso name on your Bitsocial account");
         }
-        return `Your connection was detected as ${label}. This community restricts posting through ${label}${hints.length ? " unless your account qualifies for an exemption" : ""}. Use an unrestricted connection${hints.length ? `, or ${hints.join(", or ")}` : " and try again"}. Waiting alone will not remove this connection restriction.`;
+        const qualifies = hints.length ? " unless your account qualifies for an exemption" : "";
+        const alternatives = hints.length ? `, or ${hints.join(", or ")}` : "";
+        const established =
+            policy[0] === "tor"
+                ? ""
+                : ` Accounts that have passed the spam blocker on ${ESTABLISHED_ACCOUNT_PASSED_DAYS} separate days from an unrestricted connection can post through ${label}.`;
+        const restriction = `${established} Waiting alone will not remove this connection restriction.`;
+        if (label === PRIVATE_RELAY_LABEL)
+            return `Your connection goes through ${label}. This community restricts posting through it${qualifies}. To post, show your IP address to this site and try again: in Safari on iPhone or iPad, tap the Page Menu button, then Show IP Address; on a Mac, choose View > Reload and Show IP Address${alternatives}.${restriction}`;
+        return `Your connection was detected as ${label}. This community restricts posting through ${label}${qualifies}. Use an unrestricted connection${hints.length ? alternatives : " and try again"}.${restriction}`;
     }
 
     if (

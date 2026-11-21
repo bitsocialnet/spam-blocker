@@ -130,7 +130,14 @@ export const VerifyResponseSchema = z.object({
     challengeType: z.string().optional(),
     ipTypeEstimation: z.string().optional(),
     connectionTypes: z.array(z.enum(["tor", "proxy", "vpn", "datacenter"])).optional(),
-    ipClassificationComplete: z.boolean().optional()
+    ipClassificationComplete: z.boolean().optional(),
+    /** The confirmed connection is a published iCloud Private Relay egress address (also reported as "vpn"). */
+    privateRelay: z.boolean().optional(),
+    /**
+     * The author passed on enough separate days from unrestricted connections, so VPN, proxy and datacenter
+     * restrictions do not apply to them in this community. Tor restrictions still apply.
+     */
+    establishedAccount: z.boolean().optional()
 });
 
 export type EvaluationOptions = z.infer<typeof EvaluationOptionsSchema>;
