@@ -276,13 +276,18 @@ const getPostChallengeRejection = ({
         }
         const qualifies = hints.length ? " unless your account qualifies for an exemption" : "";
         const alternatives = hints.length ? `, or ${hints.join(", or ")}` : "";
+        // Only a server that checks the exemption reports establishedAccount; an older one omits it.
         const established =
-            policy[0] === "tor"
-                ? ""
-                : ` Accounts that have passed the spam blocker on ${ESTABLISHED_ACCOUNT_PASSED_DAYS} separate days from an unrestricted connection can post through ${label}.`;
+            policy[0] !== "tor" && verifyResponse.establishedAccount === false
+                ? ` Accounts that have passed the spam blocker on ${ESTABLISHED_ACCOUNT_PASSED_DAYS} separate days from an unrestricted connection can post through ${label}.`
+                : "";
         const restriction = `${established} Waiting alone will not remove this connection restriction.`;
-        if (label === PRIVATE_RELAY_LABEL)
-            return `Your connection goes through ${label}. This community restricts posting through it${qualifies}. To post, show your IP address to this site and try again: in Safari on iPhone or iPad, tap the Page Menu button, then Show IP Address; on a Mac, choose View > Reload and Show IP Address${alternatives}.${restriction}`;
+        if (label === PRIVATE_RELAY_LABEL) {
+            // A relay address can also be classified as a proxy or datacenter; name the category the community restricts.
+            const detected = policy[0] === "vpn" ? "" : `, which was detected as ${policy[2]}`;
+            const restricted = policy[0] === "vpn" ? "it" : policy[2];
+            return `Your connection goes through ${label}${detected}. This community restricts posting through ${restricted}${qualifies}. To post, show your IP address to this site and try again: in Safari on iPhone or iPad, tap the Page Menu button, then Show IP Address; on a Mac, choose View > Reload and Show IP Address${alternatives}.${restriction}`;
+        }
         return `Your connection was detected as ${label}. This community restricts posting through ${label}${qualifies}. Use an unrestricted connection${hints.length ? alternatives : " and try again"}.${restriction}`;
     }
 

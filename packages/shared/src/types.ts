@@ -135,7 +135,8 @@ export const VerifyResponseSchema = z.object({
     privateRelay: z.boolean().optional(),
     /**
      * The author passed on enough separate days from unrestricted connections, so VPN, proxy and datacenter
-     * restrictions do not apply to them in this community. Tor restrictions still apply.
+     * restrictions do not apply to them in this community. Tor restrictions still apply. Reported (true or
+     * false) whenever a VPN, proxy or datacenter connection is detected; servers that predate it omit it.
      */
     establishedAccount: z.boolean().optional()
 });

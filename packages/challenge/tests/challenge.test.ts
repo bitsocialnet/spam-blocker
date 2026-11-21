@@ -315,12 +315,12 @@ describe("Bitsocial Spam Blocker challenge package", () => {
         [
             "vpn",
             { blockVpn: "true" },
-            "Your connection was detected as a VPN. This community restricts posting through a VPN. Use an unrestricted connection and try again. Accounts that have passed the spam blocker on 3 separate days from an unrestricted connection can post through a VPN. Waiting alone will not remove this connection restriction."
+            "Your connection was detected as a VPN. This community restricts posting through a VPN. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         ],
         [
             "proxy",
             { blockProxy: "true" },
-            "Your connection was detected as a proxy. This community restricts posting through a proxy. Use an unrestricted connection and try again. Accounts that have passed the spam blocker on 3 separate days from an unrestricted connection can post through a proxy. Waiting alone will not remove this connection restriction."
+            "Your connection was detected as a proxy. This community restricts posting through a proxy. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         ],
         [
             "tor",
@@ -348,7 +348,7 @@ describe("Bitsocial Spam Blocker challenge package", () => {
         [
             "datacenter",
             { blockDatacenter: "true" },
-            "Your connection was detected as a datacenter network. This community restricts posting through a datacenter network. Use an unrestricted connection and try again. Accounts that have passed the spam blocker on 3 separate days from an unrestricted connection can post through a datacenter network. Waiting alone will not remove this connection restriction."
+            "Your connection was detected as a datacenter network. This community restricts posting through a datacenter network. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         ]
     ])("rejects by ipTypeEstimation '%s' when configured", async (ipType, options, expected) => {
         stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: ipType })));
@@ -521,6 +521,27 @@ describe("Bitsocial Spam Blocker challenge package", () => {
             expect(rejection.error).toContain("Your connection goes through iCloud Private Relay.");
             expect(rejection.error).toContain("Show IP Address");
             expect(rejection.error).not.toContain("detected as a VPN");
+        });
+
+        it("names the restricted category when a relay address was blocked as a datacenter network", async () => {
+            const rejection = await verifyWith({
+                response: { connectionTypes: ["vpn", "datacenter"], ipClassificationComplete: true, privateRelay: true },
+                options: { blockDatacenter: "true" }
+            });
+            expect(rejection.error).toContain(
+                "Your connection goes through iCloud Private Relay, which was detected as a datacenter network. This community restricts posting through a datacenter network."
+            );
+            expect(rejection.error).toContain("Show IP Address");
+        });
+
+        it("explains the exemption only when the server reports it checked the account", async () => {
+            const hint =
+                "Accounts that have passed the spam blocker on 3 separate days from an unrestricted connection can post through a VPN.";
+            const response: Partial<VerifyResponse> = { connectionTypes: ["vpn"], ipClassificationComplete: true };
+            const options = { blockVpn: "true" };
+            expect((await verifyWith({ response: { ...response, establishedAccount: false }, options })).error).toContain(hint);
+            // An older server omits the field and never exempts anyone.
+            expect((await verifyWith({ response, options })).error).not.toContain(hint);
         });
 
         it("accepts an established account through a VPN, proxy or datacenter network but not Tor", async () => {
@@ -1046,7 +1067,7 @@ describe("pre-check pass", () => {
 
         expect(result).toEqual({
             success: false,
-            error: "Your connection was detected as a VPN. This community restricts posting through a VPN. Use an unrestricted connection and try again. Accounts that have passed the spam blocker on 3 separate days from an unrestricted connection can post through a VPN. Waiting alone will not remove this connection restriction."
+            error: "Your connection was detected as a VPN. This community restricts posting through a VPN. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         });
     });
 
