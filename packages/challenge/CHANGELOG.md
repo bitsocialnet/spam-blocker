@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>0.1.15 (2026-11-22)</small>
+
+* feat(challenge): accept sign-in exemptions and give abuse as the rejection reason (#26) ([700fd89](https://github.com/bitsocialnet/spam-blocker/commit/700fd89)), closes [#26](https://github.com/bitsocialnet/spam-blocker/issues/26)
+
 ## <small>0.1.14 (2026-11-21)</small>
 
 * feat(challenge): honor established-account exemption and name iCloud Private Relay (#25) ([1143e8c](https://github.com/bitsocialnet/spam-blocker/commit/1143e8c)), closes [#25](https://github.com/bitsocialnet/spam-blocker/issues/25)
