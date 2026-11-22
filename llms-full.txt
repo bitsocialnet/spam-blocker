@@ -465,8 +465,10 @@ This is a defense local to the hosted service. It is not a protocol-wide identit
 - The hosted operator stores raw IP addresses and publication content for abuse detection. All of it is visible to the operator.
 - IP addresses are sent to a third-party provider for classification: proxycheck.io by default, or ipapi.is when the operator configures an ipapi.is key.
 - Communities receive only the country code, the IP risk, the network type estimate, and the pass or fail result. They never receive the raw IP.
-- OAuth identities (`provider:userId`) are stored by the operator and never shared with communities. The service only confirms that a sign-in succeeded.
-- Sign-ins request no profile data: Google and Telegram get only the `openid` scope and Apple no scopes, so the service receives only an account ID. Telegram's confirmation screen still says the site receives your name, username, and photo.
+- OAuth identities (`provider:userId`) are stored by the operator with the publication and its network record, with no automatic deletion, so a ban also applies to the account. They are never shared with communities, which learn only that a sign-in succeeded.
+- Sign-ins request no profile data: Google and Telegram get only the `openid` scope and Apple no scopes, so the service receives only an account ID, never a name, email, or photo. Telegram's confirmation screen still says the site receives your name, username, and photo.
+- Google's and Telegram's account IDs are the same for every site that uses them. Apple's is unique to the hosted service, so no other site can match it.
+- Signing in through a VPN, proxy, or relay does not reveal the author's real IP address: the service sees only the address of that connection.
 - The `explanation` field gives the reasoning behind a score.
 
 ## Known limitations
