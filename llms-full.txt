@@ -805,17 +805,17 @@ Then add or edit the `challenges` array in your community settings to include th
 
 ## Options
 
-| Option                | Default                                    | Description                                                                          |
-| --------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------ |
-| `serverUrl`           | `https://spamblocker.bitsocial.net/api/v1` | URL of a compatible spam blocker service; the official hosted service is recommended |
-| `autoAcceptThreshold` | `0.2`                                      | Complete verification after iframe evaluation when risk is below this value          |
-| `autoRejectThreshold` | `0.8`                                      | Reject after iframe evaluation when risk is above this value                         |
-| `countryBlacklist`    | _(empty)_                                  | Comma-separated ISO 3166-1 alpha-2 country codes to block (e.g. `RU,CN,KP`)          |
-| `maxIpRisk`           | `1.0`                                      | Reject if IP risk score exceeds this threshold (estimation only)                     |
-| `blockVpn`            | `false`                                    | Reject publications from VPN IPs, including iCloud Private Relay (estimation only)   |
-| `blockProxy`          | `false`                                    | Reject publications from proxy IPs (estimation only)                                 |
-| `blockTor`            | `false`                                    | Reject publications from Tor exit nodes (estimation only)                            |
-| `blockDatacenter`     | `false`                                    | Reject publications from datacenter IPs (estimation only)                            |
+| Option                | Default                                    | Description                                                                                |
+| --------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| `serverUrl`           | `https://spamblocker.bitsocial.net/api/v1` | URL of a compatible spam blocker service; the official hosted service is recommended       |
+| `autoAcceptThreshold` | `0.2`                                      | Complete verification after iframe evaluation when risk is below this value                |
+| `autoRejectThreshold` | `0.8`                                      | Reject after iframe evaluation when risk is above this value                               |
+| `countryBlacklist`    | _(empty)_                                  | Comma-separated ISO 3166-1 alpha-2 country codes to block (e.g. `RU,CN,KP`)                |
+| `maxIpRisk`           | `1.0`                                      | Reject if IP risk score exceeds this threshold (estimation only)                           |
+| `blockVpn`            | `false`                                    | Restrict VPN IPs, including iCloud Private Relay; a sign-in unlocks them (estimation only) |
+| `blockProxy`          | `false`                                    | Restrict proxy IPs; a sign-in unlocks them (estimation only)                               |
+| `blockTor`            | `false`                                    | Reject publications from Tor exit nodes (estimation only)                                  |
+| `blockDatacenter`     | `false`                                    | Restrict datacenter IPs; a sign-in unlocks them (estimation only)                          |
 
 ## How It Works
 
@@ -826,7 +826,7 @@ Then add or edit the `challenges` array in your community settings to include th
     - **Below `autoAcceptThreshold`**: Verification completes immediately.
     - **Above `autoRejectThreshold`**: Verification fails immediately.
     - **Between thresholds**: The iframe presents OAuth and/or CAPTCHA verification.
-5. After challenge verification, the server's `/challenge/verify` endpoint confirms whether the user passed. The community-signed VPN, proxy, Tor, and datacenter policies are already enforced before verification; the challenge also applies configured IP policies to successful verification responses. A connection policy requires `connectionTypes` and `ipClassificationComplete: true`; unavailable classification fails closed. The VPN, proxy and datacenter policies do not apply when the response carries `establishedAccount: true` (an account with passed challenges on at least 3 separate days from unrestricted connections); Tor policy always applies. Rejections mention that exemption only when the response carries `establishedAccount: false`, which older services omit. A `privateRelay: true` response names iCloud Private Relay in the rejection. Upgrade the service before deploying a policy-enabled challenge.
+5. After challenge verification, the server's `/challenge/verify` endpoint confirms whether the user passed. The community-signed VPN, proxy, Tor, and datacenter policies are already enforced before verification; the challenge also applies configured IP policies to successful verification responses. A connection policy requires `connectionTypes` and `ipClassificationComplete: true`; unavailable classification fails closed. The VPN, proxy and datacenter policies do not apply when the response carries a `connectionExemption`: `"established_account"` for an account with passed challenges on at least 3 separate days from unrestricted connections, or `"sign_in"` for an author who signed in on the hosted challenge page, after which a ban in the community also applies to that sign-in. Services set `establishedAccount: true` for either exemption, which is what challenge versions up to 0.1.14 read; this version accepts both fields. Tor policy always applies. Rejections give abuse as the reason ("Posting through a VPN has been blocked in this community due to abuse.") and mention the exemption only when the response carries `establishedAccount: false`, which older services omit. A `privateRelay: true` response names iCloud Private Relay in the rejection. Upgrade the service before deploying a policy-enabled challenge.
 6. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted without calling `/evaluate`.
 7. The challenge publishes `<serverUrl>/precheck` with enabled `blockTor`, `blockVpn`, `blockProxy`, and `blockDatacenter` query parameters as its public `challenge` so clients can run the spam blocker before uploading a file. A client that completed that pre-check sends its `precheck-<uuid>` session id as this challenge's answer in `challengeRequest.challengeAnswers`; `getChallenge()` then redeems it with `/evaluate` server-to-server and answers without a second iframe when the session is already decided. If redemption is still pending or fails, the usual lazy iframe is returned. See the repository README's pre-check pass section for the client flow.
 
