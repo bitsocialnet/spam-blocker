@@ -108,7 +108,7 @@ The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the r
 4. The service returns a risk score between 0 and 1:
     - below `autoAcceptThreshold`: the session completes;
     - at or above `autoRejectThreshold`: the session fails and the page explains why;
-    - in between: the page redirects to the verification page (OAuth sign-in first, CAPTCHA as a fallback).
+    - in between: the page redirects to the verification page, which asks for a CAPTCHA when a CAPTCHA alone can pass and for a sign-in otherwise (see [Iframe pages](#iframe-pages)).
 5. The page tells the client the outcome is ready, and the client sends a `ChallengeAnswer` with an empty string.
 6. The community calls `/challenge/verify` with the session id. On success it applies its own IP rules from the options above, then accepts or rejects the publication.
 
@@ -122,13 +122,13 @@ author opens iframe -> POST /evaluate -> riskScore
   ├─ >= autoRejectThreshold -> failed -------------------------------> /challenge/verify -> rejected
   └─ in between -> verification page
         |
-        ├─ OAuth sign-in
+        ├─ CAPTCHA, when a CAPTCHA alone can pass
         |     ├─ enough -> completed --------------------------------> /challenge/verify -> success
-        |     └─ not enough -> second OAuth provider, or CAPTCHA
+        |     └─ not enough -> sign-in
         |
-        └─ "I don't have a social account" -> CAPTCHA
+        └─ sign-in, for a restricted connection or a higher score
               ├─ enough -> completed --------------------------------> /challenge/verify -> success
-              └─ not enough -> OAuth required
+              └─ not enough -> CAPTCHA if it finishes, else second provider
 ```
 
 Other behavior of the challenge package:
@@ -362,11 +362,12 @@ Returns `{ completed, status, outcome?, warning? }` and sends `Access-Control-Al
 
 - **`/iframe/:sessionId/lazy`** does not create a session by itself. Its script reads the signed payload from the URL fragment and posts it to `/evaluate`. It then completes, redirects to the verification page, or shows why the publication was rejected until the author presses Close.
 - **`/iframe/:sessionId/precheck`** does the same for a `precheck-` session id, posting to `/precheck`.
-- **`/iframe/:sessionId`** shows OAuth sign-in buttons. If a CAPTCHA alone can pass at the session's score, it also shows an "I don't have a social account" link. When no OAuth provider is configured, it serves a CAPTCHA only.
+- **`/iframe/:sessionId`** is the verification page. It shows a CAPTCHA when a CAPTCHA alone can pass at the session's score. It asks for a sign-in instead for a VPN, proxy or datacenter connection the community restricts, for a score a CAPTCHA cannot bring under the pass threshold, and after a CAPTCHA that was not enough. A sign-in that is not enough is followed by a CAPTCHA when that finishes the check, and otherwise by a sign-in with a second provider. Without a configured CAPTCHA it always asks for a sign-in; without a configured sign-in provider it serves a CAPTCHA only. Every configured provider is offered, including ones the author used before. A check that would ask for a sign-in reuses the author's last sign-in from the past 30 days instead, unless a ban in the community is linked to that account or its provider is no longer offered.
+- **Sign-in windows.** The verification page loads only from the address its session is bound to. It hands the sign-in window it opens a signed grant, which the service requires to start the sign-in. So the sign-in works when iCloud Private Relay or a VPN gives that window another address, and knowing a session ID is not enough to sign in to it. A sign-in link opened any other way must start on the same network as the page (the same IPv4 address or IPv6 /64), so a challenge link cannot be signed in from another network.
 
 Challenge pages post `{ type: "challengeCompletionManaged", sessionId }` to the parent window on load. This tells the client that the page sends the answer itself, as `{ type: "challengeAnswer", challengeAnswers: [""], sessionId }`, once the author has seen the outcome.
 
-The hosted service supports GitHub, Google, Twitter, Yandex, TikTok, Discord, and Reddit sign-in, and Cloudflare Turnstile as the CAPTCHA.
+The hosted service offers Google, Apple, and Telegram sign-in, and Cloudflare Turnstile as the CAPTCHA.
 
 ## Risk scoring and enforcement
 
@@ -387,7 +388,7 @@ Each completed verification step multiplies the risk score. The session passes w
 | OAuth + CAPTCHA                      | score × 0.6 × 0.7      | about 0.95                         |
 | OAuth + a second, different provider | score × 0.6 × 0.5      | any score that was not rejected    |
 
-A CAPTCHA that is not enough returns `oauthRequired`, and the page goes back to the sign-in view.
+A CAPTCHA that is not enough returns `oauthRequired`, and the page switches to the sign-in view.
 
 ### Rate limiting
 
@@ -437,7 +438,10 @@ This is a defense local to the hosted service. It is not a protocol-wide identit
 - The hosted operator stores raw IP addresses and publication content for abuse detection. All of it is visible to the operator.
 - IP addresses are sent to a third-party provider for classification: proxycheck.io by default, or ipapi.is when the operator configures an ipapi.is key.
 - Communities receive only the country code, the IP risk, the network type estimate, and the pass or fail result. They never receive the raw IP.
-- OAuth identities (`provider:userId`) are stored by the operator and never shared with communities. The service only confirms that a sign-in succeeded.
+- OAuth identities (`provider:userId`) are stored by the operator with the publication and its network record, with no automatic deletion, so a ban also applies to the account. They are never shared with communities, which learn only that a sign-in succeeded.
+- Sign-ins request no profile data: Google and Telegram get only the `openid` scope and Apple no scopes, so the service receives only an account ID, never a name, email, or photo. Telegram's confirmation screen still says the site receives your name, username, and photo.
+- Google's and Telegram's account IDs are the same for every site that uses them. Apple's is unique to the hosted service, so no other site can match it.
+- Signing in through a VPN, proxy, or relay does not reveal the author's real IP address: the service sees only the address of that connection.
 - The `explanation` field gives the reasoning behind a score.
 
 ## Known limitations
