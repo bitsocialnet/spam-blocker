@@ -66,14 +66,16 @@ const optionInputs = [
         option: "blockVpn",
         label: "Block VPN",
         default: "false",
-        description: "Reject publications from VPN IPs (estimation only, not 100% accurate)",
+        description:
+            "Restrict publications from VPN IPs; the hosted server lets them post after a sign-in (estimation only, not 100% accurate)",
         placeholder: "true"
     },
     {
         option: "blockProxy",
         label: "Block Proxy",
         default: "false",
-        description: "Reject publications from proxy IPs (estimation only, not 100% accurate)",
+        description:
+            "Restrict publications from proxy IPs; the hosted server lets them post after a sign-in (estimation only, not 100% accurate)",
         placeholder: "true"
     },
     {
@@ -87,7 +89,8 @@ const optionInputs = [
         option: "blockDatacenter",
         label: "Block Datacenter",
         default: "false",
-        description: "Reject publications from datacenter IPs (estimation only, not 100% accurate)",
+        description:
+            "Restrict publications from datacenter IPs; the hosted server lets them post after a sign-in (estimation only, not 100% accurate)",
         placeholder: "true"
     }
 ] as const satisfies NonNullable<ChallengeFileInput["optionInputs"]>;
@@ -252,12 +255,11 @@ const getPostChallengeRejection = ({
     options: ParsedOptions;
     challengeSettings: GetChallengeArgs["challengeSettings"];
 }) => {
-    // An established account is exempt from every restriction but Tor; the server decides who qualifies.
+    // An established account, or one that signed in during this challenge, is exempt from every restriction but
+    // Tor; the server decides who qualifies. Servers up to the sign-in exemption report only establishedAccount.
+    const exempt = verifyResponse.connectionExemption !== undefined || verifyResponse.establishedAccount === true;
     const policy = connectionPolicies.find(
-        ([type, option]) =>
-            verifyResponse.connectionTypes?.includes(type) &&
-            options[option] &&
-            !(verifyResponse.establishedAccount === true && type !== "tor")
+        ([type, option]) => verifyResponse.connectionTypes?.includes(type) && options[option] && !(exempt && type !== "tor")
     );
     if (policy) {
         const label = verifyResponse.privateRelay === true && policy[0] !== "tor" ? PRIVATE_RELAY_LABEL : policy[2];
@@ -274,7 +276,7 @@ const getPostChallengeRejection = ({
         if (options.precheckExemptions?.rules.some((rule) => rule.type === "verified-author-name-suffix")) {
             hints.push("use a verified .bso name on your Bitsocial account");
         }
-        const qualifies = hints.length ? " unless your account qualifies for an exemption" : "";
+        const qualifies = hints.length ? ", unless your account qualifies for an exemption" : "";
         const alternatives = hints.length ? `, or ${hints.join(", or ")}` : "";
         // Only a server that checks the exemption reports establishedAccount; an older one omits it.
         const established =
@@ -286,9 +288,9 @@ const getPostChallengeRejection = ({
             // A relay address can also be classified as a proxy or datacenter; name the category the community restricts.
             const detected = policy[0] === "vpn" ? "" : `, which was detected as ${policy[2]}`;
             const restricted = policy[0] === "vpn" ? "it" : policy[2];
-            return `Your connection goes through ${label}${detected}. This community restricts posting through ${restricted}${qualifies}. To post, show your IP address to this site and try again: in Safari on iPhone or iPad, tap the Page Menu button, then Show IP Address; on a Mac, choose View > Reload and Show IP Address${alternatives}.${restriction}`;
+            return `Your connection goes through ${label}${detected}. Posting through ${restricted} has been blocked in this community due to abuse${qualifies}. To post, show your IP address to this site and try again: in Safari on iPhone or iPad, tap the Page Menu button, then Show IP Address; on a Mac, choose View > Reload and Show IP Address${alternatives}.${restriction}`;
         }
-        return `Your connection was detected as ${label}. This community restricts posting through ${label}${qualifies}. Use an unrestricted connection${hints.length ? alternatives : " and try again"}.${restriction}`;
+        return `Your connection was detected as ${label}. Posting through ${label} has been blocked in this community due to abuse${qualifies}. Use an unrestricted connection${hints.length ? alternatives : " and try again"}.${restriction}`;
     }
 
     if (

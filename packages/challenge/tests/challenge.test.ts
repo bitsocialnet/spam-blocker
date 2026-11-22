@@ -315,17 +315,17 @@ describe("Bitsocial Spam Blocker challenge package", () => {
         [
             "vpn",
             { blockVpn: "true" },
-            "Your connection was detected as a VPN. This community restricts posting through a VPN. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+            "Your connection was detected as a VPN. Posting through a VPN has been blocked in this community due to abuse. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         ],
         [
             "proxy",
             { blockProxy: "true" },
-            "Your connection was detected as a proxy. This community restricts posting through a proxy. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+            "Your connection was detected as a proxy. Posting through a proxy has been blocked in this community due to abuse. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         ],
         [
             "tor",
             { blockTor: "true" },
-            "Your connection was detected as Tor. This community restricts posting through Tor. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+            "Your connection was detected as Tor. Posting through Tor has been blocked in this community due to abuse. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         ],
         [
             "tor",
@@ -343,12 +343,12 @@ describe("Bitsocial Spam Blocker challenge package", () => {
                     ]
                 })
             },
-            "Your connection was detected as Tor. This community restricts posting through Tor unless your account qualifies for an exemption. Use an unrestricted connection, or ask the community owner to whitelist your account, or use a verified .bso name on your Bitsocial account. Waiting alone will not remove this connection restriction."
+            "Your connection was detected as Tor. Posting through Tor has been blocked in this community due to abuse, unless your account qualifies for an exemption. Use an unrestricted connection, or ask the community owner to whitelist your account, or use a verified .bso name on your Bitsocial account. Waiting alone will not remove this connection restriction."
         ],
         [
             "datacenter",
             { blockDatacenter: "true" },
-            "Your connection was detected as a datacenter network. This community restricts posting through a datacenter network. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+            "Your connection was detected as a datacenter network. Posting through a datacenter network has been blocked in this community due to abuse. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         ]
     ])("rejects by ipTypeEstimation '%s' when configured", async (ipType, options, expected) => {
         stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: ipType })));
@@ -422,7 +422,7 @@ describe("Bitsocial Spam Blocker challenge package", () => {
         if ("success" in result) throw new Error("Expected a challenge response");
         const rejection = await result.verify("token");
         expect(rejection.success).toBe(false);
-        expect(rejection.error).toContain("This community restricts posting through a datacenter network");
+        expect(rejection.error).toContain("Posting through a datacenter network has been blocked in this community due to abuse");
         expect(rejection.error).not.toContain("IP risk policy");
     });
 
@@ -529,7 +529,7 @@ describe("Bitsocial Spam Blocker challenge package", () => {
                 options: { blockDatacenter: "true" }
             });
             expect(rejection.error).toContain(
-                "Your connection goes through iCloud Private Relay, which was detected as a datacenter network. This community restricts posting through a datacenter network."
+                "Your connection goes through iCloud Private Relay, which was detected as a datacenter network. Posting through a datacenter network has been blocked in this community due to abuse."
             );
             expect(rejection.error).toContain("Show IP Address");
         });
@@ -542,6 +542,22 @@ describe("Bitsocial Spam Blocker challenge package", () => {
             expect((await verifyWith({ response: { ...response, establishedAccount: false }, options })).error).toContain(hint);
             // An older server omits the field and never exempts anyone.
             expect((await verifyWith({ response, options })).error).not.toContain(hint);
+        });
+
+        it("accepts a sign-in exemption through a VPN, proxy or datacenter network but not Tor", async () => {
+            const options = { blockVpn: "true", blockProxy: "true", blockDatacenter: "true", blockTor: "true" };
+            expect(
+                await verifyWith({
+                    response: { connectionTypes: ["vpn", "datacenter"], ipClassificationComplete: true, connectionExemption: "sign_in" },
+                    options
+                })
+            ).toEqual({ success: true });
+            const tor = await verifyWith({
+                response: { connectionTypes: ["tor"], ipClassificationComplete: true, connectionExemption: "sign_in" },
+                options
+            });
+            expect(tor.success).toBe(false);
+            expect(tor.error).toContain("Posting through Tor has been blocked in this community due to abuse.");
         });
 
         it("accepts an established account through a VPN, proxy or datacenter network but not Tor", async () => {
@@ -973,7 +989,7 @@ describe("pre-check pass", () => {
             stubFetch(createResponse(createVerifyResponse({ ipTypeEstimation: "tor" })));
             expect(await result.verify([])).toEqual({
                 success: false,
-                error: "Your connection was detected as Tor. This community restricts posting through Tor. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+                error: "Your connection was detected as Tor. Posting through Tor has been blocked in this community due to abuse. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
             });
         });
 
@@ -1067,7 +1083,7 @@ describe("pre-check pass", () => {
 
         expect(result).toEqual({
             success: false,
-            error: "Your connection was detected as a VPN. This community restricts posting through a VPN. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
+            error: "Your connection was detected as a VPN. Posting through a VPN has been blocked in this community due to abuse. Use an unrestricted connection and try again. Waiting alone will not remove this connection restriction."
         });
     });
 
