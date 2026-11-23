@@ -477,6 +477,12 @@ Challenge pages post `{ type: "challengeCompletionManaged", sessionId }` to the 
 
 The hosted service offers Google, Apple, and Telegram sign-in, and Cloudflare Turnstile as the CAPTCHA.
 
+It does not offer GitHub or Discord, which the server supports, for three reasons:
+
+- **New accounts cost nothing.** Both need only an email address, so a banned author could sign up again for free. Apple and Telegram accounts require a phone number, and Google usually asks for one. GitHub and Discord do report when an account was created, so they could be accepted for old accounts only, but old accounts are sold cheaply.
+- **Privacy.** Their sign-ins send profile data with the account ID; GitHub's profile includes the name, public email and avatar. The service could then no longer say it receives only an account ID.
+- **Ban evasion.** Every extra provider is one more account a banned author can come back with.
+
 ## Risk scoring and enforcement
 
 Everything in this section describes the hosted service, not the challenge package. Fine-grained weights and heuristics are private. See the [source policy](./docs/architecture/hosted-service-source-policy.md).
