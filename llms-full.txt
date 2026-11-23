@@ -263,7 +263,7 @@ All routes are relative to `serverUrl`, for example `https://spamblocker.bitsoci
 
 ### Signed CBOR requests
 
-`/evaluate`, `/challenge/verify`, and `/precheck` take `Content-Type: application/cbor` bodies. CBOR keeps `Uint8Array` values intact, which signature verification depends on. Responses are JSON.
+`/evaluate`, `/challenge/verify`, `/precheck`, and `/upload/authorize` take `Content-Type: application/cbor` bodies. CBOR keeps `Uint8Array` values intact, which signature verification depends on. Responses are JSON.
 
 To sign a request, CBOR-encode an object holding the signed properties, sign those bytes with Ed25519, and add:
 
@@ -276,7 +276,7 @@ signature: {
 }
 ```
 
-`/evaluate` and `/challenge/verify` are signed by the community signer. This stops parties unrelated to the community from querying the service about its authors. The hosted service checks that the signer matches the community, resolving domain addresses through pkc-js. `/precheck` is signed by the author.
+`/evaluate` and `/challenge/verify` are signed by the community signer. This stops parties unrelated to the community from querying the service about its authors. The hosted service checks that the signer matches the community, resolving domain addresses through pkc-js. `/precheck` and `/upload/authorize` are signed by the author.
 
 ### POST /evaluate
 
@@ -396,6 +396,54 @@ Response:
 ```
 
 The pre-check is not a security boundary. Redemption re-scores the real signed publication, and the community still applies its verify-time rules. Pre-check sessions never count as publishing history. The endpoint is rate-limited per client IP. Repeating a request for an existing session by the same author returns its current state, and any other reuse of the id returns 409.
+
+### POST /upload/authorize
+
+Called from the author's client before it uploads an attached file to Forge Images, with the session id of the comment's completed pre-check. Who may upload through a restricted connection is described in [Attached files](#attached-files). The route answers cross-origin browser requests.
+
+Request:
+
+```typescript
+{
+    communityAddress: string; // Domain or IPNS address the comment is for
+    authorAddress: string; // Address derived from the signing public key; anything else is rejected
+    authorName?: string; // The author's .bso name, checked for a verified-name exemption
+    precheckSessionId?: string; // "precheck-<lowercase uuid v4>" of the comment's completed pre-check
+    parentCid?: string; // The parent comment, for a reply
+    upload: {
+        sha256: string; // SHA-256 of the file's bytes, 64 lowercase hex characters
+        byteLength: number; // File size in bytes, at most 50 MiB
+        mimeType: string; // Declared MIME type, at most 128 characters
+    };
+    nonce: string; // UUID, never reused by this signer
+    timestamp: number; // Unix seconds, within 5 minutes of server time
+    signature: {
+        // Author's signer. signedPropertyNames must list every other field the request carries
+    };
+}
+```
+
+Response:
+
+```typescript
+{
+    token: string; // 43 base64url characters, valid once
+    expiresAt: number; // Unix seconds, 5 minutes after issue
+}
+```
+
+A refusal is JSON `{ allowed: false, code, message, error, connectionType?, retryAt? }`:
+
+| Status | `code`                                  | Meaning                                                                                                      |
+| ------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| 400    | `invalid_request`                       | The body does not match the schema, including unknown fields                                                 |
+| 401    | `invalid_signature`, `invalid_author`   | The signature does not cover every field, or `authorAddress` is not the signer's                             |
+| 403    | `connection_blocked`, `tor_blocked`     | The connection is restricted and nothing exempts this upload; `connectionType` names it                      |
+| 409    | `precheck_required`, `replayed_request` | No usable pre-check for this author and community, or the nonce was already used                             |
+| 429    | `rate_limited`                          | A per-IP, per-signer or per-pre-check limit was reached; `retryAt` (Unix seconds) and `Retry-After` say when |
+| 503    | `unavailable`                           | The connection or an exemption could not be verified                                                         |
+
+To upload, send the file to Forge Images with the header `X-Bitsocial-Upload-Authorization` set to the base64url encoding of the JSON `{"token", "sha256", "byteLength", "mimeType"}`, using the token and the same file metadata. Forge checks the token with the service before reading the file, then rejects a file whose size or SHA-256 differs from the authorized one. A token is consumed even if the upload then fails.
 
 ### GET /challenge/status/:sessionId
 
