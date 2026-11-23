@@ -229,6 +229,17 @@ The server verifies the author's signing identity, checks ownership of a claimed
 
 The final community still verifies eligibility. An early exemption is not a reusable authorization to bypass other communities, challenges, or upload policies. The Tor rejection explains the configured whitelist and verified-name exceptions when this policy is present.
 
+### Attached files
+
+Forge Images asks the hosted service before it accepts an attached file. The author's client sends an author-signed `POST /upload/authorize` naming the community, the pre-check session id and the file's SHA-256, size and type, and gets a single-use token bound to that file for five minutes. Forge checks the token with the service when the upload arrives.
+
+- From an unrestricted connection, a completed pre-check by that author for that community authorizes the file.
+- Through a VPN, proxy or datacenter connection, the pre-check authorizes it only when it passed with a sign-in that no ban in the community is linked to, or when the author is an established account there. That is the same exemption `/challenge/verify` reports as `connectionExemption`.
+- Through Tor, only a verified exemption authorizes it: a moderator role, the community's whitelist, or a verified `.bso` name, on a community the operator has approved.
+- An upload sent to Forge Images without a token is allowed only from a connection confirmed as none of the four restricted types.
+
+A pre-check authorizes at most 25 files, and a signer at most 30 per hour.
+
 ## API contract
 
 All routes are relative to `serverUrl`, for example `https://spamblocker.bitsocial.net/api/v1`. Response schemas for `/evaluate` and `/challenge/verify` are exported from [`packages/shared/src/types.ts`](./packages/shared/src/types.ts).
@@ -243,9 +254,12 @@ All routes are relative to `serverUrl`, for example `https://spamblocker.bitsoci
 | `GET /iframe/:sessionId/precheck`  | Author's browser        | Bootstrap page that calls `/precheck`               |
 | `GET /iframe/:sessionId`           | Author's browser        | Verification page (OAuth and CAPTCHA)               |
 | `POST /challenge/complete`         | Verification page       | Submit a solved CAPTCHA                             |
-| `GET /oauth/:provider/start`       | Verification page       | Start an OAuth sign-in                              |
+| `GET /oauth/:provider/open`        | Verification page       | Sign-in window that waits for the page's grant      |
+| `POST /oauth/:provider/begin`      | Sign-in window          | Start an OAuth sign-in with that grant              |
+| `GET /oauth/:provider/start`       | Sign-in window          | Start a sign-in without a grant (same network only) |
 | `GET /oauth/:provider/callback`    | OAuth provider          | Finish an OAuth sign-in                             |
 | `GET /oauth/status/:sessionId`     | Verification page       | Poll OAuth progress                                 |
+| `POST /upload/authorize`           | Author's client         | Authorize one attached file for Forge Images        |
 
 ### Signed CBOR requests
 
@@ -472,7 +486,7 @@ This is a defense local to the hosted service. It is not a protocol-wide identit
 - Communities receive only the country code, the IP risk, the network type estimate, and the pass or fail result. They never receive the raw IP.
 - OAuth identities (`provider:userId`) are stored by the operator with the publication and its network record, with no automatic deletion, so a ban also applies to the account. They are never shared with communities, which learn only that a sign-in succeeded.
 - Sign-ins request no profile data: Google and Telegram get only the `openid` scope and Apple no scopes, so the service receives only an account ID, never a name, email, or photo. Telegram's confirmation screen still says the site receives your name, username, and photo.
-- Google's and Telegram's account IDs are the same for every site that uses them. Apple's is unique to the hosted service, so no other site can match it.
+- Google's and Telegram's account IDs are the same for every site that uses them. Apple issues its ID per developer team, so sites of other developers cannot match it.
 - Signing in through a VPN, proxy, or relay does not reveal the author's real IP address: the service sees only the address of that connection.
 - The `explanation` field gives the reasoning behind a score.
 
