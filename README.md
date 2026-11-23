@@ -177,7 +177,7 @@ A pass is single use and is accepted only for the author signer and community th
 
 ### Tor-blocking communities
 
-A successful pass still opens a brief lazy iframe when publishing, so the server can check the current connection. Earned CAPTCHA and OAuth credit is kept. This stops an author from passing a pre-check on one network and then publishing through Tor.
+A pass carries the connection its pre-check confirmed in the author's browser under the same rules, so redeeming it settles the post without a second iframe. The spam blocker only sees the network of the browser that opens its pages, and the author chooses that network for the pre-check as for any later page, so a second check could not stop a post through Tor. A community check without a pass still opens a brief lazy iframe so the server can check the current connection, keeping any CAPTCHA and OAuth credit already earned.
 
 Community-side exemptions remain authoritative. Operators can set `options.precheckExemptions` to a JSON string declaring exactly the known challenge dependencies they use:
 
