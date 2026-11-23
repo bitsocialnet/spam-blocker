@@ -108,7 +108,7 @@ The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the r
 4. The service returns a risk score between 0 and 1:
     - below `autoAcceptThreshold`: the session completes;
     - at or above `autoRejectThreshold`: the session fails and the page explains why;
-    - in between: the page redirects to the verification page, which asks for a CAPTCHA when a CAPTCHA alone can pass and for a sign-in otherwise (see [Iframe pages](#iframe-pages)).
+    - in between: the author's sign-in from the past 30 days is reused first, and completes the session when it is enough; otherwise the page redirects to the verification page, which asks for a CAPTCHA when a CAPTCHA alone can pass and for a sign-in otherwise (see [Iframe pages](#iframe-pages)).
 5. The page tells the client the outcome is ready, and the client sends a `ChallengeAnswer` with an empty string.
 6. The community calls `/challenge/verify` with the session id. On success it applies its own IP rules from the options above, then accepts or rejects the publication.
 
@@ -120,15 +120,19 @@ author opens iframe -> POST /evaluate -> riskScore
   |
   ├─ <  autoAcceptThreshold -> completed ----------------------------> /challenge/verify -> success
   ├─ >= autoRejectThreshold -> failed -------------------------------> /challenge/verify -> rejected
-  └─ in between -> verification page
+  └─ in between
         |
-        ├─ CAPTCHA, when a CAPTCHA alone can pass
-        |     ├─ enough -> completed --------------------------------> /challenge/verify -> success
-        |     └─ not enough -> sign-in
+        ├─ remembered sign-in is enough -> completed ----------------> /challenge/verify -> success
         |
-        └─ sign-in, for a restricted connection or a higher score
-              ├─ enough -> completed --------------------------------> /challenge/verify -> success
-              └─ not enough -> CAPTCHA if it finishes, else second provider
+        └─ otherwise -> verification page
+              |
+              ├─ CAPTCHA, when a CAPTCHA alone can pass
+              |     ├─ enough -> completed --------------------------> /challenge/verify -> success
+              |     └─ not enough -> sign-in
+              |
+              └─ sign-in, for a restricted connection or a higher score
+                    ├─ enough -> completed --------------------------> /challenge/verify -> success
+                    └─ not enough -> CAPTCHA if it finishes, else second provider
 ```
 
 Other behavior of the challenge package:
@@ -362,7 +366,7 @@ Returns `{ completed, status, outcome?, warning? }` and sends `Access-Control-Al
 
 - **`/iframe/:sessionId/lazy`** does not create a session by itself. Its script reads the signed payload from the URL fragment and posts it to `/evaluate`. It then completes, redirects to the verification page, or shows why the publication was rejected until the author presses Close.
 - **`/iframe/:sessionId/precheck`** does the same for a `precheck-` session id, posting to `/precheck`.
-- **`/iframe/:sessionId`** is the verification page. It shows a CAPTCHA when a CAPTCHA alone can pass at the session's score. It asks for a sign-in instead for a VPN, proxy or datacenter connection the community restricts, for a score a CAPTCHA cannot bring under the pass threshold, and after a CAPTCHA that was not enough. A sign-in that is not enough is followed by a CAPTCHA when that finishes the check, and otherwise by a sign-in with a second provider. Without a configured CAPTCHA it always asks for a sign-in; without a configured sign-in provider it serves a CAPTCHA only. Every configured provider is offered, including ones the author used before. A check that would ask for a sign-in reuses the author's last sign-in from the past 30 days instead, unless a ban in the community is linked to that account or its provider is no longer offered.
+- **`/iframe/:sessionId`** is the verification page, for a check the author's remembered sign-in did not already pass (see below). It shows a CAPTCHA when a CAPTCHA alone can pass at the session's score. It asks for a sign-in instead for a VPN, proxy or datacenter connection the community restricts, for a score a CAPTCHA cannot bring under the pass threshold, and after a CAPTCHA that was not enough. A sign-in that is not enough is followed by a CAPTCHA when that finishes the check, and otherwise by a sign-in with a second provider. Without a configured CAPTCHA it always asks for a sign-in; without a configured sign-in provider it serves a CAPTCHA only. Every configured provider is offered, including ones the author used before. Before any of this, a check that waits for verification reuses the author's last sign-in from the past 30 days, unless a ban in the community is linked to that account or its provider is no longer offered. When that sign-in is enough, the post completes with no CAPTCHA from any connection; when it is not, the page continues from it as after a sign-in that is not enough.
 - **Sign-in windows.** The verification page loads only from the address its session is bound to. It hands the sign-in window it opens a signed grant, which the service requires to start the sign-in. So the sign-in works when iCloud Private Relay or a VPN gives that window another address, and knowing a session ID is not enough to sign in to it. A sign-in link opened any other way must start on the same network as the page (the same IPv4 address or IPv6 /64), so a challenge link cannot be signed in from another network.
 
 Challenge pages post `{ type: "challengeCompletionManaged", sessionId }` to the parent window on load. This tells the client that the page sends the answer itself, as `{ type: "challengeAnswer", challengeAnswers: [""], sessionId }`, once the author has seen the outcome.
