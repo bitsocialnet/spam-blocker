@@ -443,7 +443,21 @@ A refusal is JSON `{ allowed: false, code, message, error, connectionType?, retr
 | 429    | `rate_limited`                          | A per-IP, per-signer or per-pre-check limit was reached; `retryAt` (Unix seconds) and `Retry-After` say when |
 | 503    | `unavailable`                           | The connection or an exemption could not be verified                                                         |
 
-To upload, send the file to Forge Images with the header `X-Bitsocial-Upload-Authorization` set to the base64url encoding of the JSON `{"token", "sha256", "byteLength", "mimeType"}`, using the token and the same file metadata. Forge checks the token with the service before reading the file, then rejects a file whose size or SHA-256 differs from the authorized one. A token is consumed even if the upload then fails.
+To upload, send the file to Forge Images with the header `X-Bitsocial-Upload-Authorization` set to the base64url encoding of a JSON object holding the token and the same file metadata, and no other properties:
+
+```typescript
+const authorization = Buffer.from(
+    JSON.stringify({
+        token, // from the response above
+        sha256: upload.sha256, // the same values as in the request
+        byteLength: upload.byteLength,
+        mimeType: upload.mimeType
+    })
+).toString("base64url");
+// headers: { "X-Bitsocial-Upload-Authorization": authorization }
+```
+
+Forge checks the token with the service before reading the file, then rejects a file whose size or SHA-256 differs from the authorized one. A token is consumed even if the upload then fails.
 
 ### GET /challenge/status/:sessionId
 
