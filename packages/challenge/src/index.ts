@@ -8,6 +8,7 @@ import { signBufferEd25519 } from "./pkc-js-signer.js";
 import type { EvaluateResponse, EvaluationOptions, VerifyResponse } from "@bitsocial/spam-blocker-shared";
 import { EvaluateResponseSchema, VerifyResponseSchema } from "@bitsocial/spam-blocker-shared";
 import { createOptionsSchema, type ParsedOptions } from "./schema.js";
+import { isServerReachable } from "./server-reachability.js";
 import * as cborg from "cborg";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { randomUUID } from "node:crypto";
@@ -178,19 +179,31 @@ const createRequestSignature = async (
     };
 };
 
+class ServerUnreachableError extends Error {}
+
+// A proxy answers 502-504, and Cloudflare 520-530 (530 when its tunnel is down), when the server behind it is gone.
+const isGatewayErrorStatus = (status: number) => (status >= 502 && status <= 504) || (status >= 520 && status <= 530);
+
 const postCbor = async ({ url, body, signal }: { url: string; body: unknown; signal?: AbortSignal }): Promise<unknown> => {
     const encoded = cborg.encode(body);
     log.trace(`POST ${url} request body (CBOR, %d bytes)`, encoded.length);
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "content-type": "application/cbor",
-            accept: "application/json",
-            "ngrok-skip-browser-warning": "true"
-        },
-        body: Buffer.from(encoded),
-        signal
-    });
+    let response: Response;
+    try {
+        response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "content-type": "application/cbor",
+                accept: "application/json",
+                "ngrok-skip-browser-warning": "true"
+            },
+            body: Buffer.from(encoded),
+            signal
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        log.error(`POST ${url} failed: %s`, message);
+        throw new ServerUnreachableError(`Bitsocial Spam Blocker server unreachable: ${message}`);
+    }
 
     let responseBody: unknown;
     try {
@@ -204,7 +217,8 @@ const postCbor = async ({ url, body, signal }: { url: string; body: unknown; sig
     if (!response.ok) {
         const details = responseBody !== undefined ? `: ${JSON.stringify(responseBody)}` : "";
         log.error(`POST ${url} failed with status ${response.status}${details}`);
-        throw new Error(`Bitsocial Spam Blocker server error (${response.status})${details}`);
+        const ErrorClass = isGatewayErrorStatus(response.status) ? ServerUnreachableError : Error;
+        throw new ErrorClass(`Bitsocial Spam Blocker server error (${response.status})${details}`);
     }
 
     if (responseBody === undefined) {
@@ -223,6 +237,24 @@ const parseWithSchema = <T>(schema: { parse: (data: unknown) => T }, data: unkno
         const suffix = message ? `: ${message}` : "";
         throw new Error(`Invalid ${context} response from Bitsocial Spam Blocker server${suffix}`);
     }
+};
+
+// Shown with the errors of the community's other challenges, so the author sees that only this check is down and
+// that the challenges this one excludes on (a .bso name, a whitelist) still let them post.
+const getServerUnreachableError = ({
+    serverUrl,
+    challengeSettings
+}: {
+    serverUrl: string;
+    challengeSettings: GetChallengeArgs["challengeSettings"];
+}) => {
+    const hasAlternatives = challengeSettings.exclude?.some(
+        (exclude) => Array.isArray(exclude.challenges) && exclude.challenges.length > 0
+    );
+    const next = hasAlternatives
+        ? "You can still post by meeting one of this community's other requirements, or try again later."
+        : "Try again later.";
+    return `Bitsocial Spam Blocker (${new URL(serverUrl).host}) is unreachable right now, so its check cannot run. ${next}`;
 };
 
 const toBase64Url = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64url");
@@ -396,6 +428,9 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
             if (signal) throw error;
             const message = error instanceof Error ? error.message : "Unknown error";
             log.error("Failed to verify challenge: %s", message);
+            if (error instanceof ServerUnreachableError) {
+                return { success: false, error: getServerUnreachableError({ serverUrl: options.serverUrl, challengeSettings }) };
+            }
             return { success: false, error: message };
         }
         log(
@@ -459,6 +494,12 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
             const message = error instanceof Error ? error.message : "Unknown error";
             log.error("Failed to redeem pre-check pass, falling back to the lazy challenge: %s", message);
         }
+    }
+
+    // The lazy iframe loads in the author's browser, so a server that is down would show a page that never loads.
+    if (!(await isServerReachable({ serverUrl: options.serverUrl }))) {
+        log.error("Bitsocial Spam Blocker at %s is unreachable; failing the challenge instead of returning its iframe", options.serverUrl);
+        return { success: false, error: getServerUnreachableError({ serverUrl: options.serverUrl, challengeSettings }) };
     }
 
     return createLazyChallenge(await createEvaluateRequest());
