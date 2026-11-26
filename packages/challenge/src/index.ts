@@ -464,6 +464,13 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
     return createLazyChallenge(await createEvaluateRequest());
 };
 
+// pkc-js runs this on community edit and creation (rejecting the write) and on start (logging the failure), so an
+// owner learns about a bad option when saving it instead of from every publication failing. It must stay sync and
+// offline: whether serverUrl is reachable is getChallenge's concern.
+const validateChallengeSettings: NonNullable<ChallengeFileInput["validateChallengeSettings"]> = ({ challengeSettings }) => {
+    parseOptions(challengeSettings);
+};
+
 // pkc-js publishes `challenge` as community.challenges[i].challenge; clients use it to find the pre-check route.
 // Must not throw: pkc-js calls the factory while building the public community record and on every challenge request.
 function ChallengeFileFactory(args: { challengeSettings: GetChallengeArgs["challengeSettings"] }): ChallengeFileInput {
@@ -495,7 +502,7 @@ function ChallengeFileFactory(args: { challengeSettings: GetChallengeArgs["chall
         }
         challenge = marker.toString();
     }
-    return { getChallenge, optionInputs, type, description, ...(challenge ? { challenge } : {}) };
+    return { getChallenge, optionInputs, type, description, validateChallengeSettings, ...(challenge ? { challenge } : {}) };
 }
 
 export default ChallengeFileFactory;
