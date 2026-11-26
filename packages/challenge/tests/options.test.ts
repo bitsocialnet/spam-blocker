@@ -117,3 +117,53 @@ describe("challenge options validation", () => {
         }
     });
 });
+
+describe("validateChallengeSettings", () => {
+    const validate = ({ options }: { options?: Record<string, string> }) => {
+        const challengeSettings = { name: "spam-blocker", ...(options ? { options } : {}) } as CommunityChallengeSetting;
+        const { validateChallengeSettings } = ChallengeFileFactory({ challengeSettings });
+        if (!validateChallengeSettings) throw new Error("validateChallengeSettings is not exported");
+        validateChallengeSettings({ challengeSettings });
+    };
+
+    it("accepts missing options, which fall back to the defaults", () => {
+        expect(() => validate({})).not.toThrow();
+    });
+
+    it("accepts the settings the 5chan boards use", () => {
+        expect(() =>
+            validate({
+                options: {
+                    autoAcceptThreshold: "0.2",
+                    autoRejectThreshold: "0.8",
+                    blockVpn: "true",
+                    blockProxy: "true",
+                    blockTor: "true",
+                    blockDatacenter: "true",
+                    countryBlacklist: "RU,CN"
+                }
+            })
+        ).not.toThrow();
+    });
+
+    it.each([
+        { name: "a non-http serverUrl", options: { serverUrl: "ftp://example.com" }, message: /http or https/ },
+        { name: "a serverUrl that is not a URL", options: { serverUrl: "spamblocker" }, message: /Invalid challenge options/ },
+        {
+            name: "a threshold outside 0..1",
+            options: { autoAcceptThreshold: "1.5" },
+            message: /autoAcceptThreshold must be between 0 and 1/
+        },
+        {
+            name: "inverted thresholds",
+            options: { autoAcceptThreshold: "0.9", autoRejectThreshold: "0.1" },
+            message: /autoAcceptThreshold must be less than or equal to autoRejectThreshold/
+        },
+        { name: "a non-numeric maxIpRisk", options: { maxIpRisk: "high" }, message: /Invalid maxIpRisk option 'high'/ },
+        { name: "a non-boolean connection policy", options: { blockVpn: "yes" }, message: /Invalid challenge options/ },
+        { name: "an unknown country code", options: { countryBlacklist: "US,XYZ" }, message: /country code 'XYZ'/ },
+        { name: "malformed precheckExemptions", options: { precheckExemptions: "{not json" }, message: /Invalid challenge options/ }
+    ])("rejects $name", ({ options, message }) => {
+        expect(() => validate({ options })).toThrow(message);
+    });
+});
