@@ -1,5 +1,13 @@
 # Changelog
 
+## <small>0.1.16 (2026-11-26)</small>
+
+* fix(deps): upgrade @pkcprotocol/pkc-js 0.0.30 -> 0.0.163 (#31) ([e18e1a8](https://github.com/bitsocialnet/spam-blocker/commit/e18e1a8)), closes [#31](https://github.com/bitsocialnet/spam-blocker/issues/31)
+* docs: a redeemed pre-check pass settles without a second iframe (#30) ([850f6d1](https://github.com/bitsocialnet/spam-blocker/commit/850f6d1)), closes [#30](https://github.com/bitsocialnet/spam-blocker/issues/30)
+* docs: describe the hosted CAPTCHA-first verification page and its sign-in providers (#27) ([2ff9f9e](https://github.com/bitsocialnet/spam-blocker/commit/2ff9f9e)), closes [#27](https://github.com/bitsocialnet/spam-blocker/issues/27) [bitsocialnet/spam-blocker-server#43](https://github.com/bitsocialnet/spam-blocker-server/issues/43) [#45](https://github.com/bitsocialnet/spam-blocker/issues/45)
+* docs: document upload authorization and the sign-in window routes (#29) ([d969f80](https://github.com/bitsocialnet/spam-blocker/commit/d969f80)), closes [#29](https://github.com/bitsocialnet/spam-blocker/issues/29) [#46](https://github.com/bitsocialnet/spam-blocker/issues/46)
+* docs: say a remembered sign-in passes a post from any connection (#28) ([fe32915](https://github.com/bitsocialnet/spam-blocker/commit/fe32915)), closes [#28](https://github.com/bitsocialnet/spam-blocker/issues/28)
+
 ## <small>0.1.15 (2026-11-22)</small>
 
 * feat(challenge): accept sign-in exemptions and give abuse as the rejection reason (#26) ([700fd89](https://github.com/bitsocialnet/spam-blocker/commit/700fd89)), closes [#26](https://github.com/bitsocialnet/spam-blocker/issues/26)
