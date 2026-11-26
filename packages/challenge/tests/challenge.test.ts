@@ -731,8 +731,9 @@ describe("Bitsocial Spam Blocker challenge package", () => {
         const challengePath = path.resolve(__dirname, "../dist/index.js");
 
         const require = createRequire(import.meta.url);
-        const pkcJsDir = path.dirname(require.resolve("@pkcprotocol/pkc-js"));
-        const pkcJsChallengesPath = path.join(pkcJsDir, "runtime/node/community/challenges/index.js");
+        // The package entry is dist/bundled/index.js, so climb to the package root for the dist/node internals.
+        const pkcJsRoot = path.resolve(path.dirname(require.resolve("@pkcprotocol/pkc-js")), "..", "..");
+        const pkcJsChallengesPath = path.join(pkcJsRoot, "dist/node/runtime/node/community/challenges/index.js");
         const { getCommunityChallengeFromCommunityChallengeSettings } = await import(pathToFileURL(pkcJsChallengesPath).href);
 
         const { communityChallenge: publicChallenge } = await getCommunityChallengeFromCommunityChallengeSettings({
