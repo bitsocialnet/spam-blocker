@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>0.1.17 (2026-11-26)</small>
+
+* feat(challenge): reject invalid options through pkc-js's validateChallengeSettings hook (#32) ([6a59922](https://github.com/bitsocialnet/spam-blocker/commit/6a59922)), closes [#32](https://github.com/bitsocialnet/spam-blocker/issues/32) [#14](https://github.com/bitsocialnet/spam-blocker/issues/14)
+
 ## <small>0.1.16 (2026-11-26)</small>
 
 * fix(deps): upgrade @pkcprotocol/pkc-js 0.0.30 -> 0.0.163 (#31) ([e18e1a8](https://github.com/bitsocialnet/spam-blocker/commit/e18e1a8)), closes [#31](https://github.com/bitsocialnet/spam-blocker/issues/31)
