@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Bitsocial Spam Blocker">
+<title>Bitsocial Spam Blocker</title>
+<defs>
+<radialGradient id="globe" cx="0.38" cy="0.32" r="0.75"><stop offset="0" stop-color="#9af5c6"/><stop offset="0.35" stop-color="#33d17f"/><stop offset="0.75" stop-color="#129554"/><stop offset="1" stop-color="#0a5c34"/></radialGradient>
+<linearGradient id="ring" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="256" y2="256"><stop offset="0" stop-color="#ffffff"/><stop offset="0.5" stop-color="#c5ccd5"/><stop offset="1" stop-color="#6f7a88"/></linearGradient>
+</defs>
+<path d="M129 13A26 116 0 0 0 129 245" fill="none" stroke="#3f4854" stroke-width="19"/><path d="M129 13A26 116 0 0 0 129 245" fill="none" stroke="url(#ring)" stroke-width="13"/>
+<path d="M10 129A118 22 0 0 1 246 129" fill="none" stroke="#3f4854" stroke-width="19"/><path d="M10 129A118 22 0 0 1 246 129" fill="none" stroke="url(#ring)" stroke-width="13"/>
+<g fill="url(#globe)"><circle cx="128" cy="129" r="75"/></g>
+<path d="M129 13A26 116 0 0 1 129 245" fill="none" stroke="#3f4854" stroke-width="19"/><path d="M129 13A26 116 0 0 1 129 245" fill="none" stroke="url(#ring)" stroke-width="13"/>
+<path d="M10 129A118 22 0 0 0 246 129" fill="none" stroke="#3f4854" stroke-width="19"/><path d="M10 129A118 22 0 0 0 246 129" fill="none" stroke="url(#ring)" stroke-width="13"/>
+</svg>
