@@ -11,6 +11,9 @@ import * as cborg from "cborg";
 import * as ed from "@noble/ed25519";
 import path from "node:path";
 
+// The server reachability probe has its own tests; here the server is always up, so fetch sees only API calls.
+vi.mock("../src/server-reachability.js", () => ({ isServerReachable: async () => true }));
+
 type MockResponseOptions = {
     ok?: boolean;
     status?: number;
@@ -24,7 +27,7 @@ const createResponse = (body: unknown, options: MockResponseOptions = {}) => {
     return {
         ok,
         status,
-        json: jsonThrows ? vi.fn().mockRejectedValue(new Error("bad json")) : vi.fn().mockResolvedValue(body)
+        json: jsonThrows ? vi.fn().mockRejectedValue(new SyntaxError("bad json")) : vi.fn().mockResolvedValue(body)
     };
 };
 

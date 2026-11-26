@@ -141,7 +141,7 @@ The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the r
 
 ## How it works
 
-1. An author publishes a post, reply, or vote. The community's `getChallenge()` signs an evaluation payload with the community signer and returns a `url/iframe` challenge pointing at `<serverUrl>/iframe/<sessionId>/lazy#payload=...`. No request reaches the service yet.
+1. An author publishes a post, reply, or vote. The community's `getChallenge()` signs an evaluation payload with the community signer and returns a `url/iframe` challenge pointing at `<serverUrl>/iframe/<sessionId>/lazy#payload=...`. The payload does not reach the service yet; the community only checks that the service is [reachable](#when-the-service-is-down).
 2. The Bitsocial client asks the author before opening the iframe.
 3. Once opened, the iframe posts the signed payload to `/evaluate`. The payload sits in the URL fragment, so it is not sent with the initial iframe request.
 4. The service returns a risk score between 0 and 1:
@@ -152,7 +152,7 @@ The country, IP risk, VPN, proxy, Tor, and datacenter rules are applied to the r
 6. The community calls `/challenge/verify` with the session id. On success it applies its own IP rules from the options above, then accepts or rejects the publication.
 
 ```text
-getChallenge() -> lazy iframe URL (no request to the service)
+getChallenge() -> lazy iframe URL (only a cached GET /health to the service)
   |
   v
 author opens iframe -> POST /evaluate -> riskScore
@@ -177,9 +177,19 @@ author opens iframe -> POST /evaluate -> riskScore
 Other behavior of the challenge package:
 
 - `commentEdit`, `commentModeration`, and `communityEdit` requests are accepted locally without contacting the service.
-- If the service is unreachable or returns an invalid response during verify, the challenge fails with the error. It never silently accepts or rejects.
+- If the service is unreachable or returns an invalid response during verify, the challenge fails with an error. It never silently accepts or rejects.
 - A missing community signer fails the challenge.
 - `author.community` in the forwarded request is `undefined` for authors who have never published in the community. The community fills it from its own history.
+
+### When the service is down
+
+Before it returns the iframe, `getChallenge()` checks that the service answers [`GET /health`](#api-contract) with its JSON status. It reuses the result for 60 seconds, or for 15 seconds after a failure, and gives up on a probe after 5 seconds. A network error, an error status, or any other page (such as a parked domain's) counts as down.
+
+When the service is down, the challenge fails at once instead of returning an iframe that could not load:
+
+> Bitsocial Spam Blocker (spamblocker.bitsocial.net) is unreachable right now, so its check cannot run. You can still post by meeting one of this community's other requirements, or try again later.
+
+The second sentence is only `Try again later.` when no `exclude` entry names other challenges. Clients show this error next to the errors of the community's other challenges, so an author who has a `.bso` name or is whitelisted, where this challenge excludes on those challenges, still posts as usual. The same message replaces the raw error when `/challenge/verify` fails on a network error or a gateway status (502 to 504, or Cloudflare's 520 to 530) after the iframe opened.
 
 ## Pre-check pass
 
@@ -271,6 +281,8 @@ All routes are relative to `serverUrl`, for example `https://spamblocker.bitsoci
 | `GET /oauth/:provider/callback`    | OAuth provider          | Finish an OAuth sign-in                             |
 | `GET /oauth/status/:sessionId`     | Verification page       | Poll OAuth progress                                 |
 | `POST /upload/authorize`           | Author's client         | Authorize one attached file for Forge Images        |
+
+`GET /health` is served at the origin root, not under `serverUrl` (for example `https://spamblocker.bitsocial.net/health`). It returns `{ "status": "ok" | "degraded", ... }`; the challenge package reads it to tell whether the service is [reachable](#when-the-service-is-down).
 
 ### Signed CBOR requests
 
