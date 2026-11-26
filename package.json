@@ -5,7 +5,6 @@
     "type": "module",
     "resolutions": {
         "@conventional-changelog/git-client@npm:^1.0.0": "npm:2.7.0",
-        "@libp2p/gossipsub": "16.0.5",
         "@libp2p/kad-dht@npm:^16.2.0": "npm:16.2.6",
         "@protobufjs/utf8@npm:^1.1.0": "npm:1.1.1",
         "axios@npm:^1.7.2": "npm:1.20.0",
