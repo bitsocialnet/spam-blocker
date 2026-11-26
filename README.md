@@ -1,6 +1,16 @@
-# Bitsocial Spam Blocker
+<div align="center">
 
-Bitsocial Spam Blocker scores posts, replies, and votes for spam risk before a community accepts them. A community installs the challenge package, which sends each publication to a spam blocker service. Low-risk publications pass, high-risk ones are rejected, and the rest are asked to verify with an OAuth sign-in or a CAPTCHA.
+<img src="design/logo/spam-blocker-mark.svg" alt="SpamBlocker logo" width="120" />
+
+# Bitsocial SpamBlocker
+
+Risk scoring that keeps spam and ban evasion out of Bitsocial communities.
+
+[Quick start](#quick-start) · [Challenge options](#challenge-options) · [API contract](#api-contract) · [npm package](https://www.npmjs.com/package/@bitsocial/spam-blocker-challenge)
+
+</div>
+
+SpamBlocker scores posts, replies, and votes for spam risk before a community accepts them. A community installs the challenge package, which sends each publication to a spam blocker service. Low-risk publications pass, high-risk ones are rejected, and the rest are asked to verify with an OAuth sign-in or a CAPTCHA.
 
 This repository is the public integration surface: the challenge package, the shared schemas, and the API contract. The official hosted service at `https://spamblocker.bitsocial.net/api/v1` is closed source and lives in a separate private repository. See [Hosted Spam Blocker Source Policy](./docs/architecture/hosted-service-source-policy.md) for the reasoning.
 
