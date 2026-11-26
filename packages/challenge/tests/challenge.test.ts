@@ -27,7 +27,7 @@ const createResponse = (body: unknown, options: MockResponseOptions = {}) => {
     return {
         ok,
         status,
-        json: jsonThrows ? vi.fn().mockRejectedValue(new Error("bad json")) : vi.fn().mockResolvedValue(body)
+        json: jsonThrows ? vi.fn().mockRejectedValue(new SyntaxError("bad json")) : vi.fn().mockResolvedValue(body)
     };
 };
 

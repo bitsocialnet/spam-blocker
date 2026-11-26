@@ -182,7 +182,7 @@ const createRequestSignature = async (
 class ServerUnreachableError extends Error {}
 
 // A proxy answers 502-504, and Cloudflare 520-530 (530 when its tunnel is down), when the server behind it is gone.
-const isGatewayErrorStatus = (status: number) => (status >= 502 && status <= 504) || (status >= 520 && status <= 530);
+const isGatewayErrorStatus = ({ status }: { status: number }) => (status >= 502 && status <= 504) || (status >= 520 && status <= 530);
 
 const postCbor = async ({ url, body, signal }: { url: string; body: unknown; signal?: AbortSignal }): Promise<unknown> => {
     const encoded = cborg.encode(body);
@@ -208,7 +208,13 @@ const postCbor = async ({ url, body, signal }: { url: string; body: unknown; sig
     let responseBody: unknown;
     try {
         responseBody = (await response.json()) as unknown;
-    } catch {
+    } catch (error) {
+        // A body that is not JSON fails with a SyntaxError; anything else means the connection failed while reading it.
+        if (!(error instanceof SyntaxError)) {
+            const message = error instanceof Error ? error.message : String(error);
+            log.error(`POST ${url} failed while reading the response: %s`, message);
+            throw new ServerUnreachableError(`Bitsocial Spam Blocker server unreachable: ${message}`);
+        }
         responseBody = undefined;
     }
 
@@ -217,7 +223,7 @@ const postCbor = async ({ url, body, signal }: { url: string; body: unknown; sig
     if (!response.ok) {
         const details = responseBody !== undefined ? `: ${JSON.stringify(responseBody)}` : "";
         log.error(`POST ${url} failed with status ${response.status}${details}`);
-        const ErrorClass = isGatewayErrorStatus(response.status) ? ServerUnreachableError : Error;
+        const ErrorClass = isGatewayErrorStatus({ status: response.status }) ? ServerUnreachableError : Error;
         throw new ErrorClass(`Bitsocial Spam Blocker server error (${response.status})${details}`);
     }
 

@@ -124,7 +124,11 @@ describe("error handling", () => {
 
     it.each([
         ["the /challenge/verify request fails", async () => Promise.reject(new TypeError("Connection reset"))],
-        ["a Cloudflare tunnel error answers /challenge/verify", async () => response(undefined, { ok: false, status: 530 })]
+        ["a Cloudflare tunnel error answers /challenge/verify", async () => response(undefined, { ok: false, status: 530 })],
+        [
+            "the connection drops while reading the /challenge/verify answer",
+            async () => ({ ok: true, status: 200, json: async () => Promise.reject(new TypeError("terminated")) })
+        ]
     ])("returns the unreachable error when %s", async (_name, verify) => {
         stubServer(verify);
 
