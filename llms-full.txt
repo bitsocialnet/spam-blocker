@@ -26,9 +26,19 @@ Use this as compiled context only. Source files, tests, manifests, and live/runt
 Source: https://github.com/bitsocialnet/spam-blocker/blob/master/README.md
 
 ```markdown
-# Bitsocial Spam Blocker
+<div align="center">
 
-Bitsocial Spam Blocker scores posts, replies, and votes for spam risk before a community accepts them. A community installs the challenge package, which sends each publication to a spam blocker service. Low-risk publications pass, high-risk ones are rejected, and the rest are asked to verify with an OAuth sign-in or a CAPTCHA.
+<img src="design/logo/spam-blocker-mark.svg" alt="SpamBlocker logo" width="120" />
+
+# Bitsocial SpamBlocker
+
+Risk scoring that keeps spam and ban evasion out of Bitsocial communities.
+
+[Quick start](#quick-start) · [Challenge options](#challenge-options) · [API contract](#api-contract) · [npm package](https://www.npmjs.com/package/@bitsocial/spam-blocker-challenge)
+
+</div>
+
+SpamBlocker scores posts, replies, and votes for spam risk before a community accepts them. A community installs the challenge package, which sends each publication to a spam blocker service. Low-risk publications pass, high-risk ones are rejected, and the rest are asked to verify with an OAuth sign-in or a CAPTCHA.
 
 This repository is the public integration surface: the challenge package, the shared schemas, and the API contract. The official hosted service at `https://spamblocker.bitsocial.net/api/v1` is closed source and lives in a separate private repository. See [Hosted Spam Blocker Source Policy](./docs/architecture/hosted-service-source-policy.md) for the reasoning.
 
@@ -1043,6 +1053,10 @@ Source: https://github.com/bitsocialnet/spam-blocker/blob/master/packages/challe
 
 ```markdown
 # Changelog
+
+## <small>0.1.17 (2026-11-26)</small>
+
+* feat(challenge): reject invalid options through pkc-js's validateChallengeSettings hook (#32) ([6a59922](https://github.com/bitsocialnet/spam-blocker/commit/6a59922)), closes [#32](https://github.com/bitsocialnet/spam-blocker/issues/32) [#14](https://github.com/bitsocialnet/spam-blocker/issues/14)
 
 ## <small>0.1.16 (2026-11-26)</small>
 

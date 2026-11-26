@@ -182,6 +182,7 @@ function summaryFromMarkdown(content) {
             trimmed.startsWith("[![") ||
             trimmed.startsWith("_Telegram") ||
             trimmed.startsWith("<img") ||
+            trimmed.startsWith("<div") ||
             trimmed.startsWith("<p") ||
             trimmed.startsWith("<br") ||
             trimmed.startsWith("</") ||
