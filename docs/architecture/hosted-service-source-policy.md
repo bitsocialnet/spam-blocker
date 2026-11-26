@@ -1,4 +1,4 @@
-# Hosted Spam Blocker Source Policy
+# Hosted SpamBlocker Source Policy
 
 This decision records why Bitsocial publishes the spam blocker's integration surface while keeping the official hosted service implementation private.
 

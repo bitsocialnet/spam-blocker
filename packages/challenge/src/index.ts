@@ -32,7 +32,7 @@ const optionInputs = [
         option: "serverUrl",
         label: "Server URL",
         default: DEFAULT_SERVER_URL,
-        description: "URL of the Bitsocial Spam Blocker server",
+        description: "URL of the Bitsocial SpamBlocker server",
         placeholder: "https://spamblocker.bitsocial.net/api/v1"
     },
     {
@@ -100,7 +100,7 @@ const OptionsSchema = createOptionsSchema(optionInputs);
 
 const type: ChallengeInput["type"] = "url/iframe";
 
-const description: ChallengeFileInput["description"] = "Validate publications using Bitsocial Spam Blocker.";
+const description: ChallengeFileInput["description"] = "Validate publications using Bitsocial SpamBlocker.";
 
 type RuntimeSigner = {
     privateKey?: string;
@@ -202,7 +202,7 @@ const postCbor = async ({ url, body, signal }: { url: string; body: unknown; sig
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`POST ${url} failed: %s`, message);
-        throw new ServerUnreachableError(`Bitsocial Spam Blocker server unreachable: ${message}`);
+        throw new ServerUnreachableError(`Bitsocial SpamBlocker server unreachable: ${message}`);
     }
 
     let responseBody: unknown;
@@ -213,7 +213,7 @@ const postCbor = async ({ url, body, signal }: { url: string; body: unknown; sig
         if (!(error instanceof SyntaxError)) {
             const message = error instanceof Error ? error.message : String(error);
             log.error(`POST ${url} failed while reading the response: %s`, message);
-            throw new ServerUnreachableError(`Bitsocial Spam Blocker server unreachable: ${message}`);
+            throw new ServerUnreachableError(`Bitsocial SpamBlocker server unreachable: ${message}`);
         }
         responseBody = undefined;
     }
@@ -224,12 +224,12 @@ const postCbor = async ({ url, body, signal }: { url: string; body: unknown; sig
         const details = responseBody !== undefined ? `: ${JSON.stringify(responseBody)}` : "";
         log.error(`POST ${url} failed with status ${response.status}${details}`);
         const ErrorClass = isGatewayErrorStatus({ status: response.status }) ? ServerUnreachableError : Error;
-        throw new ErrorClass(`Bitsocial Spam Blocker server error (${response.status})${details}`);
+        throw new ErrorClass(`Bitsocial SpamBlocker server error (${response.status})${details}`);
     }
 
     if (responseBody === undefined) {
         log.error(`POST ${url} returned invalid JSON`);
-        throw new Error("Invalid JSON response from Bitsocial Spam Blocker server");
+        throw new Error("Invalid JSON response from Bitsocial SpamBlocker server");
     }
 
     return responseBody;
@@ -241,7 +241,7 @@ const parseWithSchema = <T>(schema: { parse: (data: unknown) => T }, data: unkno
     } catch (error) {
         const message = error instanceof Error ? error.message : "";
         const suffix = message ? `: ${message}` : "";
-        throw new Error(`Invalid ${context} response from Bitsocial Spam Blocker server${suffix}`);
+        throw new Error(`Invalid ${context} response from Bitsocial SpamBlocker server${suffix}`);
     }
 };
 
@@ -260,7 +260,7 @@ const getServerUnreachableError = ({
     const next = hasAlternatives
         ? "You can still post by meeting one of this community's other requirements, or try again later."
         : "Try again later.";
-    return `Bitsocial Spam Blocker (${new URL(serverUrl).host}) is unreachable right now, so its check cannot run. ${next}`;
+    return `Bitsocial SpamBlocker (${new URL(serverUrl).host}) is unreachable right now, so its check cannot run. ${next}`;
 };
 
 const toBase64Url = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64url");
@@ -382,7 +382,7 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
 
     if (!signer) {
         log.error("Community signer is missing");
-        return { success: false, error: "Community signer is required to call Bitsocial Spam Blocker" };
+        return { success: false, error: "Community signer is required to call Bitsocial SpamBlocker" };
     }
     log.trace("Signer publicKey: %s", signer.publicKey);
 
@@ -504,7 +504,7 @@ const getChallenge = async (args: GetChallengeArgs): Promise<ChallengeInput | Ch
 
     // The lazy iframe loads in the author's browser, so a server that is down would show a page that never loads.
     if (!(await isServerReachable({ serverUrl: options.serverUrl }))) {
-        log.error("Bitsocial Spam Blocker at %s is unreachable; failing the challenge instead of returning its iframe", options.serverUrl);
+        log.error("Bitsocial SpamBlocker at %s is unreachable; failing the challenge instead of returning its iframe", options.serverUrl);
         return { success: false, error: getServerUnreachableError({ serverUrl: options.serverUrl, challengeSettings }) };
     }
 

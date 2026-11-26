@@ -2,9 +2,9 @@
 
 A Bitsocial challenge plugin that protects communities from spam by evaluating publication risk scores and optionally presenting an interactive challenge to users.
 
-## Using Spam Blocker In Your Community
+## Using SpamBlocker In Your Community
 
-Community owners add the spam blocker challenge to their community settings. When enabled, user-generated publications return a consent-gated iframe URL. The Bitsocial Spam Blocker server evaluates the publication only after the user opens that iframe. Low-risk publications complete immediately after evaluation, high-risk publications are rejected, and medium-risk publications continue into an interactive iframe challenge. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted locally because they do not require spam detection.
+Community owners add the spam blocker challenge to their community settings. When enabled, user-generated publications return a consent-gated iframe URL. The Bitsocial SpamBlocker server evaluates the publication only after the user opens that iframe. Low-risk publications complete immediately after evaluation, high-risk publications are rejected, and medium-risk publications continue into an interactive iframe challenge. Community-level actions (`commentEdit`, `commentModeration`, and `communityEdit`) are accepted locally because they do not require spam detection.
 
 First install the challenge on the Bitsocial server:
 
@@ -18,7 +18,7 @@ Then set it on your community with one command:
 bitsocial community edit your-community.bso '--settings.challenges[0].name' @bitsocial/spam-blocker-challenge
 ```
 
-That uses the hosted Bitsocial Spam Blocker server and the default thresholds. This is the strongly recommended configuration because the centralized service can correlate cross-community abuse and signer clusters over time.
+That uses the hosted Bitsocial SpamBlocker server and the default thresholds. This is the strongly recommended configuration because the centralized service can correlate cross-community abuse and signer clusters over time.
 
 The hosted service normally allows up to three signer public keys on a confirmed user-origin IP during its rolling window, accommodating users who cannot yet sync a Bitsocial signer across devices. Excessive account switching, rapid signer churn, ban evasion, or interactions between linked signers can trigger stronger verification or a temporary IP-level rejection. This policy is enforced by the hosted server, not by the public challenge package itself.
 
