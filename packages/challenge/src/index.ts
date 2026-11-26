@@ -124,7 +124,7 @@ const PRECHECK_SESSION_ID_REGEX = /^precheck-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}
 
 // A client that completed this board's pre-check sends the pre-check session id as this challenge's answer.
 // pkc-js 0.0.152 and later pass that answer as `challengeAnswer` and key `challengeAnswers` by challenge index;
-// older nodes send a positional array. The dev dependency's types predate both, so they are read defensively.
+// older nodes send a positional array and no `challengeAnswer`, so both are read defensively.
 const getPrecheckPass = ({
     challengeRequestMessage,
     challengeIndex,

@@ -73,7 +73,7 @@ __metadata:
   resolution: "@bitsocial/spam-blocker-challenge@workspace:packages/challenge"
   dependencies:
     "@noble/ed25519": "npm:1.7.5"
-    "@pkcprotocol/pkc-js": "npm:0.0.30"
+    "@pkcprotocol/pkc-js": "npm:0.0.163"
     "@pkcprotocol/pkc-logger": "npm:0.1.0"
     cborg: "npm:4.3.2"
     esbuild: "npm:0.27.2"
@@ -113,39 +113,6 @@ __metadata:
   version: 2.1.0
   resolution: "@chainsafe/is-ip@npm:2.1.0"
   checksum: 10c0/a6c64cfa845979101e808a4398cc7e45ba8ea0a8e30097cdf12306dd084bcc6d92e008221386ae0819f1b53c78bcc634a415537ec970d6ff65cdb62d8445e1d5
-  languageName: node
-  linkType: hard
-
-"@chainsafe/libp2p-noise@npm:^17.0.0":
-  version: 17.0.0
-  resolution: "@chainsafe/libp2p-noise@npm:17.0.0"
-  dependencies:
-    "@chainsafe/as-chacha20poly1305": "npm:^0.1.0"
-    "@chainsafe/as-sha256": "npm:^1.2.0"
-    "@libp2p/crypto": "npm:^5.1.9"
-    "@libp2p/interface": "npm:^3.0.0"
-    "@libp2p/peer-id": "npm:^6.0.0"
-    "@libp2p/utils": "npm:^7.0.0"
-    "@noble/ciphers": "npm:^2.0.1"
-    "@noble/curves": "npm:^2.0.1"
-    "@noble/hashes": "npm:^2.0.1"
-    protons-runtime: "npm:^5.6.0"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-    wherearewe: "npm:^2.0.1"
-  checksum: 10c0/7a11df5254336fffbe5ad346b3bcb186e600d74bd59813c6a52e4e72db034dea353452d093497623e5a92203d57df29063544f18f8e7d264a4646bcc739643c2
-  languageName: node
-  linkType: hard
-
-"@chainsafe/libp2p-yamux@npm:^8.0.1":
-  version: 8.0.1
-  resolution: "@chainsafe/libp2p-yamux@npm:8.0.1"
-  dependencies:
-    "@libp2p/interface": "npm:^3.0.0"
-    "@libp2p/utils": "npm:^7.0.0"
-    race-signal: "npm:^2.0.0"
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/af225414d080ec313baa4ef3d591acfa757368574bd13e69708497ada3394639a99183c22628d7daa1bddf931b4557139a1e851a69a325dec04b618e10d76b36
   languageName: node
   linkType: hard
 
@@ -573,202 +540,251 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@helia/bitswap@npm:^3.2.3":
-  version: 3.2.3
-  resolution: "@helia/bitswap@npm:3.2.3"
+"@helia/bitswap@npm:4.0.20, @helia/bitswap@npm:^4.0.20":
+  version: 4.0.20
+  resolution: "@helia/bitswap@npm:4.0.20"
   dependencies:
-    "@helia/interface": "npm:^6.2.1"
-    "@helia/utils": "npm:^2.5.2"
-    "@libp2p/interface": "npm:^3.2.0"
-    "@libp2p/logger": "npm:^6.2.4"
-    "@libp2p/peer-collections": "npm:^7.0.15"
-    "@libp2p/utils": "npm:^7.0.15"
-    "@multiformats/multiaddr": "npm:^13.0.1"
+    "@helia/interface": "npm:^7.1.2"
+    "@helia/libp2p": "npm:^2.1.5"
+    "@helia/utils": "npm:^3.0.6"
+    "@libp2p/interface": "npm:^3.2.3"
+    "@libp2p/logger": "npm:^6.2.8"
+    "@libp2p/peer-collections": "npm:^7.0.21"
+    "@libp2p/peer-id": "npm:^6.0.10"
+    "@libp2p/utils": "npm:^7.2.2"
+    "@multiformats/multiaddr": "npm:^13.0.3"
     any-signal: "npm:^4.2.0"
-    interface-blockstore: "npm:^6.0.2"
+    interface-blockstore: "npm:^7.0.1"
+    interface-store: "npm:^8.0.0"
     it-drain: "npm:^3.0.12"
-    it-length-prefixed: "npm:^10.0.1"
-    it-map: "npm:^3.1.5"
-    it-pushable: "npm:^3.2.3"
-    it-take: "npm:^3.0.10"
-    it-to-buffer: "npm:^4.0.12"
-    multiformats: "npm:^13.4.2"
+    it-length-prefixed: "npm:^11.0.1"
+    it-map: "npm:^3.1.6"
+    it-pushable: "npm:^3.2.4"
+    it-take: "npm:^3.0.11"
+    it-to-buffer: "npm:^5.0.0"
+    multiformats: "npm:^14.0.0"
     p-defer: "npm:^4.0.1"
     progress-events: "npm:^1.1.0"
-    protons-runtime: "npm:^6.0.1"
+    protons-runtime: "npm:^8.0.1"
     race-event: "npm:^1.6.1"
-    uint8-varint: "npm:^2.0.4"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/1cb1ea4b5625c66a2c5ec35dea40638983b6180db1dbc552f27273d7f20fcc339bf92b7664ad4db04cb0646c638cc0180486e5853c4e8fc3ad14fbba8ab6da04
+    uint8-varint: "npm:^3.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/1f84d726f462e16b93a7aac57e0469a313d4b191c53a430f18d256835247218507cbaa3343cfb27a1aa582534dd26e07f3064856918b6badf8fdd5fab2b833a4
   languageName: node
   linkType: hard
 
-"@helia/block-brokers@npm:5.2.4, @helia/block-brokers@npm:^5.2.4":
-  version: 5.2.4
-  resolution: "@helia/block-brokers@npm:5.2.4"
+"@helia/delegated-routing-client@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "@helia/delegated-routing-client@npm:1.0.7"
   dependencies:
-    "@helia/bitswap": "npm:^3.2.3"
-    "@helia/interface": "npm:^6.2.1"
-    "@helia/utils": "npm:^2.5.2"
-    "@libp2p/interface": "npm:^3.2.0"
-    "@libp2p/peer-id": "npm:^6.0.6"
-    "@libp2p/utils": "npm:^7.0.15"
-    "@multiformats/multiaddr": "npm:^13.0.1"
+    "@helia/delegated-routing-v1-http-api-client": "npm:^9.0.0"
+    "@helia/interface": "npm:^7.1.2"
+    "@libp2p/interface": "npm:^3.2.3"
+    it-first: "npm:^3.0.11"
+    it-map: "npm:^3.1.6"
+    multiformats: "npm:^14.0.0"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/146ae4afa8d54a7889b136ad7086cb9148de29cc4c1df0b730193268eeb2e5330a67867b6fe3b68b19b0d8c7cc7145279333c16089ee0263e6159803b0d63f33
+  languageName: node
+  linkType: hard
+
+"@helia/delegated-routing-v1-http-api-client@npm:9.0.2, @helia/delegated-routing-v1-http-api-client@npm:^9.0.0":
+  version: 9.0.2
+  resolution: "@helia/delegated-routing-v1-http-api-client@npm:9.0.2"
+  dependencies:
+    "@libp2p/interface": "npm:^3.2.2"
+    "@libp2p/peer-id": "npm:^6.0.9"
+    "@libp2p/utils": "npm:^7.2.2"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    any-signal: "npm:^4.2.0"
+    browser-readablestream-to-it: "npm:^2.0.12"
+    it-first: "npm:^3.0.11"
+    it-map: "npm:^3.1.6"
+    it-ndjson: "npm:^2.0.0"
+    multiformats: "npm:^14.0.0"
+    race-signal: "npm:^2.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/0c70d5089660f38a4a18104ff210ab5101a821b6155e2820bf18a2067f118f5122d78e8a979c0e2a097c6eace37deb8f5022ea48ff9ede6cd6fd5c254753981c
+  languageName: node
+  linkType: hard
+
+"@helia/fallback-router@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@helia/fallback-router@npm:1.1.2"
+  dependencies:
+    "@helia/interface": "npm:^7.1.2"
+    "@multiformats/uri-to-multiaddr": "npm:^10.0.0"
+    multiformats: "npm:^14.0.0"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/8544d4d37a676667f65a35d6078c40587bf6934baa718e3c26a8aa0ec3ee927683182ae999a3c7bf2811c1eb6a5ea24479b3a55e3c391e151a04f575766caab6
+  languageName: node
+  linkType: hard
+
+"@helia/http@npm:^4.0.8":
+  version: 4.0.8
+  resolution: "@helia/http@npm:4.0.8"
+  dependencies:
+    "@helia/delegated-routing-client": "npm:^1.0.7"
+    "@helia/fallback-router": "npm:^1.1.2"
+    "@helia/interface": "npm:^7.1.2"
+    "@helia/trustless-gateway-client": "npm:^1.0.7"
+  checksum: 10c0/edb30e0e00dce7aa9d1e3f7ae9e54360707d5dbd27ae867d010de66b6af8f43bcd8d4a9f541a9bba9f1dcdb43265014f22ea758b0d57e6a88f8e3ee020569edd
+  languageName: node
+  linkType: hard
+
+"@helia/interface@npm:^7.1.2":
+  version: 7.1.2
+  resolution: "@helia/interface@npm:7.1.2"
+  dependencies:
+    "@ipshipyard/crypto": "npm:^1.1.0"
+    "@ipshipyard/keychain": "npm:^1.0.2"
+    "@libp2p/interface": "npm:^3.2.3"
+    "@multiformats/dns": "npm:^1.0.13"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    abort-error: "npm:^1.0.2"
+    birnam: "npm:^1.0.0"
+    interface-blockstore: "npm:^7.0.1"
+    interface-datastore: "npm:^10.0.1"
+    main-event: "npm:^1.0.4"
+    multiformats: "npm:^14.0.0"
+    progress-events: "npm:^1.1.0"
+  checksum: 10c0/7fb1ea2eb33b8c291a99a187ff5a17e64afb0be3212fbf92a3dccba41c4903e6cb650dd1212921c6d99d5fb45647cbb86880c7143b984bb07e249fc453db83f5
+  languageName: node
+  linkType: hard
+
+"@helia/ipns@npm:10.2.2":
+  version: 10.2.2
+  resolution: "@helia/ipns@npm:10.2.2"
+  dependencies:
+    "@helia/interface": "npm:^7.1.2"
+    "@ipld/dag-cbor": "npm:^10.0.1"
+    "@ipshipyard/crypto": "npm:^1.1.0"
+    "@ipshipyard/keychain": "npm:^1.0.2"
+    "@libp2p/fetch": "npm:^4.1.6"
+    "@libp2p/interface": "npm:^3.2.3"
+    "@libp2p/kad-dht": "npm:^16.3.2"
+    "@libp2p/logger": "npm:^6.2.8"
+    "@libp2p/peer-collections": "npm:^7.0.21"
+    "@libp2p/utils": "npm:^7.2.2"
+    abort-error: "npm:^1.0.2"
+    any-signal: "npm:^4.2.0"
+    delay: "npm:^7.0.0"
+    interface-datastore: "npm:^10.0.1"
+    multiformats: "npm:^14.0.0"
+    progress-events: "npm:^1.1.0"
+    protons-runtime: "npm:^8.0.1"
+    race-signal: "npm:^2.0.0"
+    timestamp-nano: "npm:^1.0.1"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/b71a46205504cf8789533e0875a31d99f8440c89a0b74bcb982ee3708d69079fc9fe89162a4508f584db980ba806ca6f30ea0a59cb7c88301907bcee3dde23ee
+  languageName: node
+  linkType: hard
+
+"@helia/libp2p@npm:2.1.5, @helia/libp2p@npm:^2.1.5":
+  version: 2.1.5
+  resolution: "@helia/libp2p@npm:2.1.5"
+  dependencies:
+    "@helia/delegated-routing-client": "npm:^1.0.7"
+    "@helia/delegated-routing-v1-http-api-client": "npm:^9.0.0"
+    "@helia/interface": "npm:^7.1.2"
+    "@ipshipyard/libp2p-auto-tls": "npm:^2.0.1"
+    "@libp2p/autonat": "npm:^3.0.21"
+    "@libp2p/bootstrap": "npm:^12.0.24"
+    "@libp2p/circuit-relay-v2": "npm:^4.2.6"
+    "@libp2p/config": "npm:^1.1.32"
+    "@libp2p/dcutr": "npm:^3.0.21"
+    "@libp2p/http": "npm:^2.0.2"
+    "@libp2p/identify": "npm:^4.1.7"
+    "@libp2p/interface": "npm:^3.2.3"
+    "@libp2p/kad-dht": "npm:^16.3.2"
+    "@libp2p/keychain": "npm:^6.1.2"
+    "@libp2p/mdns": "npm:^12.0.24"
+    "@libp2p/mplex": "npm:^12.0.24"
+    "@libp2p/noise": "npm:^17.0.2"
+    "@libp2p/peer-id": "npm:^6.0.10"
+    "@libp2p/ping": "npm:^3.1.6"
+    "@libp2p/tcp": "npm:^11.0.21"
+    "@libp2p/tls": "npm:^3.1.3"
+    "@libp2p/upnp-nat": "npm:^4.0.21"
+    "@libp2p/webrtc": "npm:^6.0.24"
+    "@libp2p/websockets": "npm:^10.1.14"
+    "@libp2p/yamux": "npm:^8.0.3"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    it-foreach: "npm:^2.1.7"
+    it-map: "npm:^3.1.6"
+    libp2p: "npm:^3.3.3"
+    multiformats: "npm:^14.0.0"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/ccd481f30a9a443ec474b4d1170a77c7486538b4a520949a006f72781c4c4114a72b15a747270b3d8fefb2e8f9ee9d5243c5c93e2b8bf3696c0eba4bcb7796d2
+  languageName: node
+  linkType: hard
+
+"@helia/trustless-gateway-client@npm:^1.0.7":
+  version: 1.0.7
+  resolution: "@helia/trustless-gateway-client@npm:1.0.7"
+  dependencies:
+    "@helia/interface": "npm:^7.1.2"
+    "@helia/utils": "npm:^3.0.6"
+    "@libp2p/utils": "npm:^7.2.2"
+    "@multiformats/multiaddr": "npm:^13.0.3"
     "@multiformats/multiaddr-matcher": "npm:^3.0.2"
     "@multiformats/multiaddr-to-uri": "npm:^12.0.0"
     "@multiformats/uri-to-multiaddr": "npm:^10.0.0"
-    interface-blockstore: "npm:^6.0.2"
-    multiformats: "npm:^13.4.2"
+    abort-error: "npm:^1.0.2"
+    birnam: "npm:^1.0.0"
+    multiformats: "npm:^14.0.0"
     progress-events: "npm:^1.1.0"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/fe0d5142246a255c79fb856d93c4f5e57f7f08ecc60f63b3cf4bf0f10bd64b5afd428821a6d1ac82da154a94c5ab15a1ef7aa67426de609d4665f095aefd97ce
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/b313c96a3b6bc7ce651713cbe44112c2212a59d59c109506e4a1b5de190d69f5c61b98c7e91bf57dca1fc55c68ba8f411544ff036ebaead16d2dd6224d6a7a4d
   languageName: node
   linkType: hard
 
-"@helia/delegated-routing-v1-http-api-client@npm:6.0.1, @helia/delegated-routing-v1-http-api-client@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "@helia/delegated-routing-v1-http-api-client@npm:6.0.1"
+"@helia/unixfs@npm:8.0.9":
+  version: 8.0.9
+  resolution: "@helia/unixfs@npm:8.0.9"
   dependencies:
-    "@libp2p/interface": "npm:^3.0.2"
-    "@libp2p/peer-id": "npm:^6.0.3"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    any-signal: "npm:^4.1.1"
-    browser-readablestream-to-it: "npm:^2.0.9"
-    ipns: "npm:^10.0.2"
-    it-first: "npm:^3.0.8"
-    it-map: "npm:^3.1.3"
-    it-ndjson: "npm:^1.1.3"
-    multiformats: "npm:^13.3.6"
-    p-defer: "npm:^4.0.1"
-    p-queue: "npm:^9.0.0"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/bbff1219eb175651a75564d5fda555c0cfeac24ac52e9cd67109f92dabd27a70bc2de5eba172eb61fe2613a3975c6b6aa6fc459b93900006dcaecfaaeadc233c
-  languageName: node
-  linkType: hard
-
-"@helia/interface@npm:^6.2.1":
-  version: 6.2.1
-  resolution: "@helia/interface@npm:6.2.1"
-  dependencies:
-    "@libp2p/interface": "npm:^3.2.0"
-    "@multiformats/dns": "npm:^1.0.13"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    interface-blockstore: "npm:^6.0.2"
-    interface-datastore: "npm:^9.0.3"
-    interface-store: "npm:^7.0.2"
-    multiformats: "npm:^13.4.2"
-    progress-events: "npm:^1.1.0"
-  checksum: 10c0/ffd8b05d774aa61c87c764bc739c8dc1ac321ecdd492e93b6e6ca3537568b2282b86dd27dc831aee2b379809ca35a8d9994f9f117f268a6fc96d577d5d5e0c01
-  languageName: node
-  linkType: hard
-
-"@helia/ipns@npm:9.2.1":
-  version: 9.2.1
-  resolution: "@helia/ipns@npm:9.2.1"
-  dependencies:
-    "@helia/interface": "npm:^6.2.1"
-    "@libp2p/crypto": "npm:^5.1.15"
-    "@libp2p/fetch": "npm:^4.1.0"
-    "@libp2p/interface": "npm:^3.2.0"
-    "@libp2p/kad-dht": "npm:^16.2.0"
-    "@libp2p/keychain": "npm:^6.0.12"
-    "@libp2p/logger": "npm:^6.2.4"
-    "@libp2p/peer-collections": "npm:^7.0.15"
-    "@libp2p/utils": "npm:^7.0.15"
-    any-signal: "npm:^4.2.0"
-    delay: "npm:^7.0.0"
-    interface-datastore: "npm:^9.0.3"
-    ipns: "npm:^10.1.3"
-    multiformats: "npm:^13.4.2"
-    progress-events: "npm:^1.1.0"
-    protons-runtime: "npm:^6.0.1"
-    race-signal: "npm:^2.0.0"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/1325cb80765edf02ebe6aa1733804ba87e007573e18c8c56524ab3883750c093994764c7a82349ecdeb4cbc8436d9a61a50f848ce4775bd860717aedfcbe25d0
-  languageName: node
-  linkType: hard
-
-"@helia/routers@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "@helia/routers@npm:5.1.1"
-  dependencies:
-    "@helia/delegated-routing-v1-http-api-client": "npm:^6.0.1"
-    "@helia/interface": "npm:^6.2.1"
-    "@libp2p/interface": "npm:^3.2.0"
-    "@libp2p/peer-id": "npm:^6.0.6"
-    "@multiformats/uri-to-multiaddr": "npm:^10.0.0"
-    ipns: "npm:^10.1.3"
-    it-first: "npm:^3.0.11"
-    it-map: "npm:^3.1.5"
-    multiformats: "npm:^13.4.2"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/c8a75ff5b58e4cd98960ce0bf3fd5efc1e2473c87f76da90a9a13165d9958916aa288ebec90e646c1dd3edab91d18017f1c243d1f7dd48ae3995e4fc752816a9
-  languageName: node
-  linkType: hard
-
-"@helia/unixfs@npm:7.2.1":
-  version: 7.2.1
-  resolution: "@helia/unixfs@npm:7.2.1"
-  dependencies:
-    "@helia/interface": "npm:^6.2.1"
-    "@ipld/dag-pb": "npm:^4.1.5"
-    "@libp2p/interface": "npm:^3.2.0"
-    "@libp2p/logger": "npm:^6.2.4"
-    "@libp2p/utils": "npm:^7.0.15"
-    "@multiformats/murmur3": "npm:^2.2.2"
-    interface-blockstore: "npm:^6.0.2"
-    ipfs-unixfs: "npm:^12.0.1"
-    ipfs-unixfs-exporter: "npm:^15.0.4"
-    ipfs-unixfs-importer: "npm:^16.1.4"
+    "@helia/interface": "npm:^7.1.2"
+    "@ipld/dag-pb": "npm:^4.1.7"
+    "@libp2p/interface": "npm:^3.2.3"
+    "@libp2p/logger": "npm:^6.2.8"
+    "@libp2p/utils": "npm:^7.2.2"
+    "@multiformats/murmur3": "npm:^2.2.5"
+    interface-blockstore: "npm:^7.0.1"
+    ipfs-unixfs: "npm:^13.1.1"
+    ipfs-unixfs-exporter: "npm:^16.2.2"
+    ipfs-unixfs-importer: "npm:^17.1.1"
     it-all: "npm:^3.0.11"
     it-first: "npm:^3.0.11"
-    it-glob: "npm:^3.0.5"
+    it-glob: "npm:^3.0.6"
     it-last: "npm:^3.0.11"
     it-pipe: "npm:^3.0.1"
-    it-to-buffer: "npm:^4.0.12"
-    multiformats: "npm:^13.4.2"
+    it-to-buffer: "npm:^5.0.0"
+    multiformats: "npm:^14.0.0"
     progress-events: "npm:^1.1.0"
     sparse-array: "npm:^1.3.2"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/7f67ed31702d46b54caf74af8842775845b9e55064b3d98f42dcb6e0a7a01c00479e1766f870f6e55dc3cf5b3d80d7870d16eba34e8bde6883eaf6336032a8bc
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/c6a0b6786ad34a534b9b58f89b145490d5d9574654efcd1b2517eb7c6fb7544ce89947afdff112680c00dfcabe456a9feed44129b42a1f69e2b62515bfe31005
   languageName: node
   linkType: hard
 
-"@helia/utils@npm:^2.5.2":
-  version: 2.5.2
-  resolution: "@helia/utils@npm:2.5.2"
+"@helia/utils@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "@helia/utils@npm:3.0.6"
   dependencies:
-    "@helia/interface": "npm:^6.2.1"
-    "@ipld/dag-cbor": "npm:^9.2.6"
-    "@ipld/dag-json": "npm:^10.2.7"
-    "@ipld/dag-pb": "npm:^4.1.5"
-    "@libp2p/interface": "npm:^3.2.0"
-    "@libp2p/keychain": "npm:^6.0.12"
-    "@libp2p/utils": "npm:^7.0.15"
-    "@multiformats/dns": "npm:^1.0.13"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    any-signal: "npm:^4.2.0"
-    blockstore-core: "npm:^6.1.3"
-    cborg: "npm:^5.1.0"
-    interface-blockstore: "npm:^6.0.2"
-    interface-datastore: "npm:^9.0.3"
-    interface-store: "npm:^7.0.2"
-    it-drain: "npm:^3.0.12"
-    it-filter: "npm:^3.1.5"
-    it-foreach: "npm:^2.1.6"
-    it-merge: "npm:^3.0.13"
-    it-to-buffer: "npm:^4.0.12"
-    libp2p: "npm:^3.2.0"
-    mortice: "npm:^3.3.1"
-    multiformats: "npm:^13.4.2"
+    "@helia/interface": "npm:^7.1.2"
+    "@libp2p/interface": "npm:^3.2.3"
+    "@libp2p/utils": "npm:^7.2.2"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    it-filter: "npm:^3.1.6"
+    it-to-buffer: "npm:^5.0.0"
+    multiformats: "npm:^14.0.0"
     p-defer: "npm:^4.0.1"
     progress-events: "npm:^1.1.0"
     race-signal: "npm:^2.0.0"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/340daac484dbc50ca25de6ff42694aeb44b1c8d87bc6926bfef9756870bdc2bc944c44a42127fea2a19755bac3b630d61a3199b5f0fc79492314affff806d885
+  checksum: 10c0/674c29366901309ed3190111a8f92cda203a7485e5349c22450d740068e52d700570591b8ccf17f73da22fce0ff748b84a1d7003e95d4c8ff22b262958d032fb
   languageName: node
   linkType: hard
 
@@ -1026,7 +1042,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ipld/dag-cbor@npm:^9.0.0, @ipld/dag-cbor@npm:^9.2.4, @ipld/dag-cbor@npm:^9.2.6":
+"@ipld/dag-cbor@npm:9.2.7":
+  version: 9.2.7
+  resolution: "@ipld/dag-cbor@npm:9.2.7"
+  dependencies:
+    cborg: "npm:^5.0.1"
+    multiformats: "npm:^13.1.0"
+  checksum: 10c0/2f55d0826737256fb473eda30a3352503a4bb76d1a1491933c4e71511539f55e82be63dea43ff032228a7cc7d3cb4a7e64d7aaef189638428d3179e82a692654
+  languageName: node
+  linkType: hard
+
+"@ipld/dag-cbor@npm:^10.0.0, @ipld/dag-cbor@npm:^10.0.1":
+  version: 10.0.2
+  resolution: "@ipld/dag-cbor@npm:10.0.2"
+  dependencies:
+    cborg: "npm:^6.1.1"
+    multiformats: "npm:^14.0.0"
+  checksum: 10c0/719601db980a03c207d205f5d9b3ff7cab76b1a858d4d945f80f9fa9755ceb56d6c7c5c561cce815cf0865ed34a7048125ba23ac569c2b4917d6bcc1f40a9634
+  languageName: node
+  linkType: hard
+
+"@ipld/dag-cbor@npm:^9.0.0":
   version: 9.2.6
   resolution: "@ipld/dag-cbor@npm:9.2.6"
   dependencies:
@@ -1036,22 +1072,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ipld/dag-json@npm:^10.0.0, @ipld/dag-json@npm:^10.2.5, @ipld/dag-json@npm:^10.2.7":
-  version: 10.2.7
-  resolution: "@ipld/dag-json@npm:10.2.7"
+"@ipld/dag-json@npm:^11.0.0":
+  version: 11.0.1
+  resolution: "@ipld/dag-json@npm:11.0.1"
   dependencies:
-    cborg: "npm:^5.0.0"
-    multiformats: "npm:^13.1.0"
-  checksum: 10c0/4012149390fbe8c8f5b8c69bca93d461206e1972846c2ef3a64b8994dcc9f4f13a82f9940e05cbb1d2f8435c87d354b6ef063d2f817dde0490ce6f95ec30a045
+    cborg: "npm:^6.1.1"
+    multiformats: "npm:^14.0.0"
+  checksum: 10c0/47a70deed4419aec153180baebce699ffc2121e1a46c7c8b938425abced4f1b3d08c0c9e00e3f1798d0c0c69050da048fba16a4f6e3b39179b68e2f59e33aa71
   languageName: node
   linkType: hard
 
-"@ipld/dag-pb@npm:^4.0.0, @ipld/dag-pb@npm:^4.1.5":
+"@ipld/dag-pb@npm:4.2.0, @ipld/dag-pb@npm:^4.1.7, @ipld/dag-pb@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "@ipld/dag-pb@npm:4.2.0"
+  dependencies:
+    multiformats: "npm:^14.0.0"
+  checksum: 10c0/f65427c32b08e35b0b0c4bb54110b145b492722824f4198d3c18c9983170e6b5d16aa33b033e643681e209c08f6773ef2680cafc8f94ee6ef4f2a54ba373b949
+  languageName: node
+  linkType: hard
+
+"@ipld/dag-pb@npm:^4.0.0":
   version: 4.1.5
   resolution: "@ipld/dag-pb@npm:4.1.5"
   dependencies:
     multiformats: "npm:^13.1.0"
   checksum: 10c0/be650b3f13239802191a0ff3f41908e4ec9acaa59c3f15f48b3a81c6eb49597f7531308d098518bb3aec7ceb60f43bde675258db422dbcb6b62f3d17f121e408
+  languageName: node
+  linkType: hard
+
+"@ipshipyard/crypto@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@ipshipyard/crypto@npm:1.1.0"
+  dependencies:
+    abort-error: "npm:^1.0.2"
+    multiformats: "npm:^14.0.0"
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/616d44e7a8fdf0555c1148a5f2dee803405831d0ec0fd15c0bd4d21b1836352492f1e52fd17518fc3ba2dbd8af87523c77df5dcc59d19fa68d3e67560300883d
+  languageName: node
+  linkType: hard
+
+"@ipshipyard/keychain@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "@ipshipyard/keychain@npm:1.0.2"
+  dependencies:
+    "@ipshipyard/crypto": "npm:^1.1.0"
+    abort-error: "npm:^1.0.2"
+    interface-datastore: "npm:^10.0.1"
+    multiformats: "npm:^14.0.0"
+    sanitize-filename: "npm:^1.6.4"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/3100276ad1a5e2fd5b7880a5448255dd51d61bf97f19b58f92d7a63ca466b620322d8d7dfd317269162839af10b6556ba40042856d1604a00adca48311cff0b9
   languageName: node
   linkType: hard
 
@@ -1102,94 +1174,94 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/autonat@npm:^3.0.15":
-  version: 3.0.18
-  resolution: "@libp2p/autonat@npm:3.0.18"
+"@libp2p/autonat@npm:^3.0.21":
+  version: 3.0.33
+  resolution: "@libp2p/autonat@npm:3.0.33"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/peer-collections": "npm:^7.0.18"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/peer-collections": "npm:^7.0.33"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
     any-signal: "npm:^4.1.1"
-    main-event: "npm:^1.0.1"
-    multiformats: "npm:^13.4.0"
-    protons-runtime: "npm:^6.0.1"
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/95f3b64744cd886ecfa6e39052915c30c982ea1b9c263f0227daab17889d22f2e96bcf8eab5403ab62f8e745dccef698f951cc733cfeac3f732fdec1e0d43e90
+    main-event: "npm:^1.0.5"
+    multiformats: "npm:^14.0.0"
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+  checksum: 10c0/7584efd4112316e5e41720997607939ac13fa3eb1bef5483c9b19694fc463c7559fa1a36237160ba28c31c44d338e40605d304dd66d2d0d35906566bba9d4cc6
   languageName: node
   linkType: hard
 
-"@libp2p/bootstrap@npm:^12.0.16":
-  version: 12.0.20
-  resolution: "@libp2p/bootstrap@npm:12.0.20"
+"@libp2p/bootstrap@npm:^12.0.24":
+  version: 12.0.37
+  resolution: "@libp2p/bootstrap@npm:12.0.37"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
-    main-event: "npm:^1.0.1"
-  checksum: 10c0/41fd0f9737f44650ec08fcbfa185a3cf2b78577054a1a109db28d7fb4bb6a0d05684c72dc0db65c03c192d8d34540eda886e62b42cad57377f4ef52fd50b6c4c
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
+    main-event: "npm:^1.0.5"
+  checksum: 10c0/aeaa8a257c86d0a772ba9696c619799d1ed96e20d17885354da3c702201edca53d37437b281c9de5ab3124317f90fdc99dc9ceebe10802c5cf89dcdaed4b208c
   languageName: node
   linkType: hard
 
-"@libp2p/circuit-relay-v2@npm:^4.2.0":
-  version: 4.2.3
-  resolution: "@libp2p/circuit-relay-v2@npm:4.2.3"
+"@libp2p/circuit-relay-v2@npm:^4.2.6":
+  version: 4.2.18
+  resolution: "@libp2p/circuit-relay-v2@npm:4.2.18"
   dependencies:
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/peer-collections": "npm:^7.0.18"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@libp2p/peer-record": "npm:^9.0.9"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/peer-collections": "npm:^7.0.33"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/peer-record": "npm:^9.0.19"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
     any-signal: "npm:^4.1.1"
-    main-event: "npm:^1.0.1"
-    multiformats: "npm:^13.4.0"
-    nanoid: "npm:^5.1.5"
+    main-event: "npm:^1.0.5"
+    multiformats: "npm:^14.0.0"
+    nanoid: "npm:^6.0.0"
     progress-events: "npm:^1.1.0"
-    protons-runtime: "npm:^6.0.1"
+    protons-runtime: "npm:^7.0.0"
     retimeable-signal: "npm:^1.0.1"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/4d41c192cfe55992848393432da8a1a3c57b1f658280eab74620157aec6b8b445a64e394f3055c4bce6b93e89c6b89b6b9947f1fe7a1fb8d6be83a8de54d1741
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/f336bdb9bc3e4265c3bd7fe6051caebb5c138887775bf547aa3a0281891694b296cfd71121549dd52a927039b12ac0aa6741f5b926c806098865522f2d81fcf1
   languageName: node
   linkType: hard
 
-"@libp2p/config@npm:^1.1.27":
-  version: 1.1.30
-  resolution: "@libp2p/config@npm:1.1.30"
+"@libp2p/config@npm:^1.1.32":
+  version: 1.1.40
+  resolution: "@libp2p/config@npm:1.1.40"
   dependencies:
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/keychain": "npm:^6.1.0"
-    "@libp2p/logger": "npm:^6.2.6"
-    interface-datastore: "npm:^9.0.1"
-  checksum: 10c0/e5bd6e18a0d263fbb6df2550ebdb824c7acdea59f1b26a84c440d2bb7d69ab35266f49cd38af4b4138ca7df8510cc64a81f6963398fb6c66ad7242ac99f10563
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/keychain": "npm:^6.1.10"
+    "@libp2p/logger": "npm:^6.2.16"
+    interface-datastore: "npm:^10.0.1"
+  checksum: 10c0/6c24d1b50a4beabfe5b870102a0bfc4bee22564676f06b8da3f38b33c02c818689f163c4001b46d4bd5467cf9688c22c6b8b6125a3010fd670d868f868cec839
   languageName: node
   linkType: hard
 
-"@libp2p/crypto@npm:5.1.17, @libp2p/crypto@npm:^5.1.15, @libp2p/crypto@npm:^5.1.17":
-  version: 5.1.17
-  resolution: "@libp2p/crypto@npm:5.1.17"
+"@libp2p/crypto@npm:5.2.0, @libp2p/crypto@npm:^5.1.24, @libp2p/crypto@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "@libp2p/crypto@npm:5.2.0"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
+    "@libp2p/interface": "npm:^3.4.0"
     "@noble/curves": "npm:^2.0.1"
     "@noble/hashes": "npm:^2.0.1"
-    multiformats: "npm:^13.4.0"
-    protons-runtime: "npm:^6.0.1"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/fa63aa9a7260f9841d477daee82677d3cd0a6f287ac77bacb1131998764ac76f819b7b453985579ef1f9c14115f435ceb23f316388491650a54c00c52a1c143b
+    multiformats: "npm:^14.0.0"
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/c00d32251c118c3f94a1f2609a8bda22f158e6581f7c7dfcabf3e419ad580dcf2a385655ef06a165486cfb2dfa2c9427c33132d6644e906a05d7d3b614cf7919
   languageName: node
   linkType: hard
 
-"@libp2p/crypto@npm:^5.0.0, @libp2p/crypto@npm:^5.0.9, @libp2p/crypto@npm:^5.1.12, @libp2p/crypto@npm:^5.1.14, @libp2p/crypto@npm:^5.1.9":
+"@libp2p/crypto@npm:^5.0.0, @libp2p/crypto@npm:^5.0.9, @libp2p/crypto@npm:^5.1.12, @libp2p/crypto@npm:^5.1.14":
   version: 5.1.14
   resolution: "@libp2p/crypto@npm:5.1.14"
   dependencies:
@@ -1204,7 +1276,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/crypto@npm:^5.1.18, @libp2p/crypto@npm:^5.1.21":
+"@libp2p/crypto@npm:^5.1.17":
+  version: 5.1.17
+  resolution: "@libp2p/crypto@npm:5.1.17"
+  dependencies:
+    "@libp2p/interface": "npm:^3.2.2"
+    "@noble/curves": "npm:^2.0.1"
+    "@noble/hashes": "npm:^2.0.1"
+    multiformats: "npm:^13.4.0"
+    protons-runtime: "npm:^6.0.1"
+    uint8arraylist: "npm:^2.4.8"
+    uint8arrays: "npm:^5.1.0"
+  checksum: 10c0/fa63aa9a7260f9841d477daee82677d3cd0a6f287ac77bacb1131998764ac76f819b7b453985579ef1f9c14115f435ceb23f316388491650a54c00c52a1c143b
+  languageName: node
+  linkType: hard
+
+"@libp2p/crypto@npm:^5.1.21":
   version: 5.1.21
   resolution: "@libp2p/crypto@npm:5.1.21"
   dependencies:
@@ -1234,34 +1321,49 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/dcutr@npm:^3.0.15":
-  version: 3.0.18
-  resolution: "@libp2p/dcutr@npm:3.0.18"
+"@libp2p/dcutr@npm:^3.0.21":
+  version: 3.0.33
+  resolution: "@libp2p/dcutr@npm:3.0.33"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
     delay: "npm:^7.0.0"
-    protons-runtime: "npm:^6.0.1"
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/dbee770730fd40218378d1b7d3626683b223b2f33262038c99b6be4209678c42a99bb52446c884fb9866ff678c0b57705304eb09ac6dd777d610183884cefe81
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+  checksum: 10c0/586c274ece2f24996ceb12dc006c02ac2edba7b7d4fb505b2d63d4352b2e492205e0b3496a72395b03ea7025a98ad92070f2d11ebc72d6cc38abf5801997570d
   languageName: node
   linkType: hard
 
-"@libp2p/fetch@npm:4.1.3, @libp2p/fetch@npm:^4.1.0":
-  version: 4.1.3
-  resolution: "@libp2p/fetch@npm:4.1.3"
+"@libp2p/fetch@npm:4.1.17":
+  version: 4.1.17
+  resolution: "@libp2p/fetch@npm:4.1.17"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/utils": "npm:^7.1.0"
-    main-event: "npm:^1.0.1"
-    protons-runtime: "npm:^6.0.1"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/4a668c8e79a718f870199ee052b4cbee4e625cc9f8676491d21697a3ee113e75a0ad9d06d02f6fb3fa492aa45e3d0c4e4a4830a57ba2e312d745a40ad544b95d
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.2"
+    "@libp2p/utils": "npm:^7.4.5"
+    main-event: "npm:^1.0.5"
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/23e55a8aacf10259bd455e77e4050d9e056b9a1664dd95a85d0c5d0d1e8badd47292c14f798196730fc467d94b94486d0a7fc7d7d140cb703151434a21694d79
+  languageName: node
+  linkType: hard
+
+"@libp2p/fetch@npm:^4.1.6":
+  version: 4.1.18
+  resolution: "@libp2p/fetch@npm:4.1.18"
+  dependencies:
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/utils": "npm:^7.4.6"
+    main-event: "npm:^1.0.5"
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/c3ea4bc35d499b967cfb1cbf3a1537f35c870ef7e449b90b590cf9fda4a19bcdd64af50018682571b339da4305585a5ed5ea5d7cdf3694296d19bb3bedce41fa
   languageName: node
   linkType: hard
 
@@ -1368,9 +1470,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/http@npm:^2.0.1":
-  version: 2.0.2
-  resolution: "@libp2p/http@npm:2.0.2"
+"@libp2p/http@npm:^2.0.2":
+  version: 2.0.6
+  resolution: "@libp2p/http@npm:2.0.6"
   dependencies:
     "@libp2p/http-fetch": "npm:^4.0.0"
     "@libp2p/http-peer-id-auth": "npm:^2.0.0"
@@ -1378,32 +1480,54 @@ __metadata:
     "@libp2p/http-websocket": "npm:^2.0.0"
     "@libp2p/interface": "npm:^3.2.0"
     "@libp2p/interface-internal": "npm:^3.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
+    "@multiformats/multiaddr": "npm:^13.0.3"
     cookie: "npm:^1.1.1"
     undici: "npm:^8.0.3"
-  checksum: 10c0/6a4aabbed7a783586a732f203dd00516ff437f17dad301290a5137f8a7143e49ffb1f7e04499a9ebf36eccafbdcb2a7fe60e5eeb6319411085cae159b805aa1e
+  checksum: 10c0/b109ec153c178d05d3ecf1a7704a713e5c5d72ed3e6c77f54402dda22eaee1e7f9372ccd079d3918008ea072acf1825607d50afa7bda00599e947a85746e33fe
   languageName: node
   linkType: hard
 
-"@libp2p/identify@npm:4.1.3, @libp2p/identify@npm:^4.1.0":
-  version: 4.1.3
-  resolution: "@libp2p/identify@npm:4.1.3"
+"@libp2p/identify@npm:4.1.18":
+  version: 4.1.18
+  resolution: "@libp2p/identify@npm:4.1.18"
   dependencies:
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@libp2p/peer-record": "npm:^9.0.9"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.2"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/peer-record": "npm:^9.0.19"
+    "@libp2p/utils": "npm:^7.4.5"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
     it-drain: "npm:^3.0.10"
     it-parallel: "npm:^3.0.13"
-    main-event: "npm:^1.0.1"
-    protons-runtime: "npm:^6.0.1"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/a353c861538ab7959d4680372ae930a8ae04ec13e00e5dd4e29b1bc3796de6c9485c70902784cddff5f6add1673d0a7184c91769d2bb3074ea6b12a3b842fb4e
+    main-event: "npm:^1.0.5"
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/0663abfa5e94ed7660b1e99a88b1914d32d495449f63050a06a04a431195dcd73c53e1025695f58892933207b4dafd4cb5ef6865217b2987f2fa085a3c77e9ca
+  languageName: node
+  linkType: hard
+
+"@libp2p/identify@npm:^4.1.7":
+  version: 4.1.19
+  resolution: "@libp2p/identify@npm:4.1.19"
+  dependencies:
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/peer-record": "npm:^9.0.19"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
+    it-drain: "npm:^3.0.10"
+    it-parallel: "npm:^3.0.13"
+    main-event: "npm:^1.0.5"
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/43afd563cf158d7e2ae97cf20008555a5f3cc3b97c914e3e10add62f1bd4cc4daad0bfc96d133c04f5fca37da2b92e49f786780b284052b640d0058dbc59a5c2
   languageName: node
   linkType: hard
 
@@ -1419,7 +1543,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/interface-internal@npm:^3.1.0, @libp2p/interface-internal@npm:^3.1.3":
+"@libp2p/interface-internal@npm:^3.1.0":
   version: 3.1.3
   resolution: "@libp2p/interface-internal@npm:3.1.3"
   dependencies:
@@ -1431,15 +1555,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/interface-internal@npm:^3.1.10, @libp2p/interface-internal@npm:^3.1.4":
-  version: 3.1.10
-  resolution: "@libp2p/interface-internal@npm:3.1.10"
+"@libp2p/interface-internal@npm:^3.1.14, @libp2p/interface-internal@npm:^3.2.2, @libp2p/interface-internal@npm:^3.2.3":
+  version: 3.2.3
+  resolution: "@libp2p/interface-internal@npm:3.2.3"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.5"
-    "@libp2p/peer-collections": "npm:^7.0.25"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/peer-collections": "npm:^7.0.33"
     "@multiformats/multiaddr": "npm:^13.0.3"
     progress-events: "npm:^1.0.1"
-  checksum: 10c0/45ecfd19d3e58b77cde0b0182eca6b0d732836fd04f6485f78e2e2cf96d3bd41b98ef08a761d16b0249ee310d64ae0160345fc055ae4ddf3e27d176e107fd543
+  checksum: 10c0/1ed592c5ea65fd2e2b5e005f4d6aa7d4a58b6174229e0ad21ab53b55619ea7a38d01193641d7957ec508b8ce1f6218a72f32ddb28f85d27ebaab4fd7e5e988a2
   languageName: node
   linkType: hard
 
@@ -1455,7 +1579,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/interface@npm:^3.0.0, @libp2p/interface@npm:^3.0.2, @libp2p/interface@npm:^3.1.0, @libp2p/interface@npm:^3.1.1":
+"@libp2p/interface@npm:3.4.0, @libp2p/interface@npm:^3.2.3, @libp2p/interface@npm:^3.2.4, @libp2p/interface@npm:^3.3.1, @libp2p/interface@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "@libp2p/interface@npm:3.4.0"
+  dependencies:
+    "@multiformats/dns": "npm:^1.0.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    main-event: "npm:^1.0.5"
+    multiformats: "npm:^14.0.0"
+    progress-events: "npm:^1.1.0"
+    uint8arraylist: "npm:^3.0.2"
+  checksum: 10c0/d1791ada4689b492e81e9110dbe002fa4d025aa5ebfb848b0af01f3434e34a889601228ae4999edb2f7e1c2f84fed52e4a9722cff16c719c7e9794aa7311dd46
+  languageName: node
+  linkType: hard
+
+"@libp2p/interface@npm:^3.0.2, @libp2p/interface@npm:^3.1.0, @libp2p/interface@npm:^3.1.1":
   version: 3.1.1
   resolution: "@libp2p/interface@npm:3.1.1"
   dependencies:
@@ -1511,29 +1649,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/interfaces@npm:3.3.2":
-  version: 3.3.2
-  resolution: "@libp2p/interfaces@npm:3.3.2"
-  checksum: 10c0/70508ec62e52aa69f584c0a7250921bc9cdddcc2d2f20a3b7b70b642785f2bec69d3c04e404ae5a82ae3a1bb752f5612d5126c1f7eb64ee402c1ce16998d5668
-  languageName: node
-  linkType: hard
-
-"@libp2p/kad-dht@npm:16.2.6":
-  version: 16.2.6
-  resolution: "@libp2p/kad-dht@npm:16.2.6"
+"@libp2p/kad-dht@npm:^16.3.2":
+  version: 16.4.10
+  resolution: "@libp2p/kad-dht@npm:16.4.10"
   dependencies:
-    "@libp2p/crypto": "npm:^5.1.18"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.4"
-    "@libp2p/peer-collections": "npm:^7.0.19"
-    "@libp2p/peer-id": "npm:^6.0.9"
-    "@libp2p/ping": "npm:^3.1.4"
-    "@libp2p/record": "npm:^4.0.12"
-    "@libp2p/utils": "npm:^7.2.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/peer-collections": "npm:^7.0.33"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/ping": "npm:^3.1.18"
+    "@libp2p/record": "npm:^4.0.15"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
     any-signal: "npm:^4.1.1"
-    interface-datastore: "npm:^9.0.1"
+    interface-datastore: "npm:^10.0.1"
     it-all: "npm:^3.0.9"
     it-drain: "npm:^3.0.10"
     it-length: "npm:^3.0.9"
@@ -1543,33 +1674,17 @@ __metadata:
     it-pipe: "npm:^3.0.1"
     it-pushable: "npm:^3.2.3"
     it-take: "npm:^3.0.9"
-    main-event: "npm:^1.0.1"
-    multiformats: "npm:^13.4.0"
+    main-event: "npm:^1.0.5"
+    multiformats: "npm:^14.0.0"
     p-defer: "npm:^4.0.1"
-    p-event: "npm:^7.0.0"
+    p-event: "npm:^8.0.1"
     progress-events: "npm:^1.0.1"
-    protons-runtime: "npm:^6.0.1"
+    protons-runtime: "npm:^7.0.0"
     race-signal: "npm:^2.0.0"
-    uint8-varint: "npm:^2.0.4"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/deaf416d45c793f90fe6789b1f104bb1ba5901d59851c7f493fc272103b379673bb1a4340f01e0a7ea80223144d6395449b854e8c8caed4bbee5752681ba5f4e
-  languageName: node
-  linkType: hard
-
-"@libp2p/keychain@npm:^6.0.12, @libp2p/keychain@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "@libp2p/keychain@npm:6.1.0"
-  dependencies:
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@noble/hashes": "npm:^2.0.1"
-    asn1js: "npm:^3.0.6"
-    interface-datastore: "npm:^9.0.1"
-    multiformats: "npm:^13.4.0"
-    sanitize-filename: "npm:^1.6.3"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/373b29f13c978821771df0373c220bff97faec111b70a89fd0a74d9623cba21fec489e5d89f3158ccd9f45998cb61a789e491f69ca2cccc901cd2a421ddcc525
+    uint8-varint: "npm:^3.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/741736d15df9e0bedc49524e588d818556a34bcc3f64f5bcd4fd9c22f0cdea78a7cc4bb4bda20cd494ec30d06a9010f01d49541728474f981a0c412ec1a0cc73
   languageName: node
   linkType: hard
 
@@ -1589,7 +1704,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/logger@npm:^6.0.0, @libp2p/logger@npm:^6.0.4, @libp2p/logger@npm:^6.0.5, @libp2p/logger@npm:^6.2.3":
+"@libp2p/keychain@npm:^6.1.10, @libp2p/keychain@npm:^6.1.2, @libp2p/keychain@npm:^6.1.8":
+  version: 6.1.10
+  resolution: "@libp2p/keychain@npm:6.1.10"
+  dependencies:
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@noble/hashes": "npm:^2.0.1"
+    asn1js: "npm:^3.0.6"
+    interface-datastore: "npm:^10.0.1"
+    multiformats: "npm:^14.0.0"
+    sanitize-filename: "npm:^1.6.3"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/6de001aa9bfd2694ee32553aee9301c79b937232c33be9f4b40d645f076d3370c595dfba81fffc5ef3c79feb628e4c57591a7c8ea295ef8a29da81aabe9619fc
+  languageName: node
+  linkType: hard
+
+"@libp2p/logger@npm:^6.0.4, @libp2p/logger@npm:^6.0.5, @libp2p/logger@npm:^6.2.3":
   version: 6.2.3
   resolution: "@libp2p/logger@npm:6.2.3"
   dependencies:
@@ -1599,19 +1730,6 @@ __metadata:
     multiformats: "npm:^13.4.0"
     weald: "npm:^1.1.0"
   checksum: 10c0/2ed1a60d049867414fe4209e0e23d9c0680a06d1fac3514143de054a8ad6bb1537eaa8480cffba4c6f6994e906fa5929689667a92e847770b4c71789c298302b
-  languageName: node
-  linkType: hard
-
-"@libp2p/logger@npm:^6.2.11":
-  version: 6.2.11
-  resolution: "@libp2p/logger@npm:6.2.11"
-  dependencies:
-    "@libp2p/interface": "npm:^3.2.5"
-    "@multiformats/multiaddr": "npm:^13.0.3"
-    interface-datastore: "npm:^10.0.1"
-    multiformats: "npm:^14.0.0"
-    weald: "npm:^1.1.0"
-  checksum: 10c0/7de0818a925c34dafef3a56b4e537a97e34259dc2d71686a5e5782ff0fbe01dada272324868bd78ac519a6abb8af820445bda3d48741ee5f383ea491741181f2
   languageName: node
   linkType: hard
 
@@ -1628,6 +1746,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@libp2p/logger@npm:^6.2.16, @libp2p/logger@npm:^6.2.8":
+  version: 6.2.16
+  resolution: "@libp2p/logger@npm:6.2.16"
+  dependencies:
+    "@libp2p/interface": "npm:^3.4.0"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    interface-datastore: "npm:^10.0.1"
+    multiformats: "npm:^14.0.0"
+    weald: "npm:^1.1.0"
+  checksum: 10c0/95c083cb966adc9c963808eeba0f46a3a5364df406d6a1024999623e2dd2462eba5a7493d2141489841222ddb763a6e71dd4984710d627402f154873e6f15eb5
+  languageName: node
+  linkType: hard
+
 "@libp2p/logger@npm:^6.2.4, @libp2p/logger@npm:^6.2.6":
   version: 6.2.6
   resolution: "@libp2p/logger@npm:6.2.6"
@@ -1641,47 +1772,68 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/mdns@npm:^12.0.16":
-  version: 12.0.20
-  resolution: "@libp2p/mdns@npm:12.0.20"
+"@libp2p/mdns@npm:^12.0.24":
+  version: 12.0.37
+  resolution: "@libp2p/mdns@npm:12.0.37"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
     "@types/multicast-dns": "npm:^7.2.4"
     dns-packet: "npm:^5.6.1"
-    main-event: "npm:^1.0.1"
+    main-event: "npm:^1.0.5"
     multicast-dns: "npm:^7.2.5"
-  checksum: 10c0/a7283399a03065cb481b1121e6cc2063e6e3cc1e5f855a758d153a4e29381dad659b6a2c6e652e7048e17d55c62afd611165a528890ede77ebf5c67d721db66e
+  checksum: 10c0/e91c25a5c2578e7646f1ef1265994dd27940b70452e6cff3bb4375d9f75fd248a699b1fda75b8b0fc746f43f7d4e22e79b1b29ec4932840635cf15fbbe86c443
   languageName: node
   linkType: hard
 
-"@libp2p/mplex@npm:^12.0.16":
-  version: 12.0.20
-  resolution: "@libp2p/mplex@npm:12.0.20"
+"@libp2p/mplex@npm:^12.0.24":
+  version: 12.0.37
+  resolution: "@libp2p/mplex@npm:12.0.37"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/utils": "npm:^7.1.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/utils": "npm:^7.4.6"
     it-pushable: "npm:^3.2.3"
-    uint8-varint: "npm:^2.0.4"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/d8321fcab4b67e11ae66e828792cc5b06e60f20324bf93693298f8d40e2f988aeaf7e0dc148741fdec83f7b04d416e465d8d19421def984216529a8343283975
+    uint8-varint: "npm:^3.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/697c27a4ffda6d5f5918dd13f7fb72b0eb3691f7e38d1b657fea8f46c2e9399bb67229fb7de308aee311f8fa1049d28ed1928ba041deaf2ce8abe9846a82b7b0
   languageName: node
   linkType: hard
 
-"@libp2p/multistream-select@npm:^7.0.18":
-  version: 7.0.18
-  resolution: "@libp2p/multistream-select@npm:7.0.18"
+"@libp2p/multistream-select@npm:^7.0.32, @libp2p/multistream-select@npm:^7.0.33":
+  version: 7.0.33
+  resolution: "@libp2p/multistream-select@npm:7.0.33"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/utils": "npm:^7.1.0"
-    it-length-prefixed: "npm:^10.0.1"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/ce06bd7adc828603b66cb1c9e8f0e982ea13c71ebc80fe2994eb553bb3e65c2f35cf18271b83f459bf8bea37a4823251339ea5eaf80301182f62190d4947e0d0
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/utils": "npm:^7.4.6"
+    it-length-prefixed: "npm:^11.0.1"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/7fd1a040e69055858df0b4391cba82671a719deaa4767f8c7447408c2ce3e7693f7d3dada53cc1a7b9d75e618310093301438d4b11acb84b4499dab0bf60a3c8
+  languageName: node
+  linkType: hard
+
+"@libp2p/noise@npm:^17.0.2, @libp2p/noise@npm:^17.0.4, @libp2p/noise@npm:^17.0.7":
+  version: 17.0.8
+  resolution: "@libp2p/noise@npm:17.0.8"
+  dependencies:
+    "@chainsafe/as-chacha20poly1305": "npm:^0.1.0"
+    "@chainsafe/as-sha256": "npm:^1.2.0"
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@noble/ciphers": "npm:^2.0.1"
+    "@noble/curves": "npm:^2.0.1"
+    "@noble/hashes": "npm:^2.0.1"
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+    wherearewe: "npm:^2.0.1"
+  checksum: 10c0/50c2a77d5fcb447cf4f8ecdf6fab3e882ef650c87607cbfeec959f9d823d3c30b0b733b08122d9b3331c380e5bcb168c9deb9863c0c3b04dbdc5540f0afc0904
   languageName: node
   linkType: hard
 
@@ -1697,7 +1849,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/peer-collections@npm:^7.0.15, @libp2p/peer-collections@npm:^7.0.18":
+"@libp2p/peer-collections@npm:^7.0.18":
   version: 7.0.18
   resolution: "@libp2p/peer-collections@npm:7.0.18"
   dependencies:
@@ -1709,15 +1861,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/peer-collections@npm:^7.0.19, @libp2p/peer-collections@npm:^7.0.25":
-  version: 7.0.25
-  resolution: "@libp2p/peer-collections@npm:7.0.25"
+"@libp2p/peer-collections@npm:^7.0.21, @libp2p/peer-collections@npm:^7.0.32, @libp2p/peer-collections@npm:^7.0.33":
+  version: 7.0.33
+  resolution: "@libp2p/peer-collections@npm:7.0.33"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.5"
-    "@libp2p/peer-id": "npm:^6.0.13"
-    "@libp2p/utils": "npm:^7.3.1"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/utils": "npm:^7.4.6"
     multiformats: "npm:^14.0.0"
-  checksum: 10c0/fc7a67407a509acc5ece9145e258c204ea3dca360c8f5dc4357505a7caaeb4e27da1d62ba941079d949f1e3f0140c8c266485045a65b81fe73ced12da26bd14e
+  checksum: 10c0/bd31106e28cb0faf9b52a66cb5a477e850e7c7da1ec2ba6d9a059f2656acd2c85cb50ecb8619c5e154467e37c528cab642eff174efb2497affcd8c7de23c43b0
   languageName: node
   linkType: hard
 
@@ -1733,31 +1885,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/peer-id@npm:6.0.8, @libp2p/peer-id@npm:^6.0.6, @libp2p/peer-id@npm:^6.0.8":
-  version: 6.0.8
-  resolution: "@libp2p/peer-id@npm:6.0.8"
+"@libp2p/peer-id@npm:6.0.18, @libp2p/peer-id@npm:^6.0.10, @libp2p/peer-id@npm:^6.0.16, @libp2p/peer-id@npm:^6.0.18":
+  version: 6.0.18
+  resolution: "@libp2p/peer-id@npm:6.0.18"
   dependencies:
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    multiformats: "npm:^13.4.0"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/4b65dc5d9c17e4aa717582a07433524b1591bd3e67df3785e704878147508bc4fc8a5d1fc54a26e3da7fc478bdc22485a39447f8439423a927aa20302af63e6e
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    multiformats: "npm:^14.0.0"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/ad94468dcbfede93cb13978db386f744887bc9691df19d3f79bb9efad7d19bd8bb4effa269ca7c81cdb67c96f07ee301deccc80da70da45ed5bdf2986f45066e
   languageName: node
   linkType: hard
 
-"@libp2p/peer-id@npm:^6.0.0, @libp2p/peer-id@npm:^6.0.3, @libp2p/peer-id@npm:^6.0.5":
-  version: 6.0.5
-  resolution: "@libp2p/peer-id@npm:6.0.5"
-  dependencies:
-    "@libp2p/crypto": "npm:^5.1.14"
-    "@libp2p/interface": "npm:^3.1.1"
-    multiformats: "npm:^13.4.0"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/8f97a4c3c1c50a1b9d24ced0d8e0ce4e57f2c143169704ead8800183af02aac528b5c91f4ae6a7e0391f9514dca09ca445999ecbf7c77b85603bcf9adde7d154
-  languageName: node
-  linkType: hard
-
-"@libp2p/peer-id@npm:^6.0.12, @libp2p/peer-id@npm:^6.0.13, @libp2p/peer-id@npm:^6.0.9":
+"@libp2p/peer-id@npm:^6.0.12, @libp2p/peer-id@npm:^6.0.9":
   version: 6.0.13
   resolution: "@libp2p/peer-id@npm:6.0.13"
   dependencies:
@@ -1781,159 +1921,183 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/peer-record@npm:^9.0.16":
-  version: 9.0.16
-  resolution: "@libp2p/peer-record@npm:9.0.16"
+"@libp2p/peer-id@npm:^6.0.3, @libp2p/peer-id@npm:^6.0.5":
+  version: 6.0.5
+  resolution: "@libp2p/peer-id@npm:6.0.5"
   dependencies:
-    "@libp2p/crypto": "npm:^5.1.23"
-    "@libp2p/interface": "npm:^3.3.0"
-    "@libp2p/peer-id": "npm:^6.0.15"
+    "@libp2p/crypto": "npm:^5.1.14"
+    "@libp2p/interface": "npm:^3.1.1"
+    multiformats: "npm:^13.4.0"
+    uint8arrays: "npm:^5.1.0"
+  checksum: 10c0/8f97a4c3c1c50a1b9d24ced0d8e0ce4e57f2c143169704ead8800183af02aac528b5c91f4ae6a7e0391f9514dca09ca445999ecbf7c77b85603bcf9adde7d154
+  languageName: node
+  linkType: hard
+
+"@libp2p/peer-id@npm:^6.0.8":
+  version: 6.0.8
+  resolution: "@libp2p/peer-id@npm:6.0.8"
+  dependencies:
+    "@libp2p/crypto": "npm:^5.1.17"
+    "@libp2p/interface": "npm:^3.2.2"
+    multiformats: "npm:^13.4.0"
+    uint8arrays: "npm:^5.1.0"
+  checksum: 10c0/4b65dc5d9c17e4aa717582a07433524b1591bd3e67df3785e704878147508bc4fc8a5d1fc54a26e3da7fc478bdc22485a39447f8439423a927aa20302af63e6e
+  languageName: node
+  linkType: hard
+
+"@libp2p/peer-record@npm:^9.0.19":
+  version: 9.0.19
+  resolution: "@libp2p/peer-record@npm:9.0.19"
+  dependencies:
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/peer-id": "npm:^6.0.18"
     "@multiformats/multiaddr": "npm:^13.0.3"
     multiformats: "npm:^14.0.0"
     protons-runtime: "npm:^7.0.0"
     uint8-varint: "npm:^3.0.0"
     uint8arraylist: "npm:^3.0.2"
     uint8arrays: "npm:^6.1.1"
-  checksum: 10c0/18599bfb340d7387a1c8fa8513fff5012d4018ca22a7237502eab47a5e7520c4d73fac8798f431546e5d6d767ab2641c0c2db47c81414c2711cec2673dd9c8d9
+  checksum: 10c0/564476a1baa805e36759d4e6d8d7ab21fab134ed549d0e34ad6f0fd5a6e338450855cc09f1ac027044c3138ebedc11e231f5b64540f39bbd0d1596716ad13abe
   languageName: node
   linkType: hard
 
-"@libp2p/peer-record@npm:^9.0.9":
-  version: 9.0.9
-  resolution: "@libp2p/peer-record@npm:9.0.9"
+"@libp2p/peer-store@npm:^12.0.32, @libp2p/peer-store@npm:^12.0.33":
+  version: 12.0.33
+  resolution: "@libp2p/peer-store@npm:12.0.33"
   dependencies:
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    multiformats: "npm:^13.4.0"
-    protons-runtime: "npm:^6.0.1"
-    uint8-varint: "npm:^2.0.4"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/6fc5a6b54be7ff179c1789d484827a3b2816565a4ba74d8ae1018caaa3f1c802e01ce55934f81869d8e2f3b277d4a3545e0d78fa30bed0d510620224e6a1d916
-  languageName: node
-  linkType: hard
-
-"@libp2p/peer-store@npm:^12.0.18":
-  version: 12.0.28
-  resolution: "@libp2p/peer-store@npm:12.0.28"
-  dependencies:
-    "@libp2p/crypto": "npm:^5.1.23"
-    "@libp2p/interface": "npm:^3.3.0"
-    "@libp2p/peer-collections": "npm:^7.0.28"
-    "@libp2p/peer-id": "npm:^6.0.15"
-    "@libp2p/peer-record": "npm:^9.0.16"
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/peer-collections": "npm:^7.0.33"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/peer-record": "npm:^9.0.19"
     "@multiformats/multiaddr": "npm:^13.0.3"
     interface-datastore: "npm:^10.0.1"
     it-all: "npm:^3.0.9"
-    main-event: "npm:^1.0.1"
+    main-event: "npm:^1.0.5"
     mortice: "npm:^3.3.1"
     multiformats: "npm:^14.0.0"
     protons-runtime: "npm:^7.0.0"
     uint8arraylist: "npm:^3.0.2"
     uint8arrays: "npm:^6.1.1"
-  checksum: 10c0/f7351edcefd06690c5d876c80bd830f2663a3acde491c0931b44c9b6eded0c38eae37d43865231cf7146267fe49fa599dc3984a63508808187cd00a52585d98c
+  checksum: 10c0/a04eda6bf0ad1ae18d17aa1696d90d70c81991c53546b905b0671330f44eade18adc22520a241d9f5c07a59284bbbd73311fa755248dd0e950e87d1afa88ce0a
   languageName: node
   linkType: hard
 
-"@libp2p/ping@npm:^3.1.0":
-  version: 3.1.3
-  resolution: "@libp2p/ping@npm:3.1.3"
+"@libp2p/ping@npm:^3.1.18, @libp2p/ping@npm:^3.1.6":
+  version: 3.1.18
+  resolution: "@libp2p/ping@npm:3.1.18"
   dependencies:
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    p-event: "npm:^7.0.0"
-    race-signal: "npm:^2.0.0"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/0a4fd70591f338b4fc1f76680702e4715011330e766b10a004736c12a72a9c9d88497559f11cd9fc7f0c608b80b8cfef0959868151c43623ecde5df0b1139288
-  languageName: node
-  linkType: hard
-
-"@libp2p/ping@npm:^3.1.4":
-  version: 3.1.10
-  resolution: "@libp2p/ping@npm:3.1.10"
-  dependencies:
-    "@libp2p/interface": "npm:^3.2.5"
-    "@libp2p/interface-internal": "npm:^3.1.10"
-    p-event: "npm:^7.0.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    p-event: "npm:^8.0.1"
     race-signal: "npm:^2.0.0"
     uint8arraylist: "npm:^3.0.2"
     uint8arrays: "npm:^6.1.1"
-  checksum: 10c0/67357613ef3e4f989808c7aa4bc0c0b5329d595d0f9400760708cef8018f2852e2e510d112008e1a428d3926d54468e26939e689aea4ec5b1276959fd74b64eb
+  checksum: 10c0/d8e85e955c89925658763b56a5ba70a2ecb37f42744a699ac545086934cd512ae828a3aceee78f8ac155dbcbf0c99d3f7ca2fc6f9d58e1a67a9b1d3af82feada
   languageName: node
   linkType: hard
 
-"@libp2p/record@npm:^4.0.12":
-  version: 4.0.12
-  resolution: "@libp2p/record@npm:4.0.12"
+"@libp2p/record@npm:^4.0.15":
+  version: 4.0.15
+  resolution: "@libp2p/record@npm:4.0.15"
   dependencies:
-    protons-runtime: "npm:^6.0.1"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/d4554aad6f2591de83339ff03add2661d987d65d5965db33daa9e2223902a6f31ac1963c02ce0c783234dda01cce06e07a8ac92f409141dbbbd22f21f58ee031
+    protons-runtime: "npm:^7.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/c4a483c71a328fda1bf04da5759d8818102da092e0700df45bd279951c5c8ca87e11425a18907999cde001faea672434486b312164fc4e0fda7d4d862d5b35cf
   languageName: node
   linkType: hard
 
-"@libp2p/tcp@npm:^11.0.15":
-  version: 11.0.18
-  resolution: "@libp2p/tcp@npm:11.0.18"
+"@libp2p/tcp@npm:^11.0.21":
+  version: 11.0.33
+  resolution: "@libp2p/tcp@npm:11.0.33"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
-    main-event: "npm:^1.0.1"
-    p-event: "npm:^7.0.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
+    main-event: "npm:^1.0.5"
+    p-event: "npm:^8.0.1"
     progress-events: "npm:^1.0.1"
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/303406a9913484722c4120ebd1a2abb4284a1726ef5dadfae4866b78395a56c3c5e738ab34b68d18a56f7e1ad3f6c9fe1ae50b7875b8c8a311149d85a6b2aaff
+    uint8arraylist: "npm:^3.0.2"
+  checksum: 10c0/76562f13ca01b4fa116ee467032c4aea287a56f502d060da8b2e5b05193c56f25120ea3089dfb1e8100965dda2494f8a8846283b36211f6137157cfb455dd92f
   languageName: node
   linkType: hard
 
-"@libp2p/tls@npm:^3.0.15":
-  version: 3.1.0
-  resolution: "@libp2p/tls@npm:3.1.0"
+"@libp2p/tls@npm:^3.1.3":
+  version: 3.1.15
+  resolution: "@libp2p/tls@npm:3.1.15"
   dependencies:
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@libp2p/utils": "npm:^7.1.0"
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/utils": "npm:^7.4.6"
     "@peculiar/asn1-schema": "npm:^2.4.0"
     "@peculiar/asn1-x509": "npm:^2.4.0"
     "@peculiar/webcrypto": "npm:^1.5.0"
     "@peculiar/x509": "npm:^2.0.0"
     asn1js: "npm:^3.0.6"
-    p-event: "npm:^7.0.0"
-    protons-runtime: "npm:^6.0.1"
+    p-event: "npm:^8.0.1"
     reflect-metadata: "npm:^0.2.2"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/cea1f2c99fbab8982a78747254ad9a9b202c94cdaa0e309605ae8a0071cd4308398128372cd408f20a5f07a88afa19fdfe0a616342435c0a9c8fcb1462aaca96
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/9e50daf546090613c26886478420a08db9210ba78b7a70ebf198a15a2fb480d8ab85e0829d0d67a029d36be0d7cf42345f5af90c22ff63a6ae07b1f6de7b52c2
   languageName: node
   linkType: hard
 
-"@libp2p/upnp-nat@npm:^4.0.15":
-  version: 4.0.18
-  resolution: "@libp2p/upnp-nat@npm:4.0.18"
+"@libp2p/upnp-nat@npm:^4.0.21":
+  version: 4.0.33
+  resolution: "@libp2p/upnp-nat@npm:4.0.33"
   dependencies:
     "@achingbrain/nat-port-mapper": "npm:^4.0.4"
     "@chainsafe/is-ip": "npm:^2.1.0"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
-    main-event: "npm:^1.0.1"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
+    main-event: "npm:^1.0.5"
     p-defer: "npm:^4.0.1"
     race-signal: "npm:^2.0.0"
-  checksum: 10c0/967ce8fea598a7e59f3e8b3ff4c79b9e4be2f87b4fcf4f8f13041347da36906d6795c6164497f1ca66c13c45d497eddac247ee81ef4f4c154f6b1bbd90f2ac28
+  checksum: 10c0/2cd90c97a77c5536239e2db461a28382b9f5c536594c93de9e3e7f037457f6b9d5cd47d4ff7d56b71489694e4e8fa06f72835557a2bb67da06be22b394c1500e
   languageName: node
   linkType: hard
 
-"@libp2p/utils@npm:^7.0.0, @libp2p/utils@npm:^7.0.14, @libp2p/utils@npm:^7.0.4":
+"@libp2p/utils@npm:7.4.5":
+  version: 7.4.5
+  resolution: "@libp2p/utils@npm:7.4.5"
+  dependencies:
+    "@chainsafe/is-ip": "npm:^2.1.0"
+    "@chainsafe/netmask": "npm:^2.0.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/logger": "npm:^6.2.16"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
+    "@sindresorhus/fnv1a": "npm:^3.1.0"
+    any-signal: "npm:^4.1.1"
+    cborg: "npm:^6.0.0"
+    delay: "npm:^7.0.0"
+    is-loopback-addr: "npm:^2.0.2"
+    it-length-prefixed: "npm:^11.0.1"
+    it-pipe: "npm:^3.0.1"
+    it-pushable: "npm:^3.2.3"
+    it-stream-types: "npm:^2.0.2"
+    main-event: "npm:^1.0.5"
+    netmask: "npm:^2.0.2"
+    p-defer: "npm:^4.0.1"
+    p-event: "npm:^8.0.1"
+    progress-events: "npm:^1.1.0"
+    protons-runtime: "npm:^7.0.0"
+    race-signal: "npm:^2.0.0"
+    uint8-varint: "npm:^3.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/d351a42b6e962a3b67158dd7997369200c6a71ff46cf81ba98ff9361a2c38c2cd8406e051497752fe429add18b1e45cbd7eba593f8307d2651f29dd685acf972
+  languageName: node
+  linkType: hard
+
+"@libp2p/utils@npm:^7.0.14, @libp2p/utils@npm:^7.0.4":
   version: 7.0.14
   resolution: "@libp2p/utils@npm:7.0.14"
   dependencies:
@@ -1964,7 +2128,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/utils@npm:^7.0.15, @libp2p/utils@npm:^7.1.0":
+"@libp2p/utils@npm:^7.1.0":
   version: 7.1.0
   resolution: "@libp2p/utils@npm:7.1.0"
   dependencies:
@@ -1996,36 +2160,35 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/utils@npm:^7.2.0, @libp2p/utils@npm:^7.3.1":
-  version: 7.3.1
-  resolution: "@libp2p/utils@npm:7.3.1"
+"@libp2p/utils@npm:^7.2.2, @libp2p/utils@npm:^7.2.3, @libp2p/utils@npm:^7.4.2, @libp2p/utils@npm:^7.4.5, @libp2p/utils@npm:^7.4.6":
+  version: 7.4.6
+  resolution: "@libp2p/utils@npm:7.4.6"
   dependencies:
     "@chainsafe/is-ip": "npm:^2.1.0"
     "@chainsafe/netmask": "npm:^2.0.0"
-    "@libp2p/interface": "npm:^3.2.5"
-    "@libp2p/logger": "npm:^6.2.11"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/logger": "npm:^6.2.16"
     "@multiformats/multiaddr": "npm:^13.0.3"
     "@multiformats/multiaddr-matcher": "npm:^3.0.2"
     "@sindresorhus/fnv1a": "npm:^3.1.0"
     any-signal: "npm:^4.1.1"
-    cborg: "npm:^5.1.0"
+    cborg: "npm:^6.0.0"
     delay: "npm:^7.0.0"
     is-loopback-addr: "npm:^2.0.2"
     it-length-prefixed: "npm:^11.0.1"
     it-pipe: "npm:^3.0.1"
     it-pushable: "npm:^3.2.3"
     it-stream-types: "npm:^2.0.2"
-    main-event: "npm:^1.0.1"
-    netmask: "npm:^2.0.2"
+    main-event: "npm:^1.0.5"
     p-defer: "npm:^4.0.1"
-    p-event: "npm:^7.0.0"
+    p-event: "npm:^8.0.1"
     progress-events: "npm:^1.1.0"
     protons-runtime: "npm:^7.0.0"
     race-signal: "npm:^2.0.0"
     uint8-varint: "npm:^3.0.0"
     uint8arraylist: "npm:^3.0.2"
     uint8arrays: "npm:^6.1.1"
-  checksum: 10c0/0fd6fcda0cb76de12e62879df60b3da939467a7c8c015657a27937ffe54bbbc146d25effc12ee4258ea6874590383c82d6d0a778d053ad3a1e2b2c7fe8a04680
+  checksum: 10c0/3e39e24179013ebaf97ce18c66e17061d54d20852b461696cc43cb6142d0fdbe623c4cb27fb4f30638634ffae3f3fc65655992d2ece9c99338322ff6e4d187fa
   languageName: node
   linkType: hard
 
@@ -2062,82 +2225,94 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@libp2p/webrtc@npm:^6.0.16":
-  version: 6.0.21
-  resolution: "@libp2p/webrtc@npm:6.0.21"
+"@libp2p/webrtc@npm:^6.0.24":
+  version: 6.1.0
+  resolution: "@libp2p/webrtc@npm:6.1.0"
   dependencies:
     "@chainsafe/is-ip": "npm:^2.1.0"
-    "@chainsafe/libp2p-noise": "npm:^17.0.0"
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/keychain": "npm:^6.1.0"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
+    "@libp2p/crypto": "npm:^5.1.24"
+    "@libp2p/interface": "npm:^3.3.1"
+    "@libp2p/interface-internal": "npm:^3.1.14"
+    "@libp2p/keychain": "npm:^6.1.8"
+    "@libp2p/noise": "npm:^17.0.4"
+    "@libp2p/peer-id": "npm:^6.0.16"
+    "@libp2p/utils": "npm:^7.4.2"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
     "@peculiar/webcrypto": "npm:^1.5.0"
     "@peculiar/x509": "npm:^2.0.0"
     get-port: "npm:^7.1.0"
-    interface-datastore: "npm:^9.0.1"
-    it-length-prefixed: "npm:^10.0.1"
-    it-protobuf-stream: "npm:^2.0.3"
+    interface-datastore: "npm:^10.0.1"
+    it-length-prefixed: "npm:^11.0.1"
+    it-protobuf-stream: "npm:^3.0.0"
     it-pushable: "npm:^3.2.3"
     it-stream-types: "npm:^2.0.2"
-    main-event: "npm:^1.0.1"
-    multiformats: "npm:^13.4.0"
-    node-datachannel: "npm:^0.32.3"
+    main-event: "npm:^1.0.5"
+    multiformats: "npm:^14.0.0"
+    node-datachannel: "npm:^0.33.0"
     p-defer: "npm:^4.0.1"
     p-event: "npm:^7.0.0"
     p-timeout: "npm:^7.0.0"
     p-wait-for: "npm:^6.0.0"
     progress-events: "npm:^1.0.1"
-    protons-runtime: "npm:^6.0.1"
+    protons-runtime: "npm:^7.0.0"
     race-signal: "npm:^2.0.0"
     react-native-webrtc: "npm:^124.0.6"
     reflect-metadata: "npm:^0.2.2"
-    uint8-varint: "npm:^2.0.4"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/249dffc36d4c669d973aea2edf24d27388fcb2f6fc07ae5bf0f572d4d9595cbfca0899190d3dcd05b70021236e86d92ce91729359e648d304c1f7631c849dd56
+    uint8-varint: "npm:^3.0.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/93b65733970dfe25493d8d10d3484c39188d90ba3f996bcb25b1baa15354b49c484b04092c0eff173714e7c85db165945f8c68227c17978f95494ca4e0dc7808
   languageName: node
   linkType: hard
 
-"@libp2p/websockets@npm:^10.1.8":
-  version: 10.1.11
-  resolution: "@libp2p/websockets@npm:10.1.11"
+"@libp2p/websockets@npm:^10.1.14":
+  version: 10.1.26
+  resolution: "@libp2p/websockets@npm:10.1.26"
   dependencies:
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
     "@multiformats/multiaddr-to-uri": "npm:^12.0.0"
-    main-event: "npm:^1.0.1"
-    p-event: "npm:^7.0.0"
+    main-event: "npm:^1.0.5"
+    p-event: "npm:^8.0.1"
     progress-events: "npm:^1.0.1"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
     ws: "npm:^8.18.3"
-  checksum: 10c0/7f3e720a4474f765f0ab0d15cdb7a359faf85775ef6ac5970a3c5eaeea867769b06fe2f110b2debe186ed219c4c971ef7ccecd41abf1a3f077014bdd94fa7024
+  checksum: 10c0/7ec29d56c9aa5838c406bd17a7fd45881304615440117796ed76abae654b84cc9890c455e992b37011c4cd887c987747ab6047ec797893f7c011d45ace6b2e26
   languageName: node
   linkType: hard
 
-"@libp2p/webtransport@npm:6.0.22":
-  version: 6.0.22
-  resolution: "@libp2p/webtransport@npm:6.0.22"
+"@libp2p/webtransport@npm:6.0.44":
+  version: 6.0.44
+  resolution: "@libp2p/webtransport@npm:6.0.44"
   dependencies:
-    "@chainsafe/libp2p-noise": "npm:^17.0.0"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@libp2p/utils": "npm:^7.1.0"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
-    multiformats: "npm:^13.3.6"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/noise": "npm:^17.0.7"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/utils": "npm:^7.4.5"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
+    multiformats: "npm:^14.0.0"
     progress-events: "npm:^1.0.1"
     race-signal: "npm:^2.0.0"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/152aaf9b2895681b05b243b5fa156eb4c510d655b9880ac105c8963741dae2690e7eef079a1484569e22745a065ea9580ed543121db039ed77327fb715544b32
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/235b3f5f414fbebf527e0d5e2d0e9d8d38d07bc1a44eeb8ec6930a626e048a884c90c588e312fc65811c4f4ecccbf3a7660175dd8d04879fadb827ad42fb018a
+  languageName: node
+  linkType: hard
+
+"@libp2p/yamux@npm:^8.0.3":
+  version: 8.0.8
+  resolution: "@libp2p/yamux@npm:8.0.8"
+  dependencies:
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/utils": "npm:^7.4.6"
+    race-signal: "npm:^2.0.0"
+    uint8arraylist: "npm:^3.0.2"
+  checksum: 10c0/287b21cd7e075af1a4c5b831fc099616ed758b5e69df41133e7e8c1866621b636dc485fbf852c0feba2fd071516b45bf74ed95b26d6a4284f8d1101b33e64a7b
   languageName: node
   linkType: hard
 
@@ -2159,6 +2334,20 @@ __metadata:
     progress-events: "npm:^1.0.0"
     uint8arrays: "npm:^5.0.2"
   checksum: 10c0/fb849af8a8a6e8bc6c035514476d6677befea96595f6847bfffc0612ad3a19e3678ebd893e6a1f4f4e19f1e3a4e3e19576f98fcc5bc64da6eafe65b8c7e5eb9a
+  languageName: node
+  linkType: hard
+
+"@multiformats/dns@npm:^1.0.15":
+  version: 1.0.15
+  resolution: "@multiformats/dns@npm:1.0.15"
+  dependencies:
+    "@dnsquery/dns-packet": "npm:^6.1.1"
+    "@libp2p/interface": "npm:^3.1.0"
+    hashlru: "npm:^2.3.0"
+    p-queue: "npm:^9.0.0"
+    progress-events: "npm:^1.0.0"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/f5ec3452998ffd8a7e30e3dc75e70e3640e0140920c67d9e87a768770f9a3b9383859deb2c28be5221a522ecaa5b6e85d1551997ac7b129038a6fda901d95647
   languageName: node
   linkType: hard
 
@@ -2189,6 +2378,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@multiformats/multiaddr@npm:13.0.3, @multiformats/multiaddr@npm:^13.0.3":
+  version: 13.0.3
+  resolution: "@multiformats/multiaddr@npm:13.0.3"
+  dependencies:
+    "@chainsafe/is-ip": "npm:^2.0.1"
+    multiformats: "npm:^14.0.0"
+    uint8-varint: "npm:^3.0.0"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/00266178623c4b98a6ce9e25e4a657c6c17a70e3111b337a91762aa756ad9ce905670024ac3f1fa46533792ff1d95e2c95dc7739ae916263daa8b5a344c2cd80
+  languageName: node
+  linkType: hard
+
 "@multiformats/multiaddr@npm:^13.0.0, @multiformats/multiaddr@npm:^13.0.1":
   version: 13.0.1
   resolution: "@multiformats/multiaddr@npm:13.0.1"
@@ -2201,33 +2402,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@multiformats/multiaddr@npm:^13.0.3":
-  version: 13.0.3
-  resolution: "@multiformats/multiaddr@npm:13.0.3"
+"@multiformats/murmur3@npm:2.2.5":
+  version: 2.2.5
+  resolution: "@multiformats/murmur3@npm:2.2.5"
   dependencies:
-    "@chainsafe/is-ip": "npm:^2.0.1"
     multiformats: "npm:^14.0.0"
-    uint8-varint: "npm:^3.0.0"
-    uint8arrays: "npm:^6.1.1"
-  checksum: 10c0/00266178623c4b98a6ce9e25e4a657c6c17a70e3111b337a91762aa756ad9ce905670024ac3f1fa46533792ff1d95e2c95dc7739ae916263daa8b5a344c2cd80
+  checksum: 10c0/f3e081af0ba8da49f719fa5b2608e77aaedf83cd872bf1bf777d60bd96dbb49373b12538d168933f9a6ed5d67684dac1afbdbf0c4cbc1caebc03270a5fa55859
   languageName: node
   linkType: hard
 
-"@multiformats/murmur3@npm:^2.1.8":
-  version: 2.2.2
-  resolution: "@multiformats/murmur3@npm:2.2.2"
+"@multiformats/murmur3@npm:^2.2.5":
+  version: 2.2.8
+  resolution: "@multiformats/murmur3@npm:2.2.8"
   dependencies:
-    multiformats: "npm:^13.0.0"
-  checksum: 10c0/13d857b6830b1fef47ca0c1454a1641759ac6773dbccf38f875ef069810e8c360860af6930e1fb511d5ce41a56a13e4a1efe5f25127607f929fa4aec36d4cdc5
-  languageName: node
-  linkType: hard
-
-"@multiformats/murmur3@npm:^2.2.2":
-  version: 2.2.3
-  resolution: "@multiformats/murmur3@npm:2.2.3"
-  dependencies:
-    multiformats: "npm:^13.0.0"
-  checksum: 10c0/5eef1dfe73d9e34e01e607261b9b6e0ecdf884e9a5ce22ed588be803f10845fb3ef11da479818e12e2de57449d902909e6dd0ed2bf89a146e5eb5e9e4cd29386
+    multiformats: "npm:^14.0.0"
+  checksum: 10c0/59ec1b3157ec9c432cb6c49a8ff80f1df935bc278b8eb2e72f50d628843b12baa1175bb2007089c2466cc9ebcf66217347b19638afaf9e01941197ef061ff3a9
   languageName: node
   linkType: hard
 
@@ -2248,12 +2437,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/curves@npm:2.2.0":
-  version: 2.2.0
-  resolution: "@noble/curves@npm:2.2.0"
+"@noble/curves@npm:2.4.0":
+  version: 2.4.0
+  resolution: "@noble/curves@npm:2.4.0"
   dependencies:
-    "@noble/hashes": "npm:2.2.0"
-  checksum: 10c0/e545d3bb03ebedd5c04c2cab81342d64f5ce8a4c1019cfe207f3dc69174bc0ad7cfb50effc31bfa8616b8340900f445dd053da7454190428857c4eedd3b51413
+    "@noble/hashes": "npm:2.4.0"
+  checksum: 10c0/b60b737f65cc4e128dd94fea467df1ed73c5c0c089ef1bdb61614a0897db1fa7151d7f95bb7205854a9030d3f80a879e00f3bb74990befde061184ae43dfaec6
   languageName: node
   linkType: hard
 
@@ -2280,10 +2469,73 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@noble/hashes@npm:2.2.0":
-  version: 2.2.0
-  resolution: "@noble/hashes@npm:2.2.0"
-  checksum: 10c0/cad8630c504d6b9271984f685cd0af9101b40988fc2dfbe17ccdf068a9941f95cc5c9957d89e9ca4b7ca94c15cb35f93510c5d53a09fbcc83ee503b93d0a1034
+"@noble/hashes@npm:2.4.0":
+  version: 2.4.0
+  resolution: "@noble/hashes@npm:2.4.0"
+  checksum: 10c0/f5820a38c52886073a69722a030688ad188bbacb822d01554545371259961c2b916266c57c013c2ce5a0d78aec977142fc68fd2a79be4c97b0644fcee9bb35f6
+  languageName: node
+  linkType: hard
+
+"@node-datachannel/android-arm64@npm:0.33.6":
+  version: 0.33.6
+  resolution: "@node-datachannel/android-arm64@npm:0.33.6"
+  conditions: os=android & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@node-datachannel/darwin-arm64@npm:0.33.6":
+  version: 0.33.6
+  resolution: "@node-datachannel/darwin-arm64@npm:0.33.6"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@node-datachannel/darwin-x64@npm:0.33.6":
+  version: 0.33.6
+  resolution: "@node-datachannel/darwin-x64@npm:0.33.6"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@node-datachannel/linux-arm64-gnu@npm:0.33.6":
+  version: 0.33.6
+  resolution: "@node-datachannel/linux-arm64-gnu@npm:0.33.6"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@node-datachannel/linux-arm64-musl@npm:0.33.6":
+  version: 0.33.6
+  resolution: "@node-datachannel/linux-arm64-musl@npm:0.33.6"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@node-datachannel/linux-x64-gnu@npm:0.33.6":
+  version: 0.33.6
+  resolution: "@node-datachannel/linux-x64-gnu@npm:0.33.6"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@node-datachannel/linux-x64-musl@npm:0.33.6":
+  version: 0.33.6
+  resolution: "@node-datachannel/linux-x64-musl@npm:0.33.6"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@node-datachannel/win32-arm64-msvc@npm:0.33.6":
+  version: 0.33.6
+  resolution: "@node-datachannel/win32-arm64-msvc@npm:0.33.6"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@node-datachannel/win32-x64-msvc@npm:0.33.6":
+  version: 0.33.6
+  resolution: "@node-datachannel/win32-x64-msvc@npm:0.33.6"
+  conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
@@ -2676,59 +2928,79 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pkcprotocol/pkc-js@npm:0.0.30":
-  version: 0.0.30
-  resolution: "@pkcprotocol/pkc-js@npm:0.0.30"
+"@pkcprotocol/pkc-js@npm:0.0.163":
+  version: 0.0.163
+  resolution: "@pkcprotocol/pkc-js@npm:0.0.163"
   dependencies:
     "@enhances/with-resolvers": "npm:0.0.5"
-    "@helia/block-brokers": "npm:5.2.4"
-    "@helia/delegated-routing-v1-http-api-client": "npm:6.0.1"
-    "@helia/ipns": "npm:9.2.1"
-    "@helia/unixfs": "npm:7.2.1"
-    "@libp2p/crypto": "npm:5.1.17"
-    "@libp2p/fetch": "npm:4.1.3"
-    "@libp2p/gossipsub": "npm:15.0.21"
-    "@libp2p/identify": "npm:4.1.3"
-    "@libp2p/interfaces": "npm:3.3.2"
-    "@libp2p/peer-id": "npm:6.0.8"
-    "@libp2p/webtransport": "npm:6.0.22"
-    "@noble/curves": "npm:2.2.0"
+    "@helia/bitswap": "npm:4.0.20"
+    "@helia/delegated-routing-v1-http-api-client": "npm:9.0.2"
+    "@helia/ipns": "npm:10.2.2"
+    "@helia/libp2p": "npm:2.1.5"
+    "@helia/unixfs": "npm:8.0.9"
+    "@ipld/dag-cbor": "npm:9.2.7"
+    "@ipld/dag-pb": "npm:4.2.0"
+    "@libp2p/crypto": "npm:5.2.0"
+    "@libp2p/fetch": "npm:4.1.17"
+    "@libp2p/gossipsub": "npm:17.2.1"
+    "@libp2p/identify": "npm:4.1.18"
+    "@libp2p/interface": "npm:3.4.0"
+    "@libp2p/peer-id": "npm:6.0.18"
+    "@libp2p/utils": "npm:7.4.5"
+    "@libp2p/webtransport": "npm:6.0.44"
+    "@multiformats/multiaddr": "npm:13.0.3"
+    "@multiformats/murmur3": "npm:2.2.5"
+    "@noble/curves": "npm:2.4.0"
+    "@noble/hashes": "npm:2.4.0"
     "@pkcprotocol/pkc-logger": "npm:0.1.0"
-    "@pkcprotocol/proper-lock-file": "npm:4.2.1"
+    "@types/better-sqlite3": "npm:7.6.13"
     assert: "npm:2.1.0"
     better-sqlite3: "npm:12.9.0"
-    blockstore-core: "npm:6.1.2"
+    blockstore-core: "npm:7.0.1"
+    blockstore-fs: "npm:4.0.1"
+    blockstore-idb: "npm:4.0.1"
     buffer: "npm:6.0.3"
     cbor: "npm:10.0.11"
+    cborg: "npm:4.5.8"
     debounce: "npm:1.2.1"
     ext-name: "npm:5.0.0"
-    helia: "npm:6.1.4"
+    helia: "npm:7.1.16"
     hpagent: "npm:1.2.0"
+    ipfs-unixfs: "npm:13.1.2"
+    ipfs-unixfs-importer: "npm:17.0.1"
+    ipns: "npm:11.0.1"
     it-all: "npm:3.0.6"
+    it-last: "npm:3.0.11"
     js-sha256: "npm:0.11.1"
     js-sha512: "npm:0.9.0"
-    kubo-rpc-client: "npm:6.1.0"
+    kubo-rpc-client: "npm:7.1.0"
+    libp2p: "npm:3.5.1"
     limiter-es6-compat: "npm:2.1.2"
     localforage: "npm:1.10.0"
     lodash.merge: "npm:4.6.2"
     lru-cache: "npm:10.1.0"
+    multiformats: "npm:14.0.7"
+    node-forge: "npm:1.4.2"
     open-graph-scraper: "npm:6.11.0"
     p-limit: "npm:7.3.0"
     p-retry: "npm:8.0.0"
     p-timeout: "npm:7.0.1"
-    probe-image-size: "npm:7.2.3"
-    remeda: "npm:1.57.0"
+    probe-image-size: "npm:7.4.0"
+    quick-lru: "npm:5.1.1"
+    remeda: "npm:2.39.0"
     retry: "npm:0.13.1"
     rpc-websockets: "npm:9.3.8"
     safe-stable-stringify: "npm:2.4.3"
-    tcp-port-used: "npm:1.0.2"
     tiny-typed-emitter: "npm:2.1.0"
     tinycache: "npm:1.1.2"
     ts-custom-error: "npm:3.3.1"
     typestub-ipfs-only-hash: "npm:4.0.0"
-    uuid: "npm:13.0.0"
-    zod: "npm:4.3.6"
-  checksum: 10c0/b6fa8a8e6474d4d7150c6fd29ac8caef9a8d1fd67a2444f9b3e4354ed95b80427693387618363eb059ad4775834857e58ca8fb5b85c9daafc795a16349b34d11
+    uint8arrays: "npm:6.1.1"
+    undici: "npm:8.12.3"
+    uuid: "npm:14.0.3"
+    ws: "npm:8.22.0"
+    zod: "npm:4.6.7"
+  checksum: 10c0/1c7005129531b402dbcb6c3aad5613ac5b8868374d9560616d23fa97bd9e57c690c2633a87abc53be4366281664012c37ba5907c4f66f140ef246817a2c8d001
   languageName: node
   linkType: hard
 
@@ -2738,17 +3010,6 @@ __metadata:
   dependencies:
     debug: "npm:4.4.3"
   checksum: 10c0/f37dad95e940685d0afa5f3dbecf6dd172bcb9985890807d5d1d09151516e7b8c58f551daaa5c7830e56b9a674fe6b3f4ec4d882d2d9e84a34031a73ed24aa31
-  languageName: node
-  linkType: hard
-
-"@pkcprotocol/proper-lock-file@npm:4.2.1":
-  version: 4.2.1
-  resolution: "@pkcprotocol/proper-lock-file@npm:4.2.1"
-  dependencies:
-    graceful-fs: "npm:4.2.11"
-    retry: "npm:0.13.1"
-    signal-exit: "npm:4.1.0"
-  checksum: 10c0/05e9c4aa7a405a19a5ace80bca87491c5a89a97499e6da15f54a5753b5f6f8038d9f9597df8115f343894b46eb2ea15d662e0bfa2a4a4f5e478a57e7bb88e640
   languageName: node
   linkType: hard
 
@@ -2987,6 +3248,15 @@ __metadata:
   version: 0.23.0
   resolution: "@tootallnate/quickjs-emscripten@npm:0.23.0"
   checksum: 10c0/2a939b781826fb5fd3edd0f2ec3b321d259d760464cf20611c9877205aaca3ccc0b7304dea68416baa0d568e82cd86b17d29548d1e5139fa3155a4a86a2b4b49
+  languageName: node
+  linkType: hard
+
+"@types/better-sqlite3@npm:7.6.13":
+  version: 7.6.13
+  resolution: "@types/better-sqlite3@npm:7.6.13"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/c4336e7b92343eb0e988ded007c53fa9887b98a38d61175226e86124a1a2c28b1a4e3892873c5041e350b7bfa2901f85c82db1542c4f0eed1d3a899682c92106
   languageName: node
   linkType: hard
 
@@ -3601,13 +3871,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"birnam@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "birnam@npm:1.0.0"
+  dependencies:
+    multiformats: "npm:^14.0.0"
+    weald: "npm:^1.1.2"
+  checksum: 10c0/db1aad9a2cfa45da186dc70505bb13ccfb9715840c67b666575dd7b6a43044e654f9060e450f0dd3ec0d109ed27dcc07258011cb9595d6042ae963aefa8eee67
+  languageName: node
+  linkType: hard
+
 "bitsocial-spam-blocker@workspace:.":
   version: 0.0.0-use.local
   resolution: "bitsocial-spam-blocker@workspace:."
   dependencies:
     "@commitlint/cli": "npm:20.2.0"
     "@commitlint/config-conventional": "npm:20.3.1"
-    "@pkcprotocol/pkc-js": "npm:0.0.30"
+    "@pkcprotocol/pkc-js": "npm:0.0.163"
     "@release-it/conventional-changelog": "npm:10.0.1"
     commitizen: "npm:4.2.5"
     cz-conventional-changelog: "npm:3.3.0"
@@ -3649,42 +3929,62 @@ __metadata:
   languageName: node
   linkType: hard
 
-"blob-to-it@npm:^2.0.5":
-  version: 2.0.10
-  resolution: "blob-to-it@npm:2.0.10"
+"blob-to-it@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "blob-to-it@npm:3.0.0"
   dependencies:
     browser-readablestream-to-it: "npm:^2.0.0"
-  checksum: 10c0/9c133ab2dc077a3bc89e61947c5375732fedadd8a417d95073e2029ae2000b3818ac806af897297446a41330a97c1d38d6d320c09bf1980ef5fbc903c3f964dc
+  checksum: 10c0/1bfc924ed5c40dd223d6d6fed1b48aec2d461def6901ee9fefc18ac5ce1e0503bc560eb12df313a32c973172ab92b400821c59553f19169646d9136f3c67153d
   languageName: node
   linkType: hard
 
-"blockstore-core@npm:6.1.2, blockstore-core@npm:^6.1.2":
-  version: 6.1.2
-  resolution: "blockstore-core@npm:6.1.2"
-  dependencies:
-    "@libp2p/logger": "npm:^6.0.0"
-    interface-blockstore: "npm:^6.0.0"
-    interface-store: "npm:^7.0.0"
-    it-all: "npm:^3.0.9"
-    it-filter: "npm:^3.1.3"
-    it-merge: "npm:^3.0.11"
-    multiformats: "npm:^13.3.6"
-  checksum: 10c0/5787b071cdc952f73cf297b142f1f0d0a653d62bfb1de76fa54ce0f55f1051166cfc50479461d6b980540ad3e9a940f3413a9e345b8e2d6bf1c01672de330eb4
-  languageName: node
-  linkType: hard
-
-"blockstore-core@npm:^6.1.3":
-  version: 6.1.3
-  resolution: "blockstore-core@npm:6.1.3"
+"blockstore-core@npm:7.0.1, blockstore-core@npm:^7.0.0, blockstore-core@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "blockstore-core@npm:7.0.1"
   dependencies:
     "@libp2p/logger": "npm:^6.2.4"
-    interface-blockstore: "npm:^6.0.0"
-    interface-store: "npm:^7.0.0"
+    abort-error: "npm:^1.0.2"
+    interface-blockstore: "npm:^7.0.0"
+    interface-store: "npm:^8.0.0"
     it-all: "npm:^3.0.9"
     it-filter: "npm:^3.1.4"
     it-merge: "npm:^3.0.12"
-    multiformats: "npm:^13.4.2"
-  checksum: 10c0/3368a2604c8bdefd30cec640846098330d83b8a9504dcffcefa45e86b77a3155ac956154f87e25047752ed97af9c761e64477198306926a4677ae1594bd11dac
+    multiformats: "npm:^14.0.0"
+  checksum: 10c0/be00facc94c6a350bb30d0aa9d235b8c0fe431d0627529c74be95f39b0882289585fe622066e6f2e5845a5b0fd4876e7a161a4d48a595cd3b66df13c7763b361
+  languageName: node
+  linkType: hard
+
+"blockstore-fs@npm:4.0.1":
+  version: 4.0.1
+  resolution: "blockstore-fs@npm:4.0.1"
+  dependencies:
+    abort-error: "npm:^1.0.2"
+    interface-blockstore: "npm:^7.0.0"
+    interface-store: "npm:^8.0.0"
+    it-glob: "npm:^3.0.4"
+    it-map: "npm:^3.1.4"
+    it-parallel-batch: "npm:^3.0.9"
+    multiformats: "npm:^14.0.0"
+    race-signal: "npm:^2.0.0"
+    steno: "npm:^4.0.2"
+  checksum: 10c0/345b837457b77144f736a4be1ff0f258f0310bf2fbea758b903ba0e7fd684fb26611497c258f505635e8f2682850c54f756db3a0cb2230a3dd2e8349a5ef8148
+  languageName: node
+  linkType: hard
+
+"blockstore-idb@npm:4.0.1":
+  version: 4.0.1
+  resolution: "blockstore-idb@npm:4.0.1"
+  dependencies:
+    abort-error: "npm:^1.0.2"
+    blockstore-core: "npm:^7.0.0"
+    idb: "npm:^8.0.3"
+    interface-blockstore: "npm:^7.0.0"
+    interface-store: "npm:^8.0.0"
+    it-all: "npm:^3.0.9"
+    it-to-buffer: "npm:^5.0.0"
+    multiformats: "npm:^14.0.0"
+    race-signal: "npm:^2.0.0"
+  checksum: 10c0/3507ed495045d02a3012d7e9ff7076f4b05db2be93d3f70dcf5fa89702a455ebd9f651a31fb7732146b6b0f7ead13a40d99a2b17ff4b20b95a27f55bc7bef039
   languageName: node
   linkType: hard
 
@@ -3723,10 +4023,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"browser-readablestream-to-it@npm:^2.0.0, browser-readablestream-to-it@npm:^2.0.5, browser-readablestream-to-it@npm:^2.0.9":
+"browser-readablestream-to-it@npm:^2.0.0, browser-readablestream-to-it@npm:^2.0.5":
   version: 2.0.10
   resolution: "browser-readablestream-to-it@npm:2.0.10"
   checksum: 10c0/71764f3df3915d887b5db57fa98eafe3d08843800f5ba7e8a5983ccad79002f9bdc45d8f3c8221bc53b3832cd5606394e6de9a9cbeaed31ee577432de219166a
+  languageName: node
+  linkType: hard
+
+"browser-readablestream-to-it@npm:^2.0.12":
+  version: 2.0.12
+  resolution: "browser-readablestream-to-it@npm:2.0.12"
+  checksum: 10c0/470a82cd9422955a51aa895b8ba1b734ce7453da286fe4b5495ee68dde72ea0c7b9c2de755d155a70450f057b679c99a00da2865978454b2607d584f02f4c778
   languageName: node
   linkType: hard
 
@@ -3901,7 +4208,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cborg@npm:^4.2.14, cborg@npm:^4.2.3":
+"cborg@npm:4.5.8, cborg@npm:^4.2.14":
   version: 4.5.8
   resolution: "cborg@npm:4.5.8"
   bin:
@@ -3910,7 +4217,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cborg@npm:^5.0.0, cborg@npm:^5.0.1":
+"cborg@npm:^5.0.1":
   version: 5.1.0
   resolution: "cborg@npm:5.1.0"
   bin:
@@ -3934,6 +4241,15 @@ __metadata:
   bin:
     cborg: lib/bin.js
   checksum: 10c0/c52dcac78dcfb939feaea477b3dbe9279bd311adecb15db5e690488e6d32bb44535b16ed3520227d51b72f6b3552b086876db9261f4dc7f0774d1ffe5f0a7fb7
+  languageName: node
+  linkType: hard
+
+"cborg@npm:^6.1.1":
+  version: 6.2.1
+  resolution: "cborg@npm:6.2.1"
+  bin:
+    cborg: lib/bin.js
+  checksum: 10c0/655bb5619b73560ee8dcd5a727f27d99378d193bacb1ad7287c5d353a6570da06008c757bc4772f6a3ad0885c529af7d4884c9b7d50cb50f955fc9d735f18b4b
   languageName: node
   linkType: hard
 
@@ -4581,31 +4897,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"datastore-core@npm:^11.0.1":
-  version: 11.0.2
-  resolution: "datastore-core@npm:11.0.2"
-  dependencies:
-    "@libp2p/logger": "npm:^6.0.0"
-    interface-datastore: "npm:^9.0.0"
-    interface-store: "npm:^7.0.0"
-    it-drain: "npm:^3.0.9"
-    it-filter: "npm:^3.1.3"
-    it-map: "npm:^3.1.3"
-    it-merge: "npm:^3.0.11"
-    it-pipe: "npm:^3.0.1"
-    it-sort: "npm:^3.0.8"
-    it-take: "npm:^3.0.8"
-  checksum: 10c0/d3a6db7fa86cd8f5d14df1cb64b4e822f3fd89dce185b9c0e22fdc231cdd5ff897465ca5ccc32aef2635cb49f7e66dc6a5bce195ab85109228f6c4f75eff7e00
-  languageName: node
-  linkType: hard
-
-"datastore-core@npm:^11.0.3":
-  version: 11.0.4
-  resolution: "datastore-core@npm:11.0.4"
+"datastore-core@npm:^12.0.1":
+  version: 12.0.1
+  resolution: "datastore-core@npm:12.0.1"
   dependencies:
     "@libp2p/logger": "npm:^6.2.4"
-    interface-datastore: "npm:^9.0.0"
-    interface-store: "npm:^7.0.0"
+    abort-error: "npm:^1.0.2"
+    interface-datastore: "npm:^10.0.0"
+    interface-store: "npm:^8.0.0"
     it-drain: "npm:^3.0.10"
     it-filter: "npm:^3.1.4"
     it-map: "npm:^3.1.4"
@@ -4613,7 +4912,7 @@ __metadata:
     it-pipe: "npm:^3.0.1"
     it-sort: "npm:^3.0.9"
     it-take: "npm:^3.0.9"
-  checksum: 10c0/55880b1770f5516ee6e9abd8d20d09bc08010116c5bb803626ec49b6cff2d14ecf45e259275c8cd9afea030ee0355c8e7a15d708cadd85ea5d03b72ea4d29685
+  checksum: 10c0/02bd154aa842b949bb19d03b966eaa5452abc7d1d583ef9750b6758d4c32552d9dbc7530e5d3d1fb7195e45ecbfc79ea42731d7fdcfecdabd7fd9bf4d62ec057
   languageName: node
   linkType: hard
 
@@ -4642,18 +4941,6 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10c0/d79136ec6c83ecbefd0f6a5593da6a9c91ec4d7ddc4b54c883d6e71ec9accb5f67a1a5e96d00a328196b5b5c86d365e98d8a3a70856aaf16b4e7b1985e67f5a6
-  languageName: node
-  linkType: hard
-
-"debug@npm:4.3.1":
-  version: 4.3.1
-  resolution: "debug@npm:4.3.1"
-  dependencies:
-    ms: "npm:2.1.2"
-  peerDependenciesMeta:
-    supports-color:
-      optional: true
-  checksum: 10c0/610bcc2eb07c533d6a9964478422f7d741095d67301888ee0b77b8f2ad0a15d115c93fb2adb13d10a9eda3d81f2d4d335405540b09596fb23aca070e77497d95
   languageName: node
   linkType: hard
 
@@ -4715,13 +5002,6 @@ __metadata:
   version: 0.6.0
   resolution: "deep-extend@npm:0.6.0"
   checksum: 10c0/1c6b0abcdb901e13a44c7d699116d3d4279fdb261983122a3783e7273844d5f2537dc2e1c454a23fcf645917f93fbf8d07101c1d03c015a87faa662755212566
-  languageName: node
-  linkType: hard
-
-"deep-is@npm:^0.1.3":
-  version: 0.1.4
-  resolution: "deep-is@npm:0.1.4"
-  checksum: 10c0/7f0ee496e0dff14a573dc6127f14c95061b448b87b995fc96c017ce0a1e66af1675e73f1d6064407975bc4ea6ab679497a29fff7b5b9c4e99cb10797c1ad0b4c
   languageName: node
   linkType: hard
 
@@ -4850,7 +5130,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"detect-libc@npm:^2.0.0, detect-libc@npm:^2.0.3":
+"detect-libc@npm:^2.0.0, detect-libc@npm:^2.0.3, detect-libc@npm:^2.0.4":
   version: 2.1.2
   resolution: "detect-libc@npm:2.1.2"
   checksum: 10c0/acc675c29a5649fa1fb6e255f993b8ee829e510b6b56b0910666949c80c364738833417d0edb5f90e4e46be17228b0f2b66a010513984e18b15deeeac49369c4
@@ -5243,7 +5523,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventemitter3@npm:^5.0.1":
+"eventemitter3@npm:^5.0.1, eventemitter3@npm:^5.0.4":
   version: 5.0.4
   resolution: "eventemitter3@npm:5.0.4"
   checksum: 10c0/575b8cac8d709e1473da46f8f15ef311b57ff7609445a7c71af5cd42598583eee6f098fa7a593e30f27e94b8865642baa0689e8fa97c016f742abdb3b1bf6d9a
@@ -5812,7 +6092,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graceful-fs@npm:4.2.11, graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.6":
+"graceful-fs@npm:^4.1.6, graceful-fs@npm:^4.2.0, graceful-fs@npm:^4.2.6":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10c0/386d011a553e02bc594ac2ca0bd6d9e4c22d7fa8cfbfc448a6d148c59ea881b092db9dbe3547ae4b88e55f1b01f7c4a2ecc53b310c042793e63aa44cf6c257f2
@@ -5829,13 +6109,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hamt-sharding@npm:^3.0.6":
-  version: 3.0.6
-  resolution: "hamt-sharding@npm:3.0.6"
+"hamt-sharding@npm:^3.0.8":
+  version: 3.0.8
+  resolution: "hamt-sharding@npm:3.0.8"
   dependencies:
     sparse-array: "npm:^1.3.1"
-    uint8arrays: "npm:^5.0.1"
-  checksum: 10c0/cdd777ee2edf7125c2a6a6143d40cb58f9b052e8e4d21b61ca08ef86dbbad45d0104a1c720492ac7ebb9d7bb5c966e068357f7231bc99d7d984dc46a0915ac85
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/01954d7d845b3aea80f8098a40e50cae3116736c57520d3189d838498c47c94ea98d7d514fd81434244141288a3344b5978d7190054bcd2470083b9f12a87ac9
   languageName: node
   linkType: hard
 
@@ -5928,44 +6208,42 @@ __metadata:
   languageName: node
   linkType: hard
 
-"helia@npm:6.1.4":
-  version: 6.1.4
-  resolution: "helia@npm:6.1.4"
+"helia@npm:7.1.16":
+  version: 7.1.16
+  resolution: "helia@npm:7.1.16"
   dependencies:
-    "@chainsafe/libp2p-noise": "npm:^17.0.0"
-    "@chainsafe/libp2p-yamux": "npm:^8.0.1"
-    "@helia/block-brokers": "npm:^5.2.4"
-    "@helia/delegated-routing-v1-http-api-client": "npm:^6.0.1"
-    "@helia/interface": "npm:^6.2.1"
-    "@helia/routers": "npm:^5.1.1"
-    "@helia/utils": "npm:^2.5.2"
-    "@ipshipyard/libp2p-auto-tls": "npm:^2.0.1"
-    "@libp2p/autonat": "npm:^3.0.15"
-    "@libp2p/bootstrap": "npm:^12.0.16"
-    "@libp2p/circuit-relay-v2": "npm:^4.2.0"
-    "@libp2p/config": "npm:^1.1.27"
-    "@libp2p/dcutr": "npm:^3.0.15"
-    "@libp2p/http": "npm:^2.0.1"
-    "@libp2p/identify": "npm:^4.1.0"
-    "@libp2p/interface": "npm:^3.2.0"
-    "@libp2p/kad-dht": "npm:^16.2.0"
-    "@libp2p/keychain": "npm:^6.0.12"
-    "@libp2p/mdns": "npm:^12.0.16"
-    "@libp2p/mplex": "npm:^12.0.16"
-    "@libp2p/ping": "npm:^3.1.0"
-    "@libp2p/tcp": "npm:^11.0.15"
-    "@libp2p/tls": "npm:^3.0.15"
-    "@libp2p/upnp-nat": "npm:^4.0.15"
-    "@libp2p/webrtc": "npm:^6.0.16"
-    "@libp2p/websockets": "npm:^10.1.8"
-    "@multiformats/dns": "npm:^1.0.13"
-    blockstore-core: "npm:^6.1.3"
-    datastore-core: "npm:^11.0.3"
-    interface-datastore: "npm:^9.0.3"
-    ipns: "npm:^10.1.3"
-    libp2p: "npm:^3.2.0"
-    multiformats: "npm:^13.4.2"
-  checksum: 10c0/433a30d9f19cc5507591e60d5f5286aa34880a3eb7503b08b32aecc1b03507f35aee4028b0921a0028ebd3d591b56de6dbbcdc54f700efdab66a44fc1ec8d34e
+    "@helia/bitswap": "npm:^4.0.20"
+    "@helia/http": "npm:^4.0.8"
+    "@helia/interface": "npm:^7.1.2"
+    "@helia/libp2p": "npm:^2.1.5"
+    "@helia/utils": "npm:^3.0.6"
+    "@ipld/dag-cbor": "npm:^10.0.1"
+    "@ipld/dag-json": "npm:^11.0.0"
+    "@ipld/dag-pb": "npm:^4.1.7"
+    "@ipshipyard/crypto": "npm:^1.1.0"
+    "@ipshipyard/keychain": "npm:^1.0.2"
+    "@libp2p/interface": "npm:^3.2.4"
+    "@libp2p/utils": "npm:^7.2.3"
+    "@multiformats/dns": "npm:^1.0.15"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    abort-error: "npm:^1.0.2"
+    any-signal: "npm:^4.2.0"
+    birnam: "npm:^1.0.0"
+    blockstore-core: "npm:^7.0.1"
+    cborg: "npm:^6.1.1"
+    datastore-core: "npm:^12.0.1"
+    interface-blockstore: "npm:^7.0.1"
+    interface-datastore: "npm:^10.0.1"
+    it-drain: "npm:^3.0.12"
+    it-filter: "npm:^3.1.6"
+    it-foreach: "npm:^2.1.7"
+    it-merge: "npm:^3.0.14"
+    main-event: "npm:^1.0.4"
+    mortice: "npm:^3.3.1"
+    multiformats: "npm:^14.0.0"
+    progress-events: "npm:^1.1.0"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/a84dcadbd9049183d29f25f274d3ffaa6440e46a007bcd38bd5b28ae5b568df4aaeb35f3150195947c96b9cf9358757de6220f1951a10a4fe73a664a6b977ec1
   languageName: node
   linkType: hard
 
@@ -6111,6 +6389,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"idb@npm:^8.0.3":
+  version: 8.0.4
+  resolution: "idb@npm:8.0.4"
+  checksum: 10c0/b789f1382c180098859e1eba6ea0de342faa27598a427195508755e9d06c31daa88bc70a89665685849338978bf901a3b5bc420d7c8cf365f1a4d91d3f607f62
+  languageName: node
+  linkType: hard
+
 "ieee754@npm:^1.1.13, ieee754@npm:^1.2.1":
   version: 1.2.1
   resolution: "ieee754@npm:1.2.1"
@@ -6253,27 +6538,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"interface-blockstore@npm:^6.0.0, interface-blockstore@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "interface-blockstore@npm:6.0.1"
+"interface-blockstore@npm:^7.0.0, interface-blockstore@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "interface-blockstore@npm:7.0.1"
   dependencies:
-    interface-store: "npm:^7.0.0"
-    multiformats: "npm:^13.3.6"
-  checksum: 10c0/33244c11057b5dacee6b2b99c4fa9b6397a299a4f111a18885a6a3aac64865091c8f314a30e3d3b5907ab267117337bdc99171daeae47936c0c68912717b8f65
+    interface-store: "npm:^8.0.0"
+    multiformats: "npm:^14.0.0"
+  checksum: 10c0/5c1db76ac4013f863f8619ed341ddeffc28dd373046c7ac762c767e4853fb6a0e5016f8b73f6f99357dedb5162edcea5e7889d8a420d1706d673054ea2f01f70
   languageName: node
   linkType: hard
 
-"interface-blockstore@npm:^6.0.2":
-  version: 6.0.2
-  resolution: "interface-blockstore@npm:6.0.2"
-  dependencies:
-    interface-store: "npm:^7.0.0"
-    multiformats: "npm:^13.4.2"
-  checksum: 10c0/e25afb06c0f58020201d9bf9483a233173077110b6116313f3de2a470101d1381bf1b7fb8334542ca698b8cd18d8df8a4729c003bfe0f4278fc528541fa8d21e
-  languageName: node
-  linkType: hard
-
-"interface-datastore@npm:^10.0.1":
+"interface-datastore@npm:^10.0.0, interface-datastore@npm:^10.0.1":
   version: 10.0.1
   resolution: "interface-datastore@npm:10.0.1"
   dependencies:
@@ -6284,23 +6559,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"interface-datastore@npm:^9.0.0, interface-datastore@npm:^9.0.1, interface-datastore@npm:^9.0.2":
+"interface-datastore@npm:^9.0.1, interface-datastore@npm:^9.0.2":
   version: 9.0.2
   resolution: "interface-datastore@npm:9.0.2"
   dependencies:
     interface-store: "npm:^7.0.0"
     uint8arrays: "npm:^5.1.0"
   checksum: 10c0/dbddf752de35ba97696190c63db4920a130db7bf41ba8fb1930c00c58cd9e6b0266e5b17535cb54e6242c432ca67c56d198b7890af1660cd2b71d986759b48d0
-  languageName: node
-  linkType: hard
-
-"interface-datastore@npm:^9.0.3":
-  version: 9.0.3
-  resolution: "interface-datastore@npm:9.0.3"
-  dependencies:
-    interface-store: "npm:^7.0.0"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/3a3ad1617102f09f8c11c5c65b908da1e4a2458ac42f6045d2c9641d3e90cf88e3593abfaddd84863450e9751142f378e450f36381eca32f9d36389760b4d0f2
   languageName: node
   linkType: hard
 
@@ -6322,13 +6587,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"interface-store@npm:^7.0.2":
-  version: 7.0.2
-  resolution: "interface-store@npm:7.0.2"
-  checksum: 10c0/bd8c299c6451963e967897a055c3b49a7e7bb849a486276a839eb887ad98362d4e29cb0649b94bc38bcd605cd1d10b403a2492e4ba0067f897b1443046bd3b1a
-  languageName: node
-  linkType: hard
-
 "interface-store@npm:^8.0.0":
   version: 8.0.0
   resolution: "interface-store@npm:8.0.0"
@@ -6342,13 +6600,6 @@ __metadata:
   version: 10.7.4
   resolution: "ip-address@npm:10.7.4"
   checksum: 10c0/22401f5723acd96a8b261ff5b098857bee86a700f8f4f7e7afcf3645a5ddb74b961296577b03c53acbd3235c6424aab11087ff1da9dbce11a55e05af9dde5bbb
-  languageName: node
-  linkType: hard
-
-"ip-regex@npm:^4.1.0":
-  version: 4.3.0
-  resolution: "ip-regex@npm:4.3.0"
-  checksum: 10c0/f9ef1f5d0df05b9133a882974e572ae525ccd205260cb103dae337f1fc7451ed783391acc6ad688e56dd2598f769e8e72ecbb650ec34763396af822a91768562
   languageName: node
   linkType: hard
 
@@ -6371,51 +6622,73 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipfs-unixfs-exporter@npm:^15.0.4":
-  version: 15.0.4
-  resolution: "ipfs-unixfs-exporter@npm:15.0.4"
+"ipfs-unixfs-exporter@npm:^16.2.2":
+  version: 16.2.3
+  resolution: "ipfs-unixfs-exporter@npm:16.2.3"
   dependencies:
-    "@ipld/dag-cbor": "npm:^9.2.4"
-    "@ipld/dag-json": "npm:^10.2.5"
-    "@ipld/dag-pb": "npm:^4.1.5"
-    "@multiformats/murmur3": "npm:^2.1.8"
-    hamt-sharding: "npm:^3.0.6"
-    interface-blockstore: "npm:^6.0.1"
-    ipfs-unixfs: "npm:^12.0.0"
-    it-last: "npm:^3.0.9"
-    it-map: "npm:^3.1.4"
-    it-parallel: "npm:^3.0.13"
+    "@ipld/dag-cbor": "npm:^10.0.0"
+    "@ipld/dag-json": "npm:^11.0.0"
+    "@ipld/dag-pb": "npm:^4.2.0"
+    "@multiformats/murmur3": "npm:^2.2.5"
+    hamt-sharding: "npm:^3.0.8"
+    interface-blockstore: "npm:^7.0.1"
+    ipfs-unixfs: "npm:^13.0.0"
+    it-last: "npm:^3.0.11"
+    it-map: "npm:^3.1.6"
+    it-parallel: "npm:^3.0.15"
     it-pipe: "npm:^3.0.1"
-    it-pushable: "npm:^3.2.3"
-    it-to-buffer: "npm:^4.0.10"
-    multiformats: "npm:^13.3.7"
-    p-queue: "npm:^9.0.0"
-    progress-events: "npm:^1.0.1"
-  checksum: 10c0/e72d8da4040d9e7a84fb45129410bea377b5c253300ba8c302173a91d51548290a5c602cf31f6dd74fb80271e9398942d89d0002aecf41bc02a2e03566b1c93f
+    it-pushable: "npm:^3.2.4"
+    it-to-buffer: "npm:^5.0.0"
+    multiformats: "npm:^14.0.0"
+    p-queue: "npm:^9.2.0"
+    progress-events: "npm:^1.1.0"
+  checksum: 10c0/14d19d27e89169517fb7578af93d52c94111bd5d7a4c53497446daf28571d3fba6d0a1d519e59498128a84190b0c79267c820339af8eaf8727025676eee8d396
   languageName: node
   linkType: hard
 
-"ipfs-unixfs-importer@npm:^16.1.4":
-  version: 16.1.5
-  resolution: "ipfs-unixfs-importer@npm:16.1.5"
+"ipfs-unixfs-importer@npm:17.0.1":
+  version: 17.0.1
+  resolution: "ipfs-unixfs-importer@npm:17.0.1"
   dependencies:
-    "@ipld/dag-pb": "npm:^4.1.5"
-    "@multiformats/murmur3": "npm:^2.1.8"
-    blockstore-core: "npm:^6.1.2"
-    hamt-sharding: "npm:^3.0.6"
-    interface-blockstore: "npm:^6.0.1"
-    interface-store: "npm:^7.0.0"
-    ipfs-unixfs: "npm:^12.0.0"
-    it-all: "npm:^3.0.9"
-    it-batch: "npm:^3.0.9"
-    it-first: "npm:^3.0.9"
-    it-parallel-batch: "npm:^3.0.9"
-    multiformats: "npm:^13.3.7"
-    progress-events: "npm:^1.0.1"
+    "@ipld/dag-pb": "npm:^4.1.7"
+    "@multiformats/murmur3": "npm:^2.2.5"
+    blockstore-core: "npm:^7.0.1"
+    hamt-sharding: "npm:^3.0.8"
+    interface-blockstore: "npm:^7.0.1"
+    ipfs-unixfs: "npm:^13.0.0"
+    it-all: "npm:^3.0.11"
+    it-batch: "npm:^3.0.11"
+    it-first: "npm:^3.0.11"
+    it-parallel-batch: "npm:^3.0.11"
+    multiformats: "npm:^14.0.0"
+    progress-events: "npm:^1.1.0"
     rabin-wasm: "npm:^0.1.5"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/37d564451e2685bf90d7d316e64d2bfb4e22c6b87d5d9362ad74948b4fe425373b21d624a92c6734ab44d7aa41b6e745cd280547ed8ed1bdacfc47829d4d08b6
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/6c4198491175ace215d5896701ac2c5a67064775d2e0f8af09bf1e8fc7a2efc716fc1c7b7466e9bcd0da2915fac199a5495389edab5e26b13c82a2639c16bef3
+  languageName: node
+  linkType: hard
+
+"ipfs-unixfs-importer@npm:^17.1.1":
+  version: 17.1.1
+  resolution: "ipfs-unixfs-importer@npm:17.1.1"
+  dependencies:
+    "@ipld/dag-pb": "npm:^4.2.0"
+    "@multiformats/murmur3": "npm:^2.2.5"
+    blockstore-core: "npm:^7.0.1"
+    hamt-sharding: "npm:^3.0.8"
+    interface-blockstore: "npm:^7.0.1"
+    ipfs-unixfs: "npm:^13.0.0"
+    it-all: "npm:^3.0.11"
+    it-batch: "npm:^3.0.11"
+    it-first: "npm:^3.0.11"
+    it-parallel-batch: "npm:^3.0.11"
+    multiformats: "npm:^14.0.0"
+    progress-events: "npm:^1.1.0"
+    rabin-wasm: "npm:^0.1.5"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/53620e0f2eeb43b03ab8e4229143c5fc5cd466793aea8578d7bd7c526fd9192a82cc0480522e080937d12a9b18ee824671cc0950ed4044cf365da3f41198499f
   languageName: node
   linkType: hard
 
@@ -6441,23 +6714,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipfs-unixfs@npm:^12.0.0":
-  version: 12.0.1
-  resolution: "ipfs-unixfs@npm:12.0.1"
+"ipfs-unixfs@npm:13.1.2, ipfs-unixfs@npm:^13.0.0, ipfs-unixfs@npm:^13.1.1":
+  version: 13.1.2
+  resolution: "ipfs-unixfs@npm:13.1.2"
   dependencies:
-    protons-runtime: "npm:^5.5.0"
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/d8bff21554e0eb2b4c89c9ec4ed23f6b555a9c437ada9ba6a4d31c8b26d31acdebc6bc59ac791fb214a1468a35469f5c28aaca062543e27e568a888cbc321de0
-  languageName: node
-  linkType: hard
-
-"ipfs-unixfs@npm:^12.0.1":
-  version: 12.0.2
-  resolution: "ipfs-unixfs@npm:12.0.2"
-  dependencies:
-    protons-runtime: "npm:^6.0.1"
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/2937ea018caa95bf34712a99f4edba9274b2f129d39e1934f230772875252d2606c123d25b8be87cc2933a2d89af8cbb03a6af77fa5c72cb54ff5cab2003de3d
+    protons-runtime: "npm:^8.0.1"
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/071d169c885ff17bbea1c9e0fbdb6281f415afef5bfab79b16d73cfd7d54f6a721c29c566b6a78a38380d4e3368eebde2df03db21984aad85bf4b92517ec4090
   languageName: node
   linkType: hard
 
@@ -6486,39 +6750,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipns@npm:^10.0.2":
-  version: 10.1.3
-  resolution: "ipns@npm:10.1.3"
+"ipns@npm:11.0.1":
+  version: 11.0.1
+  resolution: "ipns@npm:11.0.1"
   dependencies:
     "@libp2p/crypto": "npm:^5.0.0"
     "@libp2p/interface": "npm:^3.0.2"
     "@libp2p/logger": "npm:^6.0.4"
-    cborg: "npm:^4.2.3"
-    interface-datastore: "npm:^9.0.2"
-    multiformats: "npm:^13.2.2"
-    protons-runtime: "npm:^5.5.0"
+    cborg: "npm:^6.1.1"
+    interface-datastore: "npm:^10.0.0"
+    multiformats: "npm:^14.0.0"
+    protons-runtime: "npm:^7.0.0"
     timestamp-nano: "npm:^1.0.1"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/2726e364b4ff0551a3c21cc94c4ad90928e38c7768d04b768e5b5f0a6cc2cf9033c4a37d7fff93f1ec96f4a6b210b3a2480d7237dbaf6e67121c36c088ffe46d
-  languageName: node
-  linkType: hard
-
-"ipns@npm:^10.1.3":
-  version: 10.1.6
-  resolution: "ipns@npm:10.1.6"
-  dependencies:
-    "@libp2p/crypto": "npm:^5.0.0"
-    "@libp2p/interface": "npm:^3.0.2"
-    "@libp2p/logger": "npm:^6.0.4"
-    cborg: "npm:^5.1.0"
-    interface-datastore: "npm:^9.0.2"
-    multiformats: "npm:^13.2.2"
-    protons-runtime: "npm:^6.0.1"
-    timestamp-nano: "npm:^1.0.1"
-    uint8arraylist: "npm:^2.4.8"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/0e9681e17ef013e6162a98899dc62e5c837d4eaf1b7c869b5fd9115568e255bf8d6104c2bb406b64f61cb8769b0855a5172a72b7fc86fa7db082afb67a12e49d
+    uint8arraylist: "npm:^3.0.2"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/0f39aebbc2c577d10b60e95e3f5e0f554e4a1a24f72e19bbfeb4b2596fe09a3d48d41cab7df5c811e26f711ce3118442fe89b68ce525a6520a26f4e0cb4fe1cc
   languageName: node
   linkType: hard
 
@@ -6759,13 +7005,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-url@npm:^1.2.4":
-  version: 1.2.4
-  resolution: "is-url@npm:1.2.4"
-  checksum: 10c0/0157a79874f8f95fdd63540e3f38c8583c2ef572661cd0693cda80ae3e42dfe8e9a4a972ec1b827f861d9a9acf75b37f7d58a37f94a8a053259642912c252bc3
-  languageName: node
-  linkType: hard
-
 "is-utf8@npm:^0.2.1":
   version: 0.2.1
   resolution: "is-utf8@npm:0.2.1"
@@ -6786,17 +7025,6 @@ __metadata:
   dependencies:
     is-inside-container: "npm:^1.0.0"
   checksum: 10c0/7e5023522bfb8f27de4de960b0d82c4a8146c0bddb186529a3616d78b5bbbfc19ef0c5fc60d0b3a3cc0bf95a415fbdedc18454310ea3049587c879b07ace5107
-  languageName: node
-  linkType: hard
-
-"is2@npm:^2.0.6":
-  version: 2.0.9
-  resolution: "is2@npm:2.0.9"
-  dependencies:
-    deep-is: "npm:^0.1.3"
-    ip-regex: "npm:^4.1.0"
-    is-url: "npm:^1.2.4"
-  checksum: 10c0/51090a2ad046651c1523e6aec98843c2be4b61fdafa5a68d89966b7d3b7116fdc68cfb218cfc3825eb20175fa741de2f89249546352dbc4ac1d86847fa4a084a
   languageName: node
   linkType: hard
 
@@ -6869,27 +7097,34 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-batch@npm:^3.0.0, it-batch@npm:^3.0.9":
+"it-batch@npm:^3.0.0":
   version: 3.0.9
   resolution: "it-batch@npm:3.0.9"
   checksum: 10c0/ac8df4aaf9749b5873e17b4f1ab0455d36095ebd307b3157567d81ecdad7ff160096164e074a0382af975d292cf8a2ea4d317e1c77d9d2d8101c9f43a3603f2c
   languageName: node
   linkType: hard
 
-"it-byte-stream@npm:^2.0.0":
-  version: 2.0.4
-  resolution: "it-byte-stream@npm:2.0.4"
-  dependencies:
-    abort-error: "npm:^1.0.1"
-    it-queueless-pushable: "npm:^2.0.0"
-    it-stream-types: "npm:^2.0.2"
-    race-signal: "npm:^2.0.0"
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/d1a64737b82b8a85eaf02219ef79c78c8a8a303dfcea39f49f07ef56b1c652c086b248895bb306c2e1e2b90ab19397524e141330d5d1750439d68973c4fdd2a3
+"it-batch@npm:^3.0.11":
+  version: 3.0.11
+  resolution: "it-batch@npm:3.0.11"
+  checksum: 10c0/b540c817197323f32816926f8451e815ded51391a2eea1d2b13ac982e30fd9193ae00f9636dc2684913e235223201cc701d0c6627efea2870bc95c5cbb559f14
   languageName: node
   linkType: hard
 
-"it-drain@npm:^3.0.10, it-drain@npm:^3.0.9":
+"it-byte-stream@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "it-byte-stream@npm:3.0.0"
+  dependencies:
+    abort-error: "npm:^1.0.2"
+    it-queueless-pushable: "npm:^2.0.0"
+    it-stream-types: "npm:^2.0.2"
+    race-signal: "npm:^2.0.0"
+    uint8arraylist: "npm:^3.0.1"
+  checksum: 10c0/14c4d4e09606e8aea8312227677d7b9389ac4b3f6946bb26328870f0cd5a93cf4c5fa8e611ef19137f90ee1431deb546957f21da83067c7b6b97111ead6d1c4c
+  languageName: node
+  linkType: hard
+
+"it-drain@npm:^3.0.10":
   version: 3.0.10
   resolution: "it-drain@npm:3.0.10"
   checksum: 10c0/ec0535ee95be34bbf5f0e3a0f55b0e11e6178130e633e66d75264648a1b35726d49685533508e587be5f0868a03ee07ed8a6c56e4d3ca8cbed9686b98781fce1
@@ -6903,7 +7138,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-filter@npm:^3.1.3, it-filter@npm:^3.1.4":
+"it-filter@npm:^3.1.4":
   version: 3.1.4
   resolution: "it-filter@npm:3.1.4"
   dependencies:
@@ -6912,7 +7147,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-filter@npm:^3.1.5":
+"it-filter@npm:^3.1.6":
   version: 3.1.6
   resolution: "it-filter@npm:3.1.6"
   dependencies:
@@ -6935,14 +7170,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-first@npm:^3.0.4, it-first@npm:^3.0.8, it-first@npm:^3.0.9":
+"it-first@npm:^3.0.4":
   version: 3.0.9
   resolution: "it-first@npm:3.0.9"
   checksum: 10c0/1f6953da550beaa996862bbd5fc7ad56369b88be3980eb0e589cbdfc520f875e281b41f99211e0133492a1de672d99e8aebc8eac95cf2a1403298839d673d908
   languageName: node
   linkType: hard
 
-"it-foreach@npm:^2.1.6":
+"it-foreach@npm:^2.1.7":
   version: 2.1.7
   resolution: "it-foreach@npm:2.1.7"
   dependencies:
@@ -6960,7 +7195,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-glob@npm:^3.0.5":
+"it-glob@npm:^3.0.4, it-glob@npm:^3.0.6":
   version: 3.0.6
   resolution: "it-glob@npm:3.0.6"
   dependencies:
@@ -6969,30 +7204,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-last@npm:^3.0.11":
+"it-last@npm:3.0.11, it-last@npm:^3.0.11":
   version: 3.0.11
   resolution: "it-last@npm:3.0.11"
   checksum: 10c0/8bf10de45136a2e0978fe321f937f680b082b809aabb8d12147a2e8ab78b9631dd91635801c05710c892b1e56ee4e31862f43cf38e8975be327ca79a4edc6234
   languageName: node
   linkType: hard
 
-"it-last@npm:^3.0.4, it-last@npm:^3.0.9":
+"it-last@npm:^3.0.4":
   version: 3.0.9
   resolution: "it-last@npm:3.0.9"
   checksum: 10c0/5b9cfdfe41e3470d1419b29c84efb67cf252a4f5b6db455768272968f1a54030ed84a6a910c552ee5c0ade40312476c8510a6703a883d98851d8a078562205c3
   languageName: node
   linkType: hard
 
-"it-length-prefixed-stream@npm:^2.0.0":
-  version: 2.0.4
-  resolution: "it-length-prefixed-stream@npm:2.0.4"
+"it-length-prefixed-stream@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "it-length-prefixed-stream@npm:3.0.1"
   dependencies:
-    abort-error: "npm:^1.0.1"
-    it-byte-stream: "npm:^2.0.0"
+    abort-error: "npm:^1.0.2"
+    it-byte-stream: "npm:^3.0.0"
     it-stream-types: "npm:^2.0.2"
-    uint8-varint: "npm:^2.0.4"
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/8098a63029865f1969b25c28d6f7b0ba3ebe38f3c89fe856ba8969e8e1aeb41f3d0851bd183ed74383b72bf72d9968fc74e4b419a031364b349a9455079b3c4c
+    uint8-varint: "npm:^3.0.0"
+    uint8arraylist: "npm:^3.0.1"
+  checksum: 10c0/ea209fa76606f67c7aefbce52f5a283512a8019d5f62ba24f1eb308e3055c20162e4b27da3bd1b46defd310e4f94448d68244faa518f45d7279e91448c6887e7
   languageName: node
   linkType: hard
 
@@ -7029,7 +7264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-map@npm:^3.0.5, it-map@npm:^3.1.3, it-map@npm:^3.1.4":
+"it-map@npm:^3.0.5, it-map@npm:^3.1.4":
   version: 3.1.4
   resolution: "it-map@npm:3.1.4"
   dependencies:
@@ -7038,7 +7273,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-map@npm:^3.1.5":
+"it-map@npm:^3.1.6":
   version: 3.1.6
   resolution: "it-map@npm:3.1.6"
   dependencies:
@@ -7047,7 +7282,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-merge@npm:^3.0.0, it-merge@npm:^3.0.11, it-merge@npm:^3.0.12":
+"it-merge@npm:^3.0.0, it-merge@npm:^3.0.12":
   version: 3.0.12
   resolution: "it-merge@npm:3.0.12"
   dependencies:
@@ -7056,21 +7291,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-merge@npm:^3.0.13":
-  version: 3.0.14
-  resolution: "it-merge@npm:3.0.14"
+"it-merge@npm:^3.0.14":
+  version: 3.0.15
+  resolution: "it-merge@npm:3.0.15"
   dependencies:
     it-queueless-pushable: "npm:^2.0.0"
-  checksum: 10c0/43ee8c9bafa13b60ad8e56b4e1a0f493acb1d311cbb0d95402c17606dd98f82b66012c45026c540de9235970058d78c7deafac459a852c6c17b13c600ce44be5
+  checksum: 10c0/aaef56faa78f9da6dce8dcd938726a117c3838a2d1a5ecf934e6ebe436f0022bc967962a6409bbc652742b980ac96a9578da072f61d830016baafbb6e095d55e
   languageName: node
   linkType: hard
 
-"it-ndjson@npm:^1.1.3":
-  version: 1.1.4
-  resolution: "it-ndjson@npm:1.1.4"
+"it-ndjson@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "it-ndjson@npm:2.0.0"
   dependencies:
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/ab82a0cec669e7ca8b0177d5bf196434980e4f85f7957847764793ea30e737438b539b74883c9e91128e5ece35bfd85fa97c6ab9e24c886bfa12ee03f55c5f97
+    uint8arraylist: "npm:^3.0.1"
+  checksum: 10c0/67bc6ba22b0af9411d365cce07ea2dde0d3de6080c88c6e1d23e2083277a6fc72351010ebb766fbf7aea467e1ac8ba96e9d7c278f11d4f82792392482a60f87b
   languageName: node
   linkType: hard
 
@@ -7080,6 +7315,15 @@ __metadata:
   dependencies:
     it-batch: "npm:^1.0.9"
   checksum: 10c0/6727b10c6c38859a9a8ab15dbd51bddda9b639ac4720056f2fe280a0a7073f17beb140b8a06b3e135fc9024f8a749f4fa587a7df9ed2ca771330575c541daf41
+  languageName: node
+  linkType: hard
+
+"it-parallel-batch@npm:^3.0.11":
+  version: 3.0.11
+  resolution: "it-parallel-batch@npm:3.0.11"
+  dependencies:
+    it-batch: "npm:^3.0.0"
+  checksum: 10c0/dad34f8997fe3a0b9600b85668b1a47678830d559c85cfe821cc1dc9285f33724e8604cd086d2af79b8094fad8523e9e35455b845d6b3cb3d3e0e80f3756823b
   languageName: node
   linkType: hard
 
@@ -7101,6 +7345,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"it-parallel@npm:^3.0.15":
+  version: 3.0.16
+  resolution: "it-parallel@npm:3.0.16"
+  dependencies:
+    p-defer: "npm:^4.0.1"
+  checksum: 10c0/f759827d0d251a60edad64cfd3e4bddedde064f00e5a56cc2e980b4722bc5053ab29c88b95d9ee9d2c4e1dee1421c5cf1619afec4579bc198c767d55d1f722c1
+  languageName: node
+  linkType: hard
+
 "it-peekable@npm:^3.0.0, it-peekable@npm:^3.0.3":
   version: 3.0.8
   resolution: "it-peekable@npm:3.0.8"
@@ -7119,15 +7372,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-protobuf-stream@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "it-protobuf-stream@npm:2.0.3"
+"it-protobuf-stream@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "it-protobuf-stream@npm:3.0.1"
   dependencies:
-    abort-error: "npm:^1.0.1"
-    it-length-prefixed-stream: "npm:^2.0.0"
+    abort-error: "npm:^1.0.2"
+    it-length-prefixed-stream: "npm:^3.0.0"
     it-stream-types: "npm:^2.0.2"
-    uint8arraylist: "npm:^2.4.8"
-  checksum: 10c0/7f7e24e133ee893ab98cd5e67ab8b5d93273281abff3a8336a586fc4c59a47b0603f84680f35eaad236a8e5a816a2b8e22dc0c9dc4aebed8c9fcffdd302d3413
+    uint8arraylist: "npm:^3.0.1"
+  checksum: 10c0/2c40d90ead64b92fb333d04b683871d1d62eb08e413293d975cf2fba456be30c45d6ee8be934675a4087351d716f47b2871750b5384e3d178871b1354c874b94
   languageName: node
   linkType: hard
 
@@ -7137,6 +7390,15 @@ __metadata:
   dependencies:
     p-defer: "npm:^4.0.0"
   checksum: 10c0/ba99744f0a6fe9e555bdde76ce2144a3e35c37a33830c69d65f5512129fb5a58272f1bbb4b9741fca69be868c301109fc910b26629c8eb0961f0503dd80a4830
+  languageName: node
+  linkType: hard
+
+"it-pushable@npm:^3.2.4":
+  version: 3.2.4
+  resolution: "it-pushable@npm:3.2.4"
+  dependencies:
+    p-defer: "npm:^4.0.0"
+  checksum: 10c0/89b11a33e6392053f3b9c955d1e5dbc2a3b88b6e45fb5c4a4fe4f79431f2cea2a2bd97df0d5f4ecada398f9ab0df416dea4268c7b1c65960343d1406b73efe8b
   languageName: node
   linkType: hard
 
@@ -7184,15 +7446,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-sort@npm:^3.0.8":
-  version: 3.0.9
-  resolution: "it-sort@npm:3.0.9"
-  dependencies:
-    it-all: "npm:^3.0.0"
-  checksum: 10c0/fdc184d14115b9d2c19ee0ae2685b92b9fb6dfcf01e601e4f70d3c77b64189821b3dd2e547319e9263cff79682d027ccc713229b04c9eae81e365f05c1d6cab6
-  languageName: node
-  linkType: hard
-
 "it-sort@npm:^3.0.9":
   version: 3.0.11
   resolution: "it-sort@npm:3.0.11"
@@ -7209,14 +7462,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-take@npm:^3.0.10":
+"it-take@npm:^3.0.11":
   version: 3.0.11
   resolution: "it-take@npm:3.0.11"
   checksum: 10c0/9ee16ab831fe67e968d1229bbb5e251539689b55d8b7d141cac05de3fd903ed77a6b8e7874414417f5f141c3d79bac14c346195321b71723e2fad717935bd05c
   languageName: node
   linkType: hard
 
-"it-take@npm:^3.0.8, it-take@npm:^3.0.9":
+"it-take@npm:^3.0.9":
   version: 3.0.9
   resolution: "it-take@npm:3.0.9"
   checksum: 10c0/39812440e0831ac75aaf3373d9d48fd2769b4e80c69270616998a59f4b49e9caeb245251f3bad908161c0cdc324d05866586a6996c8e260709b9ad2c9098cc94
@@ -7232,21 +7485,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"it-to-buffer@npm:^4.0.10":
-  version: 4.0.10
-  resolution: "it-to-buffer@npm:4.0.10"
+"it-to-buffer@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "it-to-buffer@npm:5.0.0"
   dependencies:
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/d8362d195b11fde0eec3ca4102dee0b78be1a455853b58c693e05cb2b0d1f52e82252ec72366140be865f05b39917d3244d5d4e4fead51f5d2171b3d6c6b927e
-  languageName: node
-  linkType: hard
-
-"it-to-buffer@npm:^4.0.12":
-  version: 4.0.12
-  resolution: "it-to-buffer@npm:4.0.12"
-  dependencies:
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/8ea07d8b751948d6f07c80b2289b0826e5f67070530e1c6297c2825828fe4d87cecb4050c3d606688f58a9ae63838070bff3aa9868adb667247eda89c4536cf6
+    uint8arrays: "npm:^6.1.0"
+  checksum: 10c0/ca053c87fba74be75c3c7e8adecf8a6f1ee231bf3be73b13ae964ec03c1dc2c5b0234e8fa1c590a266dbf5807a19d4afc1799d922d3ee78dd25763605e6d946c
   languageName: node
   linkType: hard
 
@@ -7367,12 +7611,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kubo-rpc-client@npm:6.1.0":
-  version: 6.1.0
-  resolution: "kubo-rpc-client@npm:6.1.0"
+"kubo-rpc-client@npm:7.1.0":
+  version: 7.1.0
+  resolution: "kubo-rpc-client@npm:7.1.0"
   dependencies:
-    "@ipld/dag-cbor": "npm:^9.0.0"
-    "@ipld/dag-json": "npm:^10.0.0"
+    "@ipld/dag-cbor": "npm:^10.0.1"
+    "@ipld/dag-json": "npm:^11.0.0"
     "@ipld/dag-pb": "npm:^4.0.0"
     "@libp2p/crypto": "npm:^5.0.0"
     "@libp2p/interface": "npm:^3.0.2"
@@ -7381,12 +7625,12 @@ __metadata:
     "@multiformats/multiaddr": "npm:^13.0.1"
     "@multiformats/multiaddr-to-uri": "npm:^12.0.0"
     any-signal: "npm:^4.1.1"
-    blob-to-it: "npm:^2.0.5"
+    blob-to-it: "npm:^3.0.0"
     browser-readablestream-to-it: "npm:^2.0.5"
     dag-jose: "npm:^5.0.0"
     electron-fetch: "npm:^1.9.1"
     err-code: "npm:^3.0.1"
-    ipfs-unixfs: "npm:^12.0.0"
+    ipfs-unixfs: "npm:^13.0.0"
     iso-url: "npm:^1.2.1"
     it-all: "npm:^3.0.4"
     it-first: "npm:^3.0.4"
@@ -7396,48 +7640,83 @@ __metadata:
     it-peekable: "npm:^3.0.3"
     it-to-stream: "npm:^1.0.0"
     merge-options: "npm:^3.0.4"
-    multiformats: "npm:^13.1.0"
+    multiformats: "npm:^14.0.0"
     nanoid: "npm:^5.0.7"
     parse-duration: "npm:^2.1.2"
     stream-to-it: "npm:^1.0.1"
-    uint8arrays: "npm:^5.0.3"
+    uint8arrays: "npm:^6.1.1"
     wherearewe: "npm:^2.0.1"
-  checksum: 10c0/31620eaf9f0d22caa32fcb58d674746b08fe656c5a1b4e116bc1834842878fd935e22229cb356a1266501accdc385441f37fec80839c086dac8bfcdac36e63f1
+  checksum: 10c0/aa85ea094a65086f5cde4e38456712935cd9a95eba42b0327ff677b4d691a97c588a4a633891abc21c78721c737015fa5709a964a39e54f6d607cb4d06ab39f9
   languageName: node
   linkType: hard
 
-"libp2p@npm:^3.2.0":
-  version: 3.2.4
-  resolution: "libp2p@npm:3.2.4"
+"libp2p@npm:3.5.1":
+  version: 3.5.1
+  resolution: "libp2p@npm:3.5.1"
   dependencies:
     "@chainsafe/is-ip": "npm:^2.1.0"
     "@chainsafe/netmask": "npm:^2.0.0"
-    "@libp2p/crypto": "npm:^5.1.17"
-    "@libp2p/interface": "npm:^3.2.2"
-    "@libp2p/interface-internal": "npm:^3.1.3"
-    "@libp2p/logger": "npm:^6.2.6"
-    "@libp2p/multistream-select": "npm:^7.0.18"
-    "@libp2p/peer-collections": "npm:^7.0.18"
-    "@libp2p/peer-id": "npm:^6.0.8"
-    "@libp2p/peer-store": "npm:^12.0.18"
-    "@libp2p/utils": "npm:^7.1.0"
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.2"
+    "@libp2p/logger": "npm:^6.2.16"
+    "@libp2p/multistream-select": "npm:^7.0.32"
+    "@libp2p/peer-collections": "npm:^7.0.32"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/peer-store": "npm:^12.0.32"
+    "@libp2p/utils": "npm:^7.4.5"
     "@multiformats/dns": "npm:^1.0.6"
-    "@multiformats/multiaddr": "npm:^13.0.1"
-    "@multiformats/multiaddr-matcher": "npm:^3.0.1"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
     any-signal: "npm:^4.1.1"
-    datastore-core: "npm:^11.0.1"
-    interface-datastore: "npm:^9.0.1"
+    datastore-core: "npm:^12.0.1"
+    interface-datastore: "npm:^10.0.1"
     it-merge: "npm:^3.0.12"
     it-parallel: "npm:^3.0.13"
-    main-event: "npm:^1.0.1"
-    multiformats: "npm:^13.4.0"
+    main-event: "npm:^1.0.5"
+    multiformats: "npm:^14.0.0"
     p-defer: "npm:^4.0.1"
-    p-event: "npm:^7.0.0"
+    p-event: "npm:^8.0.1"
     p-retry: "npm:^8.0.0"
     progress-events: "npm:^1.1.0"
     race-signal: "npm:^2.0.0"
-    uint8arrays: "npm:^5.1.0"
-  checksum: 10c0/12bf192d0958fdcb752b778f77c990dc769821eb561de0800884adb52cb3a3aebb35f97de3ce007f1f2c0c6018c2b9aa7b645bbdb94fb4871b2d14a37219cf5d
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/abb42006a54010dead4a5b3899686a37d71a3da8720f50accfcf8c2ae2e83ba43781ff5fd4dab2ceb8fd87959a64efcdc097f14b95611c87ee96c277b2e7f905
+  languageName: node
+  linkType: hard
+
+"libp2p@npm:^3.3.3":
+  version: 3.5.2
+  resolution: "libp2p@npm:3.5.2"
+  dependencies:
+    "@chainsafe/is-ip": "npm:^2.1.0"
+    "@chainsafe/netmask": "npm:^2.0.0"
+    "@libp2p/crypto": "npm:^5.2.0"
+    "@libp2p/interface": "npm:^3.4.0"
+    "@libp2p/interface-internal": "npm:^3.2.3"
+    "@libp2p/logger": "npm:^6.2.16"
+    "@libp2p/multistream-select": "npm:^7.0.33"
+    "@libp2p/peer-collections": "npm:^7.0.33"
+    "@libp2p/peer-id": "npm:^6.0.18"
+    "@libp2p/peer-store": "npm:^12.0.33"
+    "@libp2p/utils": "npm:^7.4.6"
+    "@multiformats/dns": "npm:^1.0.6"
+    "@multiformats/multiaddr": "npm:^13.0.3"
+    "@multiformats/multiaddr-matcher": "npm:^3.0.2"
+    any-signal: "npm:^4.1.1"
+    datastore-core: "npm:^12.0.1"
+    interface-datastore: "npm:^10.0.1"
+    it-merge: "npm:^3.0.12"
+    it-parallel: "npm:^3.0.13"
+    main-event: "npm:^1.0.5"
+    multiformats: "npm:^14.0.0"
+    p-defer: "npm:^4.0.1"
+    p-event: "npm:^8.0.1"
+    p-retry: "npm:^8.0.0"
+    progress-events: "npm:^1.1.0"
+    race-signal: "npm:^2.0.0"
+    uint8arrays: "npm:^6.1.1"
+  checksum: 10c0/2a75f42a92aae2faa55fe835598613db71460cc9f58ef589677b8179ab633d8b7773e0f6678ca16ad895d43f4496ebd7af6faaf61a052411e899788c69842a05
   languageName: node
   linkType: hard
 
@@ -7796,6 +8075,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"main-event@npm:^1.0.4, main-event@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "main-event@npm:1.0.5"
+  checksum: 10c0/dc8ca99043dca967b783658323d87c3db1e826bb31153c385aa2974390c741726cef7d256510d4da6ae99b4893c6e6a9bb64fda4fb58b9d6150d5d19a35d6418
+  languageName: node
+  linkType: hard
+
 "make-fetch-happen@npm:^15.0.0":
   version: 15.0.5
   resolution: "make-fetch-happen@npm:15.0.5"
@@ -8143,6 +8429,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ms@npm:^4.0.0-nightly.202508271359":
+  version: 4.0.0-nightly.202508271359
+  resolution: "ms@npm:4.0.0-nightly.202508271359"
+  checksum: 10c0/924aadb4a82c2938d72ecc8a80dc0c59ead03467fce20e7d5ef73849bbee126c566a0602b95af2885dbfc4b846a25fe62ec1b0add9cdc1b0ad009f551a042845
+  languageName: node
+  linkType: hard
+
 "multibase@npm:^4.0.1":
   version: 4.0.6
   resolution: "multibase@npm:4.0.6"
@@ -8174,7 +8467,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"multiformats@npm:^13.0.0, multiformats@npm:^13.1.0, multiformats@npm:^13.2.2, multiformats@npm:^13.3.1, multiformats@npm:^13.3.6, multiformats@npm:^13.3.7, multiformats@npm:^13.4.0, multiformats@npm:^13.4.1, multiformats@npm:^13.4.2":
+"multiformats@npm:14.0.7":
+  version: 14.0.7
+  resolution: "multiformats@npm:14.0.7"
+  checksum: 10c0/944f2ac1f0b4bfe8c2fccf70f4697222348c53461631ff919a3cb6758ef6032035dc0b9089359ecfe75a52921be428d444b7794115f2e4e2d976ffb7b4d64420
+  languageName: node
+  linkType: hard
+
+"multiformats@npm:^13.0.0, multiformats@npm:^13.1.0, multiformats@npm:^13.3.1, multiformats@npm:^13.4.0, multiformats@npm:^13.4.1":
   version: 13.4.2
   resolution: "multiformats@npm:13.4.2"
   checksum: 10c0/b7be09b8bf8198d601c8f8c9a358b9a6aca5a14d61239a84f88d8266322e4e7c3015fe7bdf88b589b9993a4abb752defabb932719d1b457a53277e264c4cee11
@@ -8266,6 +8566,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nanoid@npm:^6.0.0":
+  version: 6.0.2
+  resolution: "nanoid@npm:6.0.2"
+  bin:
+    nanoid: bin/nanoid.js
+  checksum: 10c0/3c0223d2e658e6bab838af37112731df28eb5146b982e1b89bc1889b7a1476e0a36b4aa37ac6a567e7ebaf22a690d7916a80143a84cef77bd77416d0f1d20b9c
+  languageName: node
+  linkType: hard
+
 "napi-build-utils@npm:^2.0.0":
   version: 2.0.0
   resolution: "napi-build-utils@npm:2.0.0"
@@ -8325,13 +8634,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-datachannel@npm:^0.32.3":
-  version: 0.32.3
-  resolution: "node-datachannel@npm:0.32.3"
+"node-datachannel@npm:^0.33.0":
+  version: 0.33.6
+  resolution: "node-datachannel@npm:0.33.6"
   dependencies:
-    node-gyp: "npm:latest"
-    prebuild-install: "npm:^7.1.3"
-  checksum: 10c0/0fd97b926f9b28bf6a347ef52de4e2ac8902db02ab93774c32ae13b7d685ec98994b70c23b154071d538c4da8e27fac5d64e4e87a89acada5a47997903869a62
+    "@node-datachannel/android-arm64": "npm:0.33.6"
+    "@node-datachannel/darwin-arm64": "npm:0.33.6"
+    "@node-datachannel/darwin-x64": "npm:0.33.6"
+    "@node-datachannel/linux-arm64-gnu": "npm:0.33.6"
+    "@node-datachannel/linux-arm64-musl": "npm:0.33.6"
+    "@node-datachannel/linux-x64-gnu": "npm:0.33.6"
+    "@node-datachannel/linux-x64-musl": "npm:0.33.6"
+    "@node-datachannel/win32-arm64-msvc": "npm:0.33.6"
+    "@node-datachannel/win32-x64-msvc": "npm:0.33.6"
+    detect-libc: "npm:^2.0.4"
+  dependenciesMeta:
+    "@node-datachannel/android-arm64":
+      optional: true
+    "@node-datachannel/darwin-arm64":
+      optional: true
+    "@node-datachannel/darwin-x64":
+      optional: true
+    "@node-datachannel/linux-arm64-gnu":
+      optional: true
+    "@node-datachannel/linux-arm64-musl":
+      optional: true
+    "@node-datachannel/linux-x64-gnu":
+      optional: true
+    "@node-datachannel/linux-x64-musl":
+      optional: true
+    "@node-datachannel/win32-arm64-msvc":
+      optional: true
+    "@node-datachannel/win32-x64-msvc":
+      optional: true
+  checksum: 10c0/6e0b5a2818761e4ddd7ab60d23c373712137a55f0ce078667990c7d80641a9c5a119fbbbeae836561481f8c1083f60c9ccae6620cc782823fb5694ead8329670
   languageName: node
   linkType: hard
 
@@ -8353,6 +8689,13 @@ __metadata:
     encoding:
       optional: true
   checksum: 10c0/b55786b6028208e6fbe594ccccc213cab67a72899c9234eb59dba51062a299ea853210fcf526998eaa2867b0963ad72338824450905679ff0fa304b8c5093ae8
+  languageName: node
+  linkType: hard
+
+"node-forge@npm:1.4.2":
+  version: 1.4.2
+  resolution: "node-forge@npm:1.4.2"
+  checksum: 10c0/fb80d5eac8018f413647e17e6278876d0bfff8b32e8e51c4132584ddcef6b1881cc647a278072af3c2611744397e7844fc0f87f940ed818ec423f4d0c48db10a
   languageName: node
   linkType: hard
 
@@ -8650,6 +8993,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"p-event@npm:^8.0.1":
+  version: 8.0.2
+  resolution: "p-event@npm:8.0.2"
+  dependencies:
+    p-timeout: "npm:^8.0.0"
+  checksum: 10c0/33e19862e940b1ac0507d6b94e10a14c07986723035783d131fd3f795f3a341591ec1a1500135a4e7ba8339a55e17520f57c38bb1b8ab364ccf8aac8b23e3e27
+  languageName: node
+  linkType: hard
+
 "p-fifo@npm:^1.0.0":
   version: 1.0.0
   resolution: "p-fifo@npm:1.0.0"
@@ -8704,6 +9056,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"p-queue@npm:^9.2.0":
+  version: 9.3.5
+  resolution: "p-queue@npm:9.3.5"
+  dependencies:
+    eventemitter3: "npm:^5.0.4"
+    p-timeout: "npm:^7.0.0"
+  checksum: 10c0/44652095edcf36e44bafda8fd6bb6be2d96e1fc05982f0f26afd768e0b07e228dc206b07b3c303771494cecfd28e5797f8e8771c9d5db280561e031fbfcb57a5
+  languageName: node
+  linkType: hard
+
 "p-retry@npm:8.0.0, p-retry@npm:^8.0.0":
   version: 8.0.0
   resolution: "p-retry@npm:8.0.0"
@@ -8717,6 +9079,13 @@ __metadata:
   version: 7.0.1
   resolution: "p-timeout@npm:7.0.1"
   checksum: 10c0/87d96529d1096d506607218dba6f9ec077c6dbedd0c2e2788c748e33bcd05faae8a81009fd9d22ec0b3c95fc83f4717306baba223f6e464737d8b99294c3e863
+  languageName: node
+  linkType: hard
+
+"p-timeout@npm:^8.0.0":
+  version: 8.1.0
+  resolution: "p-timeout@npm:8.1.0"
+  checksum: 10c0/7e40be84d7f558d76f16a84c5ba1cc4e83759beb1136829ff9f45b32d6b8672c4edcd84452a29878c3f5c8652d5bf684dbd5e417531a39a5bf1e77bdffb321ad
   languageName: node
   linkType: hard
 
@@ -8969,7 +9338,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prebuild-install@npm:^7.1.1, prebuild-install@npm:^7.1.3":
+"prebuild-install@npm:^7.1.1":
   version: 7.1.3
   resolution: "prebuild-install@npm:7.1.3"
   dependencies:
@@ -9058,17 +9427,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"protons-runtime@npm:^5.5.0, protons-runtime@npm:^5.6.0":
-  version: 5.6.0
-  resolution: "protons-runtime@npm:5.6.0"
-  dependencies:
-    uint8-varint: "npm:^2.0.2"
-    uint8arraylist: "npm:^2.4.3"
-    uint8arrays: "npm:^5.0.1"
-  checksum: 10c0/f6961e0ce30d7018b6bf35183384fdf540e58db4b3051342d616bb6a5ffefec0aaca168c5356ce6cf0d6b92cb736149c30f42a7558a76cbb8da9a5ba90827892
-  languageName: node
-  linkType: hard
-
 "protons-runtime@npm:^6.0.1":
   version: 6.0.1
   resolution: "protons-runtime@npm:6.0.1"
@@ -9088,6 +9446,17 @@ __metadata:
     uint8arraylist: "npm:^3.0.0"
     uint8arrays: "npm:^6.0.0"
   checksum: 10c0/11236e9054f8692cfb00a45547a33fdc0fc0ecb8c4b2cc1f54788dee64ef7ac72af8f89cd80ff334d22b367d0c1daf7dd8cdc62a3739280079d0ca3acafa1c62
+  languageName: node
+  linkType: hard
+
+"protons-runtime@npm:^8.0.1":
+  version: 8.0.2
+  resolution: "protons-runtime@npm:8.0.2"
+  dependencies:
+    uint8-varint: "npm:^3.0.0"
+    uint8arraylist: "npm:^3.0.0"
+    uint8arrays: "npm:^6.0.0"
+  checksum: 10c0/b6e33ccfb671b6c489b02518060f8972c552f1e990543e399dca34a05395ac80fcc161d2b049614c969442ed5ae54735da498a1d4e4defdd73b23cd953316992
   languageName: node
   linkType: hard
 
@@ -9154,6 +9523,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"quick-lru@npm:5.1.1":
+  version: 5.1.1
+  resolution: "quick-lru@npm:5.1.1"
+  checksum: 10c0/a24cba5da8cec30d70d2484be37622580f64765fb6390a928b17f60cd69e8dbd32a954b3ff9176fa1b86d86ff2ba05252fae55dc4d40d0291c60412b0ad096da
+  languageName: node
+  linkType: hard
+
 "quick-lru@npm:^4.0.1":
   version: 4.0.1
   resolution: "quick-lru@npm:4.0.1"
@@ -9190,6 +9566,13 @@ __metadata:
   version: 2.0.0
   resolution: "race-signal@npm:2.0.0"
   checksum: 10c0/120a4d7562ee238cd5e2bfb732ae1ca8d3657910287a28cb0bb77c19f6fbf7080d289eb4ef12842dca17045815aa7185f6b8d1481eb30f8c867d4434e2d2a531
+  languageName: node
+  linkType: hard
+
+"race-signal@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "race-signal@npm:2.0.2"
+  checksum: 10c0/61d2ba4cdda0b79b82aadd2a830aa443a9081256b5de2f1dba502f8a2fcee4f5a8a9bd3e3c1cf06d14ad41260a37499892afe69b51b9165db3aadd74693f64b8
   languageName: node
   linkType: hard
 
@@ -9365,10 +9748,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remeda@npm:1.57.0":
-  version: 1.57.0
-  resolution: "remeda@npm:1.57.0"
-  checksum: 10c0/d5b455ee854ddf83dbf30fff279edf6c1e5a89885bfdf89a383ec003a9ecf6076be8d9d784d8ad0689bc129ba7480b308ae0cd8acfc85666d7df6d441dcca9ab
+"remeda@npm:2.39.0":
+  version: 2.39.0
+  resolution: "remeda@npm:2.39.0"
+  checksum: 10c0/5891871c93b47c501937d6e4a1c05d0b199b4402a8eb3a7a08653e81acc4ce45ae3cff4c90785d867f5e9b5f75e27b5120f0240e8ce490fbf2ab8c48013cc8af
   languageName: node
   linkType: hard
 
@@ -9637,6 +10020,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sanitize-filename@npm:^1.6.4":
+  version: 1.6.5
+  resolution: "sanitize-filename@npm:1.6.5"
+  dependencies:
+    truncate-utf8-bytes: "npm:^1.0.0"
+  checksum: 10c0/20479a6bb6e550a99b25e1e590cf985fe7e41363a363e7f27c0dd783fd91587846901763570d5e2ebdd53b3c63d37f8807671d654d87f1afd52b6a54819215f8
+  languageName: node
+  linkType: hard
+
 "sax@npm:>=0.6.0, sax@npm:^1.2.4":
   version: 1.6.0
   resolution: "sax@npm:1.6.0"
@@ -9708,17 +10100,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"signal-exit@npm:4.1.0, signal-exit@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "signal-exit@npm:4.1.0"
-  checksum: 10c0/41602dce540e46d599edba9d9860193398d135f7ff72cab629db5171516cfae628d21e7bfccde1bbfdf11c48726bc2a6d1a8fb8701125852fbfda7cf19c6aa83
-  languageName: node
-  linkType: hard
-
 "signal-exit@npm:^3.0.2":
   version: 3.0.7
   resolution: "signal-exit@npm:3.0.7"
   checksum: 10c0/25d272fa73e146048565e08f3309d5b942c1979a6f4a58a8c59d5fa299728e9c2fcd1a759ec870863b1fd38653670240cd420dad2ad9330c71f36608a6a1c912
+  languageName: node
+  linkType: hard
+
+"signal-exit@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "signal-exit@npm:4.1.0"
+  checksum: 10c0/41602dce540e46d599edba9d9860193398d135f7ff72cab629db5171516cfae628d21e7bfccde1bbfdf11c48726bc2a6d1a8fb8701125852fbfda7cf19c6aa83
   languageName: node
   linkType: hard
 
@@ -9882,6 +10274,13 @@ __metadata:
   version: 0.2.2
   resolution: "stdin-discarder@npm:0.2.2"
   checksum: 10c0/c78375e82e956d7a64be6e63c809c7f058f5303efcaf62ea48350af072bacdb99c06cba39209b45a071c1acbd49116af30df1df9abb448df78a6005b72f10537
+  languageName: node
+  linkType: hard
+
+"steno@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "steno@npm:4.0.2"
+  checksum: 10c0/fda6bb192bb73ce9453586080aae3fc75506e1c10c9285df49849a016bb9378c6146610f27976708437a6c5492619ec09efb9def6d5397624ae0ad70e57ccaf1
   languageName: node
   linkType: hard
 
@@ -10066,16 +10465,6 @@ __metadata:
     minizlib: "npm:^3.1.0"
     yallist: "npm:^5.0.0"
   checksum: 10c0/1311f6be85a8157ac4c9147bae43e13923d2a1aae15e4aa1bd5239e4e03d2cf53cfe103dde7f35832fbb4c938b042856bc8e9a0afd29abd05e2d1608788c4fea
-  languageName: node
-  linkType: hard
-
-"tcp-port-used@npm:1.0.2":
-  version: 1.0.2
-  resolution: "tcp-port-used@npm:1.0.2"
-  dependencies:
-    debug: "npm:4.3.1"
-    is2: "npm:^2.0.6"
-  checksum: 10c0/a5fb29e35f1e452f1064e3671d02b6d65e7d9bffad98d8da688270b6ffdaa9a8351fe8321aedf131f3904af70b569d9c5f6d9fe75d57dda19c466abac2bc025a
   languageName: node
   linkType: hard
 
@@ -10463,7 +10852,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uint8-varint@npm:^2.0.1, uint8-varint@npm:^2.0.2, uint8-varint@npm:^2.0.4":
+"uint8-varint@npm:^2.0.1, uint8-varint@npm:^2.0.4":
   version: 2.0.4
   resolution: "uint8-varint@npm:2.0.4"
   dependencies:
@@ -10483,7 +10872,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uint8arraylist@npm:^2.0.0, uint8arraylist@npm:^2.4.3, uint8arraylist@npm:^2.4.8":
+"uint8arraylist@npm:^2.0.0, uint8arraylist@npm:^2.4.8":
   version: 2.4.8
   resolution: "uint8arraylist@npm:2.4.8"
   dependencies:
@@ -10501,12 +10890,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uint8arrays@npm:5.1.0, uint8arrays@npm:^5.0.0, uint8arrays@npm:^5.0.1, uint8arrays@npm:^5.0.2, uint8arrays@npm:^5.0.3, uint8arrays@npm:^5.1.0":
+"uint8arrays@npm:5.1.0, uint8arrays@npm:^5.0.0, uint8arrays@npm:^5.0.1, uint8arrays@npm:^5.0.2, uint8arrays@npm:^5.1.0":
   version: 5.1.0
   resolution: "uint8arrays@npm:5.1.0"
   dependencies:
     multiformats: "npm:^13.0.0"
   checksum: 10c0/e7587f97d03a17a608becd01b3ca52aa6db43e7ee6156c18b278c715a62f4f9e62ef2fe9432a3cd02791b6222a17578476a20b8e3ea37dd3b5ce454c6a8782a9
+  languageName: node
+  linkType: hard
+
+"uint8arrays@npm:6.1.1, uint8arrays@npm:^6.0.0, uint8arrays@npm:^6.1.0, uint8arrays@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "uint8arrays@npm:6.1.1"
+  dependencies:
+    multiformats: "npm:^14.0.0"
+  checksum: 10c0/5814d69e5fada5d169ee8e88c750ad4ddf57a6ee86a7fe9534b86b55a147fab8e0b75d66cb1d2a1c6c2350526edd03e57a3ab5f0a0977c8ac13a6ce350c7b958
   languageName: node
   linkType: hard
 
@@ -10525,15 +10923,6 @@ __metadata:
   dependencies:
     multiformats: "npm:^9.4.2"
   checksum: 10c0/9946668e04f29b46bbb73cca3d190f63a2fbfe5452f8e6551ef4257d9d597b72da48fa895c15ef2ef772808a5335b3305f69da5f13a09f8c2924896b409565ff
-  languageName: node
-  linkType: hard
-
-"uint8arrays@npm:^6.0.0, uint8arrays@npm:^6.1.0, uint8arrays@npm:^6.1.1":
-  version: 6.1.1
-  resolution: "uint8arrays@npm:6.1.1"
-  dependencies:
-    multiformats: "npm:^14.0.0"
-  checksum: 10c0/5814d69e5fada5d169ee8e88c750ad4ddf57a6ee86a7fe9534b86b55a147fab8e0b75d66cb1d2a1c6c2350526edd03e57a3ab5f0a0977c8ac13a6ce350c7b958
   languageName: node
   linkType: hard
 
@@ -10562,6 +10951,13 @@ __metadata:
   version: 8.10.2
   resolution: "undici@npm:8.10.2"
   checksum: 10c0/66d7fc69149207cab570d6abbc9e965b6afe1ae889a7d46945b431165c973d6a56f3dd8b70a856e7ae1e550b6366a1cde6f06e68640587f0dadca38de72995ee
+  languageName: node
+  linkType: hard
+
+"undici@npm:8.12.3":
+  version: 8.12.3
+  resolution: "undici@npm:8.12.3"
+  checksum: 10c0/714919e62b4160eea195fb35c7f5c4907235741e47bfde8a014ac58f6d24df13434e23400d7f48e2c455fd2b259d27f07fce514f04a5b4e99936ba62cbc4bb71
   languageName: node
   linkType: hard
 
@@ -10653,12 +11049,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:13.0.1":
-  version: 13.0.1
-  resolution: "uuid@npm:13.0.1"
+"uuid@npm:14.0.3":
+  version: 14.0.3
+  resolution: "uuid@npm:14.0.3"
   bin:
     uuid: dist-node/bin/uuid
-  checksum: 10c0/7bb8ad18b11871b7bd1b9161a60610c2b6ce8f7300d93932f92117a2ab9b40479dd23e81929ac848e8a7c45f78b8ed3333f88694b71c17ff3265e443f8684642
+  checksum: 10c0/e56e610ae3bd1ca099244e01ee5eff502675ede4601d971b80fff993ad97236c80197340113f759e6ead501ee6a8d52648f6deef1332ce9f192c4720f4891f62
   languageName: node
   linkType: hard
 
@@ -10827,6 +11223,16 @@ __metadata:
     ms: "npm:^3.0.0-canary.1"
     supports-color: "npm:^10.0.0"
   checksum: 10c0/9186b5d4b2315763b9d71dcfb27318227a25426c6788c2d488a18fae1e2e5d11176bbc0750662056908d8467d4ff680ee78c3fdfd5ecf67dba0a9257b72d2a1b
+  languageName: node
+  linkType: hard
+
+"weald@npm:^1.1.2":
+  version: 1.1.3
+  resolution: "weald@npm:1.1.3"
+  dependencies:
+    ms: "npm:^4.0.0-nightly.202508271359"
+    supports-color: "npm:^10.0.0"
+  checksum: 10c0/c613ddc07009afed56b3860b9037e63beb21adc547a90d543fbe08aa369d4a2bfdadffeb369a957b74a941dddb08119b007d5cefd776e774b2303c678a0e5b04
   languageName: node
   linkType: hard
 
@@ -11019,6 +11425,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ws@npm:8.22.0":
+  version: 8.22.0
+  resolution: "ws@npm:8.22.0"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 10c0/7304d14ef38898dd366a528a85e2da389c4eebf30f4ce8a007bd2dce6025f9b619cefe44fe2354f0bad0ec541b1c9a4da06a3f3e046ab56f01fd52d5784ecfb2
+  languageName: node
+  linkType: hard
+
 "wsl-utils@npm:^0.1.0":
   version: 0.1.0
   resolution: "wsl-utils@npm:0.1.0"
@@ -11123,9 +11544,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:4.3.6":
-  version: 4.3.6
-  resolution: "zod@npm:4.3.6"
-  checksum: 10c0/860d25a81ab41d33aa25f8d0d07b091a04acb426e605f396227a796e9e800c44723ed96d0f53a512b57be3d1520f45bf69c0cb3b378a232a00787a2609625307
+"zod@npm:4.6.7":
+  version: 4.6.7
+  resolution: "zod@npm:4.6.7"
+  checksum: 10c0/4ce2eb14034317b7254e347ca37b5ad591cf8333147030cf05b9b5d31692d45073f7f2747aa50cf8c6b29012194d2b22978cecc89969cf34a0d18e89d0ee7d7b
   languageName: node
   linkType: hard

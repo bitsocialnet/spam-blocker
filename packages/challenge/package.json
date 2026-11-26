@@ -52,7 +52,7 @@
         "zod": "4.3.5"
     },
     "devDependencies": {
-        "@pkcprotocol/pkc-js": "0.0.30",
+        "@pkcprotocol/pkc-js": "0.0.163",
         "esbuild": "0.27.2",
         "typescript": "7.0.2",
         "vitest": "4.1.12"
