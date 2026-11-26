@@ -1,5 +1,11 @@
 # Changelog
 
+## <small>0.1.18 (2026-11-26)</small>
+
+* fix(challenge): fail with a clear error when the spam blocker server is unreachable (#35) ([659bd6a](https://github.com/bitsocialnet/spam-blocker/commit/659bd6a)), closes [#35](https://github.com/bitsocialnet/spam-blocker/issues/35)
+* docs: open the README with the SpamBlocker icon header (#34) ([4b91b28](https://github.com/bitsocialnet/spam-blocker/commit/4b91b28)), closes [#34](https://github.com/bitsocialnet/spam-blocker/issues/34)
+* chore(design): add the Spam Blocker icon (#33) ([790ea54](https://github.com/bitsocialnet/spam-blocker/commit/790ea54)), closes [#33](https://github.com/bitsocialnet/spam-blocker/issues/33) [#3](https://github.com/bitsocialnet/spam-blocker/issues/3)
+
 ## <small>0.1.17 (2026-11-26)</small>
 
 * feat(challenge): reject invalid options through pkc-js's validateChallengeSettings hook (#32) ([6a59922](https://github.com/bitsocialnet/spam-blocker/commit/6a59922)), closes [#32](https://github.com/bitsocialnet/spam-blocker/issues/32) [#14](https://github.com/bitsocialnet/spam-blocker/issues/14)
