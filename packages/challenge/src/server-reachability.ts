@@ -1,6 +1,6 @@
 import Logger from "@pkcprotocol/pkc-logger";
 
-const log = Logger("bitsocial:community:challenge:spam-blocker:reachability");
+const log = Logger({ namespace: "bitsocial:community:challenge:spam-blocker:reachability" });
 
 // A busy community probes about once a minute while the server is up, and sees a recovered server within 15 s.
 const REACHABLE_TTL_MS = 60_000;
