@@ -90,12 +90,12 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
-describe("Bitsocial Spam Blocker challenge package", () => {
+describe("Bitsocial SpamBlocker challenge package", () => {
     it("exposes metadata and option inputs", () => {
         const challengeFile = ChallengeFileFactory({} as CommunityChallengeSetting);
 
         expect(challengeFile.type).toBe("url/iframe");
-        expect(challengeFile.description).toMatch(/Bitsocial Spam Blocker/i);
+        expect(challengeFile.description).toMatch(/Bitsocial SpamBlocker/i);
         expect(challengeFile.optionInputs.some((input) => input.option === "serverUrl")).toBe(true);
     });
 
@@ -706,7 +706,7 @@ describe("Bitsocial Spam Blocker challenge package", () => {
 
         const verifyResult = await result.verify("token");
         expect(verifyResult).toHaveProperty("success", false);
-        expect((verifyResult as any).error).toMatch(/Bitsocial Spam Blocker server error \(500\).*boom/i);
+        expect((verifyResult as any).error).toMatch(/Bitsocial SpamBlocker server error \(500\).*boom/i);
     });
 
     it("returns {success:false} when verify returns invalid JSON", async () => {

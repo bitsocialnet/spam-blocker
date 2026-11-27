@@ -12,7 +12,7 @@ Risk scoring that keeps spam and ban evasion out of Bitsocial communities.
 
 SpamBlocker scores posts, replies, and votes for spam risk before a community accepts them. A community installs the challenge package, which sends each publication to a spam blocker service. Low-risk publications pass, high-risk ones are rejected, and the rest are asked to verify with an OAuth sign-in or a CAPTCHA.
 
-This repository is the public integration surface: the challenge package, the shared schemas, and the API contract. The official hosted service at `https://spamblocker.bitsocial.net/api/v1` is closed source and lives in a separate private repository. See [Hosted Spam Blocker Source Policy](./docs/architecture/hosted-service-source-policy.md) for the reasoning.
+This repository is the public integration surface: the challenge package, the shared schemas, and the API contract. The official hosted service at `https://spamblocker.bitsocial.net/api/v1` is closed source and lives in a separate private repository. See [Hosted SpamBlocker Source Policy](./docs/architecture/hosted-service-source-policy.md) for the reasoning.
 
 ## Contents
 
@@ -159,7 +159,7 @@ Before it returns the iframe, `getChallenge()` checks that the service answers [
 
 When the service is down, the challenge fails at once instead of returning an iframe that could not load:
 
-> Bitsocial Spam Blocker (spamblocker.bitsocial.net) is unreachable right now, so its check cannot run. You can still post by meeting one of this community's other requirements, or try again later.
+> Bitsocial SpamBlocker (spamblocker.bitsocial.net) is unreachable right now, so its check cannot run. You can still post by meeting one of this community's other requirements, or try again later.
 
 The second sentence is only `Try again later.` when no `exclude` entry names other challenges. Clients show this error next to the errors of the community's other challenges, so an author who has a `.bso` name or is whitelisted, where this challenge excludes on those challenges, still posts as usual. The same message replaces the raw error when `/challenge/verify` fails on a network error or a gateway status (502 to 504, or Cloudflare's 520 to 530) after the iframe opened.
 

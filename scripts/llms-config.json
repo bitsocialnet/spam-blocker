@@ -1,13 +1,13 @@
 {
-    "title": "Bitsocial Spam Blocker",
-    "summary": "Bitsocial Spam Blocker provides the public challenge package and shared schemas for Bitsocial spam risk checks.",
-    "repoUrl": "https://github.com/bitsocialnet/spam-blocker",
-    "llmsUrl": "https://github.com/bitsocialnet/spam-blocker/blob/master/llms.txt",
-    "llmsFullUrl": "https://github.com/bitsocialnet/spam-blocker/blob/master/llms-full.txt",
+    "title": "Bitsocial SpamBlocker",
+    "summary": "Bitsocial SpamBlocker provides the public challenge package and shared schemas for Bitsocial spam risk checks.",
+    "repoUrl": "https://github.com/bitsocialnet/spamblocker",
+    "llmsUrl": "https://github.com/bitsocialnet/spamblocker/blob/master/llms.txt",
+    "llmsFullUrl": "https://github.com/bitsocialnet/spamblocker/blob/master/llms-full.txt",
     "shortOutputs": ["llms.txt"],
     "fullOutputs": ["llms-full.txt"],
     "links": [
-        ["Repository", "https://github.com/bitsocialnet/spam-blocker"],
+        ["Repository", "https://github.com/bitsocialnet/spamblocker"],
         ["Challenge package", "https://www.npmjs.com/package/@bitsocial/spam-blocker-challenge"],
         ["Bitsocial protocol", "https://bitsocial.net"]
     ],

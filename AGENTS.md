@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This file defines the always-on rules for AI agents working on Bitsocial Spam Blocker.
+This file defines the always-on rules for AI agents working on Bitsocial SpamBlocker.
 Use it as the default policy. Load linked playbooks only when their trigger condition applies.
 
 ## Surprise Handling

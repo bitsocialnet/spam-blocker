@@ -25,7 +25,7 @@ const makeArgs = (overrides?: Partial<GetChallengeArgs>): GetChallengeArgs =>
         ...overrides
     }) as unknown as GetChallengeArgs;
 
-const UNREACHABLE = /^Bitsocial Spam Blocker \(localhost:9999\) is unreachable right now, so its check cannot run\./;
+const UNREACHABLE = /^Bitsocial SpamBlocker \(localhost:9999\) is unreachable right now, so its check cannot run\./;
 
 const response = (body: unknown, { ok = true, status = 200 }: { ok?: boolean; status?: number } = {}) => ({
     ok,
@@ -59,7 +59,7 @@ describe("error handling", () => {
 
             expect(result).toEqual({
                 success: false,
-                error: "Bitsocial Spam Blocker (localhost:9999) is unreachable right now, so its check cannot run. Try again later."
+                error: "Bitsocial SpamBlocker (localhost:9999) is unreachable right now, so its check cannot run. Try again later."
             });
             expect(fetchMock).toHaveBeenCalledTimes(1);
             expect(fetchMock.mock.calls[0]?.[0]).toBe("http://localhost:9999/health");
@@ -79,7 +79,7 @@ describe("error handling", () => {
 
             expect(result).toEqual({
                 success: false,
-                error: "Bitsocial Spam Blocker (localhost:9999) is unreachable right now, so its check cannot run. You can still post by meeting one of this community's other requirements, or try again later."
+                error: "Bitsocial SpamBlocker (localhost:9999) is unreachable right now, so its check cannot run. You can still post by meeting one of this community's other requirements, or try again later."
             });
         });
 

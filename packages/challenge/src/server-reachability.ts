@@ -26,7 +26,7 @@ const probe = async ({ healthUrl }: { healthUrl: string }): Promise<boolean> => 
         const body: unknown = await response.json();
         const status = typeof body === "object" && body !== null ? (body as { status?: unknown }).status : undefined;
         if (status === "ok" || status === "degraded") return true;
-        log.error(`GET ${healthUrl} returned no Spam Blocker health status`);
+        log.error(`GET ${healthUrl} returned no SpamBlocker health status`);
         return false;
     } catch (error) {
         log.error(`GET ${healthUrl} failed: %s`, error instanceof Error ? error.message : String(error));
