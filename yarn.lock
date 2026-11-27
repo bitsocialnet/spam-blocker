@@ -74,7 +74,7 @@ __metadata:
   dependencies:
     "@noble/ed25519": "npm:1.7.5"
     "@pkcprotocol/pkc-js": "npm:0.0.163"
-    "@pkcprotocol/pkc-logger": "npm:0.1.0"
+    "@pkcprotocol/pkc-logger": "npm:0.3.1"
     cborg: "npm:4.3.2"
     esbuild: "npm:0.27.2"
     i18n-iso-countries: "npm:7.14.0"
@@ -2899,6 +2899,15 @@ __metadata:
   dependencies:
     debug: "npm:4.4.3"
   checksum: 10c0/f37dad95e940685d0afa5f3dbecf6dd172bcb9985890807d5d1d09151516e7b8c58f551daaa5c7830e56b9a674fe6b3f4ec4d882d2d9e84a34031a73ed24aa31
+  languageName: node
+  linkType: hard
+
+"@pkcprotocol/pkc-logger@npm:0.3.1":
+  version: 0.3.1
+  resolution: "@pkcprotocol/pkc-logger@npm:0.3.1"
+  dependencies:
+    debug: "npm:4.4.3"
+  checksum: 10c0/902aefb362b36801234d52c466401ae9d300750d5ac89ee7a48e0c1ee3c64612f6db92f40d81d9093de7b1b45e3b5bc69630f30fa1d375815d7053e9ddd43220
   languageName: node
   linkType: hard
 

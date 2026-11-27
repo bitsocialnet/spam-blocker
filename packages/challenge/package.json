@@ -45,7 +45,7 @@
     },
     "dependencies": {
         "@noble/ed25519": "1.7.5",
-        "@pkcprotocol/pkc-logger": "0.1.0",
+        "@pkcprotocol/pkc-logger": "0.3.1",
         "cborg": "4.3.2",
         "i18n-iso-countries": "7.14.0",
         "uint8arrays": "5.1.0",
