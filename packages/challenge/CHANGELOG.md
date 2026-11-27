@@ -1,5 +1,9 @@
 # Changelog
 
+## <small>0.1.19 (2026-11-27)</small>
+
+* fix(challenge): use the SpamBlocker name and the renamed repository (#36) ([2795779](https://github.com/bitsocialnet/spamblocker/commit/2795779)), closes [#36](https://github.com/bitsocialnet/spamblocker/issues/36)
+
 ## <small>0.1.18 (2026-11-26)</small>
 
 * fix(challenge): fail with a clear error when the spam blocker server is unreachable (#35) ([659bd6a](https://github.com/bitsocialnet/spam-blocker/commit/659bd6a)), closes [#35](https://github.com/bitsocialnet/spam-blocker/issues/35)
